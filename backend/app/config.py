@@ -62,7 +62,7 @@ INDUSTRY_FROM_DATA_MIN_SHARE = 0.6
 # Бусты (множители к RRF-скору)
 BOOST_CITY_MATCH = 1.3
 BOOST_CITY_MISMATCH = 0.8  # город указан, но другой: не исключаем
-BOOST_INDUSTRY_MATCH = 1.2
+BOOST_INDUSTRY_MATCH = 1.0  # отрасль угадана по тем же словам запроса: усиливать её второй раз значит считать дважды
 BOOST_EXPERIENCE_BELOW = 0.85
 BOOST_EXCLUDED_TERM = (
     0.3  # у эксперта есть то, что в запросе исключили («не нужен GMP»): опускаем, но не убираем
