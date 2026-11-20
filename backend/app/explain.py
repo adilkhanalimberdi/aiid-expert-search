@@ -21,6 +21,20 @@ TEXTS = {
         "other_industry": "Другая отрасль: {}; запрошена {}",
         "low_experience": "Опыт {} ниже запрошенных {}",
     },
+    "kk": {
+        "matched": "Сәйкес құзыреттілік: {}",
+        "related": "Жақын құзыреттілік: {}",
+        "position": "Сәйкес лауазым: {}",
+        "industry": "Сала: {}",
+        "city": "Қала: {}",
+        "experience": "Тәжірибе: {}",
+        "available": "Бос",
+        "partial": "Ішінара бос",
+        "busy": "Бос емес",
+        "other_city": "Басқа қала: {}; сұралған {}",
+        "other_industry": "Басқа сала: {}; сұралған {}",
+        "low_experience": "Тәжірибе {} сұралған {} мәнінен төмен",
+    },
     "en": {
         "matched": "Matched skill: {}",
         "related": "Related skill: {}",
@@ -39,7 +53,9 @@ TEXTS = {
 
 
 def years_label(years: int, lang: Language = "ru") -> str:
-    """Число с правильной формой слова «год» (или «year»)."""
+    """Число с правильной формой слова «год» (или «year», «жыл»)."""
+    if lang == "kk":
+        return f"{years} жыл"
     if lang == "en":
         return f"{years} year" + ("" if years == 1 else "s")
     if years % 100 in range(11, 15):

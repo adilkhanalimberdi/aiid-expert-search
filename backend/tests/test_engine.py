@@ -200,3 +200,10 @@ def test_order_inside_top_follows_percent_and_availability() -> None:
         ]
     )
     assert [r.id for r in ordered] == ["b", "c", "a", "d"]  # 53 > 0.7*60 > 22; d остаётся вне топ-3
+
+
+def test_kazakh_explanations() -> None:
+    from app.explain import TEXTS, years_label
+
+    assert set(TEXTS["kk"]) == set(TEXTS["ru"])
+    assert years_label(23, "kk") == "23 жыл"

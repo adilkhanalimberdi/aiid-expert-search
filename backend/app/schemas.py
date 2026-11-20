@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 from .config import TEAM_MAX_MEMBERS, TEAM_MIN_MEMBERS
 
 Availability = Literal["available", "partial", "busy"]
-Language = Literal["ru", "en"]  # язык обоснований: reasons и constraints
+Language = Literal["ru", "en", "kk"]  # язык обоснований: reasons и constraints
 
 
 class Expert(BaseModel):
