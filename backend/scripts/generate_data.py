@@ -182,8 +182,7 @@ def generate() -> list[dict]:
                 "availability": status,
                 "organization": f"Синтез-{industry}-{i + 1:03}",
                 "bio": (
-                    f"Консультирует команды: {skills.replace(';', ', ')}. "
-                    "Участвует в отраслевых проектах."
+                    f"Консультирует команды: {skills.replace(';', ', ')}. Участвует в отраслевых проектах."
                 ),
                 "languages": "русский;казахский" + (";английский" if i % 3 == 0 else ""),
                 "email": f"expert{i + 1:03}@example.invalid",

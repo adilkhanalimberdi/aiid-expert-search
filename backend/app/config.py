@@ -46,10 +46,19 @@ BOOST_INDUSTRY_MATCH = 1.2
 BOOST_EXPERIENCE_BELOW = 0.85
 BOOST_AVAILABILITY = {"available": 1.0, "partial": 0.85, "busy": 0.7}
 FEEDBACK_STEP = 0.05  # x(1 + step * (лайки - дизлайки))
-FEEDBACK_MIN, FEEDBACK_MAX = 0.8, 1.2  # Процент соответствия: 100 * (W_SEMANTIC * смысл + W_COVERAGE * покрытие)
+FEEDBACK_MIN, FEEDBACK_MAX = (
+    0.8,
+    1.2,
+)  # Процент соответствия: 100 * (W_SEMANTIC * смысл + W_COVERAGE * покрытие)
 W_SEMANTIC = 0.6
 W_COVERAGE = 0.4
 COS_FLOOR, COS_CEIL = 0.3, 0.8  # косинус растягивается с [0.3, 0.8] на [0, 1]
 PERCENT_CAP = 99  # Обоснование
 RELATED_COS_THRESHOLD = 0.6  # компетенция «близка по смыслу»
 WEAK_MATCH_COS = 0.35  # ниже: weak_match = true
+
+# Параметры вычислений и ограничений ресурсов (не веса релевантности).
+CPU_THREADS = 4
+ENCODE_BATCH_SIZE = 16
+UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+STATS_TOP_N = 5
