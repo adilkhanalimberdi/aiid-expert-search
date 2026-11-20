@@ -6,9 +6,9 @@ import { DataPage } from './pages/DataPage'
 import { SearchPage } from './pages/SearchPage'
 
 const TABS = [
-  { id: 'search', label: 'Поиск' },
-  { id: 'data', label: 'Данные' },
-  { id: 'analytics', label: 'Аналитика' },
+  { id: 'search', label: 'Search' },
+  { id: 'data', label: 'Data' },
+  { id: 'analytics', label: 'Analytics' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -19,7 +19,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="bg-ink">
-        <nav className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-6" aria-label="Разделы">
+        <nav className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-6" aria-label="Sections">
           <Brand />
           <ul className="flex gap-1">
             {TABS.map((item) => (
@@ -54,7 +54,7 @@ export default function App() {
         </div>
       </main>
       <footer className="border-t border-line px-4 py-6 text-center text-sm text-muted">
-        Компас · подбор экспертов AIID · работает офлайн, без внешних сервисов
+        Lodestar · expert matching for AIID · runs offline, no external services
       </footer>
     </div>
   )

@@ -17,7 +17,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
   return (
     <section className="rounded-2xl border border-line bg-white p-5" aria-labelledby="catalog-title">
       <h2 id="catalog-title" className="font-semibold">
-        Эксперты в базе
+        Experts in the database
       </h2>
       {page.error && <ErrorBox message={page.error} />}
       {page.isLoading && !page.data && <Skeleton className="mt-3 h-64 w-full" />}
@@ -28,12 +28,12 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
               <thead>
                 <tr className="border-b border-line text-muted">
                   <th className="py-2 pr-3 font-medium">ID</th>
-                  <th className="px-2 py-2 font-medium">ФИО</th>
-                  <th className="px-2 py-2 font-medium">Должность</th>
-                  <th className="px-2 py-2 font-medium">Отрасль</th>
-                  <th className="px-2 py-2 font-medium">Город</th>
-                  <th className="px-2 py-2 font-medium">Опыт</th>
-                  <th className="px-2 py-2 font-medium">Статус</th>
+                  <th className="px-2 py-2 font-medium">Name</th>
+                  <th className="px-2 py-2 font-medium">Position</th>
+                  <th className="px-2 py-2 font-medium">Industry</th>
+                  <th className="px-2 py-2 font-medium">City</th>
+                  <th className="px-2 py-2 font-medium">Experience</th>
+                  <th className="px-2 py-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -55,7 +55,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
           </div>
           <div className="mt-4 flex items-center justify-between text-sm">
             <span className="text-muted">
-              {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} из {total}
+              {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of {total}
             </span>
             <div className="flex gap-2">
               <button
@@ -64,7 +64,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
                 onClick={() => setOffsetState({ key: reloadKey, offset: Math.max(0, offset - PAGE_SIZE) })}
                 className="rounded-lg border border-line px-3 py-1.5 font-medium disabled:opacity-40"
               >
-                Назад
+                Previous
               </button>
               <button
                 type="button"
@@ -72,7 +72,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
                 onClick={() => setOffsetState({ key: reloadKey, offset: offset + PAGE_SIZE })}
                 className="rounded-lg border border-line px-3 py-1.5 font-medium disabled:opacity-40"
               >
-                Дальше
+                Next
               </button>
             </div>
           </div>

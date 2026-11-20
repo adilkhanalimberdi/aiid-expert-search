@@ -5,7 +5,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 /** Заглушка карточки эксперта: той же высоты, что и готовая, чтобы страница не прыгала. */
 export function ExpertCardSkeleton({ isLarge = false }: { isLarge?: boolean }) {
   return (
-    <div className="rounded-2xl border border-line bg-white p-5" role="status" aria-label="Загрузка">
+    <div className="rounded-2xl border border-line bg-white p-5" role="status" aria-label="Loading">
       <div className="flex items-center gap-4">
         <Skeleton className="size-12 rounded-full" />
         <div className="flex-1 space-y-2">

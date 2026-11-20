@@ -18,7 +18,7 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
   return (
     <section className="rounded-2xl border border-line bg-white p-5" aria-labelledby="team-title">
       <h3 id="team-title" className="font-display text-base font-bold">
-        Команда под запрос
+        Team for this query
       </h3>
       {team.isLoading && <Skeleton className="mt-4 h-28 w-full" />}
       {team.error && <ErrorBox message={team.error} />}
@@ -26,17 +26,17 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
         <>
           <p className="mt-2 text-sm text-muted">
             {team.data.members.length === 0
-              ? 'Подходящих профилей для команды не нашлось.'
+              ? 'No suitable profiles for a team were found.'
               : team.data.complete
-                ? 'Все термины запроса закрыты командой.'
-                : `Не закрыто: ${team.data.uncovered_terms.join(', ') || 'термины не выделены'}.`}
+                ? 'The team covers every term of the query.'
+                : `Not covered: ${team.data.uncovered_terms.join(', ') || 'no terms extracted'}.`}
           </p>
           {team.data.members.length > 0 && (
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[420px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-line text-muted">
-                    <th className="py-2 pr-3 font-medium">Эксперт</th>
+                    <th className="py-2 pr-3 font-medium">Expert</th>
                     {terms.map((term) => (
                       <th key={term} className="px-2 py-2 font-medium">
                         {term}
@@ -66,7 +66,7 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
                             key={term}
                             className={`px-2 py-2 font-semibold ${row?.terms[term] ? 'text-free-fg' : 'text-muted'}`}
                           >
-                            <span aria-label={row?.terms[term] ? 'закрывает' : 'не закрывает'}>
+                            <span aria-label={row?.terms[term] ? 'covers' : 'does not cover'}>
                               {row?.terms[term] ? '✓' : '—'}
                             </span>
                           </td>

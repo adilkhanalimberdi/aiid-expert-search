@@ -22,7 +22,7 @@ export function ExpertCard({ expert, query, variant, onOpen }: ExpertCardProps) 
     <article className={`rounded-2xl border bg-white transition-shadow hover:shadow-md ${isFeatured ? 'border-teal p-6 sm:p-8' : 'border-line p-5'}`}>
       {isFeatured && (
         <p className="mb-4 inline-block rounded-full bg-ink px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky">
-          Лучшее совпадение
+          Best match
         </p>
       )}
       <div className="flex items-start gap-4">
@@ -39,7 +39,7 @@ export function ExpertCard({ expert, query, variant, onOpen }: ExpertCardProps) 
           <p className="mt-1 text-muted">{expert.position}</p>
           {expert.organization && !isRow && <p className="text-sm text-muted">{expert.organization}</p>}
           <p className="mt-2 text-sm">
-            {expert.city} · {expert.industry} · {yearsLabel(expert.experience_years)} опыта
+            {expert.city} · {expert.industry} · {yearsLabel(expert.experience_years)} of experience
           </p>
         </div>
         <MatchRing percent={expert.match_percent} size={isFeatured ? 80 : 56} />
@@ -56,7 +56,7 @@ export function ExpertCard({ expert, query, variant, onOpen }: ExpertCardProps) 
 
       {!isRow && (
         <div className="mt-4">
-          <h4 className="text-sm font-semibold">{isFeatured ? 'Почему подходит' : 'Причины'}</h4>
+          <h4 className="text-sm font-semibold">{isFeatured ? 'Why this expert' : 'Reasons'}</h4>
           <ul className="mt-2 space-y-1 text-sm text-ink-soft">
             {reasons.map((reason) => (
               <li key={reason} className="flex gap-2">
@@ -77,7 +77,7 @@ export function ExpertCard({ expert, query, variant, onOpen }: ExpertCardProps) 
           onClick={() => onOpen(expert.id)}
           className="text-sm font-semibold text-teal underline-offset-4 hover:underline"
         >
-          Подробнее и «Почему не он?»
+          Details and “Why not them?”
         </button>
       </div>
     </article>

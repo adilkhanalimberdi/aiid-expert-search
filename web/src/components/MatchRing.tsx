@@ -20,7 +20,7 @@ export function MatchRing({ percent, size = 72 }: MatchRingProps) {
       className="relative shrink-0"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`Соответствие запросу ${percent}%`}
+      aria-label={`Match with your query: ${percent}%`}
     >
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={stroke} className="stroke-line" />

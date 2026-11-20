@@ -49,16 +49,16 @@ export function DataPage() {
 
   return (
     <div className="mx-auto max-w-[1160px] space-y-6 px-4 py-8 sm:px-6">
-      <h1 className="font-display text-2xl font-bold">Данные</h1>
+      <h1 className="font-display text-2xl font-bold">Data</h1>
 
-      <section className="rounded-2xl border border-line bg-white p-5" aria-label="Текущая база">
-        <h2 className="font-semibold">Текущая база</h2>
+      <section className="rounded-2xl border border-line bg-white p-5" aria-label="Current database">
+        <h2 className="font-semibold">Current database</h2>
         {health.isLoading && <Skeleton className="mt-3 h-5 w-64" />}
         {health.error && <ErrorBox message={health.error} />}
         {health.data && (
           <p className="mt-2 text-ink-soft">
-            Экспертов: <strong>{health.data.experts}</strong> · модель {health.data.model}
-            {industries.data && ` · отрасли: ${industries.data.join(', ')}`}
+            Experts: <strong>{health.data.experts}</strong> · model {health.data.model}
+            {industries.data && ` · industries: ${industries.data.join(', ')}`}
           </p>
         )}
       </section>
@@ -71,16 +71,16 @@ export function DataPage() {
         onDragLeave={() => setIsDragging(false)}
         onDrop={drop}
         className={`rounded-2xl border-2 border-dashed p-8 text-center ${isDragging ? 'border-teal bg-teal-tint' : 'border-line bg-white'}`}
-        aria-label="Загрузка CSV"
+        aria-label="CSV upload"
       >
-        <p className="font-semibold">Перетащите CSV сюда</p>
-        <p className="mt-1 text-sm text-muted">UTF-8, до 10 МБ. Индекс пересоберётся без перезапуска сервера.</p>
+        <p className="font-semibold">Drop a CSV file here</p>
+        <p className="mt-1 text-sm text-muted">UTF-8, up to 10 MB. The index is rebuilt without restarting the server.</p>
         <input
           ref={fileInput}
           type="file"
           accept=".csv,text/csv"
           className="sr-only"
-          aria-label="Выбрать CSV-файл"
+          aria-label="Choose a CSV file"
           onChange={(event) => {
             void upload(event.target.files?.[0])
             event.target.value = ''
@@ -92,7 +92,7 @@ export function DataPage() {
           disabled={isUploading}
           className="mt-4 rounded-xl bg-ink px-5 py-3 font-semibold text-white disabled:opacity-60"
         >
-          {isUploading ? 'Загружаем…' : 'Загрузить CSV'}
+          {isUploading ? 'Uploading…' : 'Upload CSV'}
         </button>
       </section>
 
@@ -100,9 +100,9 @@ export function DataPage() {
 
       {report && (
         <section className="rounded-2xl border border-line bg-white p-5" role="status">
-          <h2 className="font-semibold">Результат загрузки</h2>
+          <h2 className="font-semibold">Upload result</h2>
           <p className="mt-2">
-            Загружено: <strong className="text-free-fg">{report.loaded}</strong> · пропущено:{' '}
+            Loaded: <strong className="text-free-fg">{report.loaded}</strong> · skipped:{' '}
             <strong>{report.skipped}</strong>
           </p>
           {report.errors.length > 0 && (
@@ -117,11 +117,11 @@ export function DataPage() {
 
       <CatalogTable reloadKey={reloadKey} />
 
-      <section className="rounded-2xl border border-line bg-white p-5" aria-label="Формат файла">
-        <h2 className="font-semibold">Формат файла</h2>
+      <section className="rounded-2xl border border-line bg-white p-5" aria-label="File format">
+        <h2 className="font-semibold">File format</h2>
         <p className="mt-2 text-sm text-ink-soft">
-          Обязательные колонки: {REQUIRED_COLUMNS.map((column) => `«${column}»`).join(', ')}. Компетенции через «;»,
-          статус: available, partial или busy. Допустимы русские заголовки: «ФИО», «Город», «Статус».
+          Required columns: {REQUIRED_COLUMNS.map((column) => `“${column}”`).join(', ')}. Separate skills with “;”,
+          status: available, partial or busy. Russian headers such as “ФИО”, “Город”, “Статус” are accepted too.
         </p>
       </section>
     </div>

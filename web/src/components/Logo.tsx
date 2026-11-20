@@ -2,7 +2,7 @@ interface LogoProps {
   size?: number
 }
 
-/** Знак «Компаса»: стрелка указывает на лучшего эксперта. */
+/** Знак Lodestar: стрелка указывает на лучшего эксперта. */
 export function Logo({ size = 36 }: LogoProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden>
@@ -21,8 +21,8 @@ export function Brand() {
     <div className="flex items-center gap-3">
       <Logo />
       <div className="leading-tight">
-        <p className="font-display text-lg font-bold text-white">Компас</p>
-        <p className="text-xs text-ground/70">подбор экспертов AIID</p>
+        <p className="font-display text-lg font-bold text-white">Lodestar</p>
+        <p className="text-xs text-ground/70">expert matching for AIID</p>
       </div>
     </div>
   )

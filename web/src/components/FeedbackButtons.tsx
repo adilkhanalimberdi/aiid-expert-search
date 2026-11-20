@@ -23,7 +23,7 @@ export function FeedbackButtons({ query, expertId }: FeedbackButtonsProps) {
   if (verdict) {
     return (
       <p className="text-sm text-muted" role="status">
-        {verdict === 'fit' ? 'Спасибо, учтём: подошёл' : 'Спасибо, учтём: не подошёл'}
+        {verdict === 'fit' ? 'Thanks, noted: a good fit' : 'Thanks, noted: not a fit'}
       </p>
     )
   }
@@ -34,14 +34,14 @@ export function FeedbackButtons({ query, expertId }: FeedbackButtonsProps) {
         onClick={() => send('fit')}
         className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium hover:bg-teal-tint"
       >
-        Подошёл
+        Good fit
       </button>
       <button
         type="button"
         onClick={() => send('not_fit')}
         className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium hover:bg-busy-bg"
       >
-        Не подошёл
+        Not a fit
       </button>
       {error && <span className="text-sm text-danger">{error}</span>}
     </div>

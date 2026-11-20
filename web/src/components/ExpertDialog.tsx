@@ -33,7 +33,7 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Карточка эксперта"
+        aria-label="Expert profile"
         className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl bg-ground p-5 sm:rounded-2xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
@@ -44,12 +44,12 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
             className="rounded-lg border border-line bg-white px-3 py-1.5 text-sm font-semibold"
             autoFocus
           >
-            Закрыть
+            Close
           </button>
         </div>
 
         {expert.isLoading && (
-          <div className="space-y-3" role="status" aria-label="Загрузка">
+          <div className="space-y-3" role="status" aria-label="Loading">
             <Skeleton className="h-7 w-2/3" />
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-20 w-full" />
@@ -66,7 +66,7 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
               <StatusPill availability={expert.data.availability} />
               <span>
-                {expert.data.city} · {expert.data.industry} · {yearsLabel(expert.data.experience_years)} опыта
+                {expert.data.city} · {expert.data.industry} · {yearsLabel(expert.data.experience_years)} of experience
               </span>
             </div>
             {expert.data.bio && <p className="mt-4">{expert.data.bio}</p>}
@@ -78,7 +78,7 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
               ))}
             </ul>
             <p className="mt-3 text-sm text-muted">
-              Языки: {expert.data.languages.join(', ') || 'не указаны'}
+              Languages: {expert.data.languages.join(', ') || 'not specified'}
               {expert.data.email && ` · ${expert.data.email}`}
             </p>
           </>
@@ -87,7 +87,7 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
         {query && (
           <section className="mt-6 rounded-2xl border border-line bg-white p-5" aria-labelledby="why-not">
             <h3 id="why-not" className="font-display text-base font-bold">
-              Почему не он? Соответствие запросу
+              Why not them? Match against your query
             </h3>
             <p className="mt-1 text-sm text-muted">«{query}»</p>
             {explanation.isLoading && <Skeleton className="mt-3 h-16 w-full" />}
@@ -97,16 +97,16 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
                 <MatchRing percent={explanation.data.expert.match_percent} size={64} />
                 <div className="space-y-3 text-sm">
                   <ExplanationList
-                    title="Подтверждено компетенциями"
+                    title="Confirmed by skills"
                     items={explanation.data.expert.matched}
-                    empty="Совпадений по компетенциям нет"
+                    empty="No skill matches"
                   />
                   <ExplanationList
-                    title="Не хватает"
+                    title="Missing"
                     items={explanation.data.missing_terms}
-                    empty="Все термины запроса подтверждены"
+                    empty="Every query term is confirmed"
                   />
-                  <ExplanationList title="Ограничения" items={explanation.data.constraints} empty="Ограничений нет" />
+                  <ExplanationList title="Constraints" items={explanation.data.constraints} empty="No constraints" />
                 </div>
               </div>
             )}
@@ -115,7 +115,7 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
 
         <section className="mt-6" aria-labelledby="similar">
           <h3 id="similar" className="font-display text-base font-bold">
-            Похожие эксперты
+            Similar experts
           </h3>
           {similar.isLoading && <Skeleton className="mt-3 h-16 w-full" />}
           {similar.error && <p className="mt-3 text-danger">{similar.error}</p>}
@@ -131,7 +131,7 @@ export function ExpertDialog({ expertId, query, onOpen, onClose }: ExpertDialogP
                   <span className="block text-sm text-muted">
                     {item.position}, {item.city}
                   </span>
-                  <span className="text-xs text-teal">сходство {Math.round(cosine * 100)}%</span>
+                  <span className="text-xs text-teal">similarity {Math.round(cosine * 100)}%</span>
                 </button>
               </li>
             ))}
