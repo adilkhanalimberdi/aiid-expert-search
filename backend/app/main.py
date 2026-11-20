@@ -31,7 +31,7 @@ from .schemas import (
     TeamResponse,
     UploadResponse,
 )
-from .text import covered_terms
+from .text import covered_terms, fix_keyboard_layout
 
 logger = logging.getLogger(__name__)
 _upload_lock = threading.Lock()
@@ -134,6 +134,7 @@ def explain_expert(
     candidate = next((i for i, expert in enumerate(snapshot.experts) if expert.id == expert_id), None)
     if candidate is None:
         raise HTTPException(404, "Эксперт не найден")
+    query = fix_keyboard_layout(query, snapshot.bm25.idf)
     parsed = parse(
         query, snapshot.bm25.idf, snapshot.industry_names, snapshot.city_names, snapshot.competency_industries
     )

@@ -24,6 +24,39 @@ def normalize(text: str) -> str:
     return " ".join(re.sub(r"[^\w\s-]", " ", folded, flags=re.UNICODE).split())
 
 
+LAYOUT_TO_RU = str.maketrans(
+    "qwertyuiop[]asdfghjkl;'zxcvbnm,.`QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>~",
+    "йцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ",
+)
+LAYOUT_TOKEN = re.compile(r"[A-Za-z\[\];',.`{}:\"<>~]{3,}")
+
+
+def fix_keyboard_layout(query: str, vocabulary: Iterable[str] = ()) -> str:
+    """Русские слова, набранные в английской раскладке («rb,th,tpjgfcyjcnm»), переводятся в кириллицу.
+
+    Слово заменяется, только если после перевода получается русское слово из словаря pymorphy или слово
+    каталога: настоящие английские слова и аббревиатуры («GMP», «data», «lean») так не превращаются.
+    """
+    known = set(vocabulary)
+
+    def convert(match: re.Match) -> str:
+        token = match.group(0)
+        letters = token.strip(",.;:")
+        # аббревиатуры (BIM, GMP) пишут заглавными, а текст в чужой раскладке обычно строчный;
+        # короткое слово без раскладочных знаков слишком легко случайно совпадает с русским («ишь»)
+        if letters.isupper() or letters.lower() in known:
+            return token
+        if len(letters) < 4 and not re.search(r"[\[\];',.`]", letters):
+            return token
+        converted = token.translate(LAYOUT_TO_RU)
+        word = normalize(converted)
+        if word and " " not in word and (lemma(word) in known or morphology().word_is_known(word)):
+            return converted
+        return token
+
+    return LAYOUT_TOKEN.sub(convert, query)
+
+
 def model_text(text: str) -> str:
     """Запрос для эмбеддинга: регистр и пробелы не должны менять результат («Мұғалім» = «мұғалім»)."""
     return " ".join(text.lower().replace("ё", "е").split())

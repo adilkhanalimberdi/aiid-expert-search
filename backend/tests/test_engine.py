@@ -380,3 +380,20 @@ def test_kazakh_without_special_letters_matches() -> None:
     assert normalize("Қауіпсіздік Өндіріс") == normalize("кауипсиздик ондирис") == "кауипсиздик ондирис"
     assert covered_terms(lemmas("онеркасиптик кауипсиздик"), "промышленная безопасность")
     assert parse("колжетимди GMP маманы").available_only
+
+
+@pytest.mark.parametrize(
+    ("typed", "expected"),
+    [
+        ("vfibyyjt j,extybt", "машинное обучение"),
+        ("ye;ty cgtwbfkbcn gj BIM", "нужен специалист gj BIM"),
+        ("GMP Алматы", "GMP Алматы"),
+        ("data scientist", "data scientist"),
+        ("lean manufacturing", "lean manufacturing"),
+        ("DevOps", "DevOps"),
+    ],
+)
+def test_keyboard_layout_is_fixed_only_for_russian_words(typed: str, expected: str) -> None:
+    from app.text import fix_keyboard_layout
+
+    assert fix_keyboard_layout(typed) == expected

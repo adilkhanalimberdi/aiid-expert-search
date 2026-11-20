@@ -10,7 +10,7 @@ from .explain import explain
 from .index import SearchIndex, encode_queries, encode_query, encode_terms
 from .query_parser import canonical_city, parse, split_negation
 from .schemas import Expert, Language, ParsedQuery, SearchRequest, SearchResponse, SearchResult
-from .text import covered_terms, expand_synonyms, expand_vocabulary, synonym_hints
+from .text import covered_terms, expand_synonyms, expand_vocabulary, fix_keyboard_layout, synonym_hints
 
 
 def rrf(rankings: list[list[int]]) -> dict[int, float]:
@@ -229,6 +229,7 @@ def search(
     if mode not in {"hybrid", "bm25", "vector"}:
         raise ValueError("Неизвестный режим поиска")
     started = perf_counter()
+    req = req.model_copy(update={"query": fix_keyboard_layout(req.query, index.bm25.idf)})
     parsed = parse(
         req.query, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries
     )
