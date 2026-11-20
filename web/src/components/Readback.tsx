@@ -1,54 +1,45 @@
 import type { ParsedQuery } from '../lib/api'
-import { readbackPieces, type Kind } from '../lib/readback'
 import { useI18n } from '../lib/useI18n'
 
-// Запрос, прочитанный движком, выложен плитками: каждый понятый элемент это тессера своего цвета.
-const STYLE: Record<Kind, string> = {
-  plain: '',
-  skill: 'tile bg-turquoise px-[0.32em] py-[0.06em] text-white',
-  place: 'tile bg-ochre px-[0.32em] py-[0.06em] text-grout',
-  condition: 'tile bg-smalt px-[0.32em] py-[0.06em] text-white',
-  excluded: 'bg-terracotta-soft px-[0.32em] py-[0.06em] text-terracotta line-through decoration-2',
+type Kind = 'skill' | 'place' | 'condition' | 'excluded'
+
+const TONE: Record<Kind, string> = {
+  skill: 'bg-brand-tint text-brand-deep',
+  place: 'bg-place-tint text-place',
+  condition: 'bg-cond-tint text-cond',
+  excluded: 'bg-danger-tint text-danger line-through decoration-[1.5px]',
 }
 
-const LEGEND: { kind: Kind; swatch: string }[] = [
-  { kind: 'skill', swatch: 'bg-turquoise' },
-  { kind: 'place', swatch: 'bg-ochre' },
-  { kind: 'condition', swatch: 'bg-smalt' },
-  { kind: 'excluded', swatch: 'bg-terracotta' },
-]
-
-export function Readback({ parsed, tookMs, count }: { parsed: ParsedQuery; tookMs: number; count: number }) {
+/** Как движок прочитал запрос: каждое поле разбора своим цветом, исключённое зачёркнуто. */
+export function Readback({ parsed, count, tookMs }: { parsed: ParsedQuery; count: number; tookMs: number }) {
   const { t } = useI18n()
-  const pieces = readbackPieces(parsed, t)
-  const labels: Record<Kind, string> = {
-    plain: '',
-    skill: t.readback.legendSkill,
-    place: t.readback.legendPlace,
-    condition: t.readback.legendCondition,
-    excluded: t.readback.legendExcluded,
-  }
-  const present = new Set(pieces.map((item) => item.kind))
+  const r = t.readback
+  const tokens: { kind: Kind; text: string; hint: string }[] = [
+    ...parsed.terms.map((text) => ({ kind: 'skill' as const, text, hint: r.legendSkill })),
+    ...(parsed.city ? [{ kind: 'place' as const, text: parsed.city, hint: t.card.city }] : []),
+    ...(parsed.industry ? [{ kind: 'place' as const, text: parsed.industry, hint: t.card.industry }] : []),
+    ...(parsed.min_experience !== null
+      ? [{ kind: 'condition' as const, text: r.experienceShort(parsed.min_experience), hint: r.legendCondition }]
+      : []),
+    ...(parsed.available_only ? [{ kind: 'condition' as const, text: r.availableShort, hint: r.legendCondition }] : []),
+    ...parsed.excluded_terms.map((text) => ({ kind: 'excluded' as const, text, hint: r.legendExcluded })),
+  ]
+
   return (
-    <div>
-      <p className="max-w-[1000px] font-display text-[24px] font-light leading-[1.6] tracking-[-0.02em] text-pretty sm:text-[34px] sm:leading-[1.55]">
-        {pieces.map((item, index) => (
-          <span key={index} className={`box-decoration-clone ${STYLE[item.kind]}`}>
-            {item.text}
-          </span>
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+      <span className="mr-1 text-sm font-semibold text-ink-3">{r.label}</span>
+      {tokens.length === 0 && <span className="text-sm text-ink-2">{r.noTerms}</span>}
+      <ul className="contents">
+        {tokens.map((token, index) => (
+          <li key={`${token.kind}-${token.text}-${index}`} className={`rounded-md px-2.5 py-1 text-[13px] font-semibold ${TONE[token.kind]}`}>
+            <span className="sr-only">{token.hint}: </span>
+            {token.text}
+          </li>
         ))}
-      </p>
-      <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-t-2 border-grout pt-3 text-sm text-slate">
-        {LEGEND.filter((item) => item.kind !== 'excluded' || present.has('excluded')).map((item) => (
-          <span key={item.kind} className="inline-flex items-center gap-2">
-            <span aria-hidden className={`size-3 ${item.swatch}`} />
-            {labels[item.kind]}
-          </span>
-        ))}
-        <span className="tnum ml-auto text-pebble">
-          {t.results(count)} · {t.took(tookMs)}
-        </span>
-      </div>
+      </ul>
+      <span className="tnum ml-auto pl-3 text-sm text-ink-3">
+        {t.results(count)} · {t.took(tookMs)}
+      </span>
     </div>
   )
 }

@@ -1,186 +1,182 @@
 @import 'tailwindcss';
 
 /*
- * Мир Sarap: алматинская модернистская мозаика (смальта). Ультрамариновая оболочка, бетонный фон,
- * плитки бирюзы, охры и терракоты, тёмные швы. Скругления и мягкие «карточные» тени не используются.
+ * Sarap как рабочее приложение: ночная боковая панель, светлая рабочая область, белые панели.
+ * Фиолетовый бренд отвечает за действие, выбор и сильное совпадение; абрикос только в знаке.
  */
 @theme {
-  --color-smalt: #23308a;
-  --color-smalt-deep: #18215f;
-  --color-smalt-soft: #34429f;
-  --color-turquoise: #0e8a84;
-  --color-turquoise-deep: #0a6b66;
-  --color-turquoise-glow: #5fd6cb;
-  --color-ochre: #e3a333;
-  --color-ochre-soft: #f0c46a;
-  --color-ochre-deep: #8a5a06;
-  --color-terracotta: #b8462e;
-  --color-terracotta-soft: #f2d4cb;
-  --color-concrete: #e7e5de;
-  --color-plaster: #f8f7f3;
-  --color-grout: #14161b;
-  --color-seam: #cbc8be;
-  --color-slate: #424754;
-  --color-pebble: #5d6270;
-  --color-stone: #6f7480;
-  --color-mist: #aab3db;
+  /* оболочка */
+  --color-night: #17122b;
+  --color-night-2: #221c3b;
+  --color-night-line: #322a55;
+  --color-night-text: #d4d0e6;
+  --color-night-dim: #a29cc0;
 
-  --color-free: #0a6b66;
+  /* бренд */
+  --color-brand: #5b3df5;
+  --color-brand-hover: #4a2de6;
+  --color-brand-deep: #4327d4;
+  --color-brand-tint: #eeeaff;
+  --color-brand-soft: #a594ff;
+  --color-spark: #ff8a4c;
+
+  /* поверхности и текст */
+  --color-ground: #f4f3f8;
+  --color-surface: #ffffff;
+  --color-sunken: #f8f7fb;
+  --color-line: #e4e2ec;
+  --color-line-strong: #cfccdb;
+  --color-ink: #17151f;
+  --color-ink-2: #4a4759;
+  --color-ink-3: #67637a;
+
+  /* смысловые */
+  --color-medium: #a86400;
+  --color-medium-bar: #e09a2b;
+  --color-weak: #8a8797;
+  --color-weak-bar: #c9c6d3;
+  --color-free: #138a5e;
   --color-partial: #c98a12;
-  --color-busy: #8b8f99;
+  --color-busy: #8a8797;
+  --color-place: #1d5a78;
+  --color-place-tint: #e2f0f7;
+  --color-cond: #7d4e00;
+  --color-cond-tint: #fbf0da;
+  --color-danger: #c2381e;
+  --color-danger-tint: #fce7e2;
 
-  --font-sans: 'Golos Text', system-ui, sans-serif;
-  --font-display: 'Unbounded', 'Golos Text', system-ui, sans-serif;
+  --font-sans: 'Commissioner', system-ui, sans-serif;
+
+  --shadow-panel: 0 1px 2px rgb(23 18 43 / 0.05), 0 1px 0 rgb(23 18 43 / 0.02);
+  --shadow-raised: 0 10px 30px -12px rgb(23 18 43 / 0.25);
 }
 
 html {
-  background: var(--color-concrete);
-  color: var(--color-grout);
+  background: var(--color-ground);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-  scrollbar-color: var(--color-smalt) var(--color-concrete);
-  /* место под полосу прокрутки занято всегда: при открытии окна страница не сдвигается */
-  scrollbar-gutter: stable;
+  font-feature-settings: 'ss01';
   -webkit-font-smoothing: antialiased;
+  scrollbar-gutter: stable;
 }
 
 body {
-  background: var(--color-concrete);
+  background: var(--color-ground);
 }
 
 ::selection {
-  background: var(--color-ochre);
-  color: var(--color-grout);
+  background: var(--color-brand-tint);
+  color: var(--color-brand-deep);
 }
 
 input,
 textarea {
-  caret-color: var(--color-turquoise);
+  caret-color: var(--color-brand);
 }
 
-/* в слое base, чтобы утилиты (outline-none у поля запроса со своей рамкой фокуса) могли его переопределить */
 @layer base {
   :focus-visible {
-    outline: 3px solid var(--color-turquoise);
-    outline-offset: 3px;
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
   }
 
   .on-dark :focus-visible {
-    outline-color: var(--color-ochre);
+    outline-color: var(--color-spark);
+  }
+
+  button:not(:disabled),
+  [role='button'],
+  label:has(input) {
+    cursor: pointer;
   }
 }
 
-/* Цифры в таблицах и оценках одной ширины */
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* Плитка смальты: квадрат с тонкой фаской света сверху, как у настоящей тессеры */
-.tile {
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 -1px 0 rgb(0 0 0 / 0.12);
-}
-
-/* Заглушки загрузки: ряд плиток выкладывается слева направо */
-@keyframes lay {
-  0%,
-  12% {
-    opacity: 0.18;
-  }
-  40%,
-  100% {
-    opacity: 1;
-  }
-}
-
-.sk {
-  background: #d9d6cd;
-  animation: breathe 1.6s ease-in-out infinite;
-}
-
-.sk-dark {
-  background: rgb(255 255 255 / 0.12);
-  animation: breathe 1.6s ease-in-out infinite;
-}
-
-@keyframes breathe {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-
-.lay-tile {
-  animation: lay 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-
-/* Плитки оценки ложатся по одной при появлении результата */
-@keyframes set-tile {
-  from {
-    opacity: 0;
-    transform: scale(0.4);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.set-tile {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: set-tile 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sk,
-  .sk-dark,
-  .lay-tile,
-  .set-tile {
-    animation: none;
-    opacity: 1;
-  }
-}
-
-/* Чекбокс в системе: квадратная плитка, 2 px шов */
+/* Чекбокс системы: квадрат со скруглением 4 px, галочка рисуется фоном */
 .check {
   appearance: none;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--color-ink-3);
+  border-radius: 5px;
+  background: var(--color-surface);
   display: grid;
   place-content: center;
-  width: 22px;
-  height: 22px;
-  margin: 0;
-  border: 2px solid var(--color-grout);
-  background: var(--color-plaster);
-  cursor: pointer;
-  flex: none;
+  transition: background-color 120ms, border-color 120ms;
 }
 
 .check:checked {
-  background: var(--color-turquoise);
-  border-color: var(--color-turquoise);
+  background: var(--color-brand)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / 14px no-repeat;
+  border-color: var(--color-brand);
 }
 
-.check:checked::after {
-  content: '';
-  width: 5px;
-  height: 11px;
-  border: solid #fff;
-  border-width: 0 2.5px 2.5px 0;
-  transform: rotate(45deg) translate(-1px, -1px);
+/* Заглушки загрузки: мягкое мерцание, без анимации при reduced motion */
+.sk {
+  background: linear-gradient(90deg, #ebe9f2 0%, #f5f4f9 50%, #ebe9f2 100%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: shimmer 1.4s ease-in-out infinite;
 }
 
-.check-on-dark {
-  border-color: rgb(255 255 255 / 0.8);
-  background: transparent;
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
 }
 
-.check-on-dark:checked {
-  background: var(--color-ochre);
-  border-color: var(--color-ochre);
+/* Знак при загрузке: дуги прорисовываются заново */
+.mark-draw path {
+  stroke-dasharray: 40;
+  animation: draw 1.2s ease-in-out infinite alternate;
 }
 
-.check-on-dark:checked::after {
-  border-color: var(--color-grout);
+@keyframes draw {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Панель профиля на телефоне выезжает снизу */
+.sheet-in {
+  animation: sheet 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes sheet {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+/* Новая выдача проявляется, строки не прыгают */
+.fade-in {
+  animation: fade 180ms ease-out;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

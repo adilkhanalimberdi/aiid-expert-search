@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ErrorBox } from '../components/ErrorBox'
-import { AlsoFit, BestMatch, CandidateRow } from '../components/ExpertCards'
-import { ExpertDialog } from '../components/ExpertDialog'
+import { ExpertPane, ExpertPaneSkeleton } from '../components/ExpertPane'
 import { Formula } from '../components/Formula'
-import { HeroBand } from '../components/HeroBand'
+import { SarapMark } from '../components/Logo'
 import { Readback } from '../components/Readback'
-import { ResultsSkeleton } from '../components/Skeleton'
-import { TeamPanel } from '../components/TeamPanel'
-import { ArrowRight, Button, Checkbox, Select } from '../components/ui'
+import { ResultList, ResultListSkeleton } from '../components/ResultList'
+import { TeamView } from '../components/TeamView'
+import { Button, Checkbox, Panel, Segmented, Select } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRecentQueries } from '../hooks/useRecentQueries'
 import { useSearch } from '../hooks/useSearch'
 import { api, type SearchResponse } from '../lib/api'
@@ -22,25 +22,25 @@ interface SubmittedSearch {
   hideBusy: boolean
 }
 
-export function SearchPage({ nav }: { nav: ReactNode }) {
+type View = 'candidates' | 'team'
+
+export function SearchPage() {
   const { t, lang } = useI18n()
   const [query, setQuery] = useState('')
   const [industry, setIndustry] = useState('')
   const [hideBusy, setHideBusy] = useState(false)
   const [submitted, setSubmitted] = useState<SubmittedSearch | null>(null)
   const [emptyHint, setEmptyHint] = useState(false)
-  const [isTeamOpen, setIsTeamOpen] = useState(false)
-  const [openExpertId, setOpenExpertId] = useState<string | null>(null)
   const industries = useAsync(() => api.industries(), [])
   const catalog = useAsync(() => api.health(), [])
   const { state, run } = useSearch()
   const { recent, remember } = useRecentQueries()
   const previousLang = useRef(lang)
+  const input = useRef<HTMLTextAreaElement>(null)
 
   function start(next: SubmittedSearch) {
     setSubmitted(next)
     remember(next.query)
-    setIsTeamOpen(false)
     run({ query: next.query, industry: next.industry, hide_busy: next.hideBusy, top_k: TOP_K })
   }
 
@@ -57,6 +57,7 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
     const trimmed = query.trim()
     setEmptyHint(!trimmed)
     if (trimmed) start({ query: trimmed, industry: industry || null, hideBusy })
+    else input.current?.focus()
   }
 
   function applyExample(example: string) {
@@ -71,28 +72,22 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
     if (submitted) start({ ...submitted, industry: nextIndustry || null, hideBusy: nextHideBusy })
   }
 
-  return (
-    <>
-      <HeroBand nav={nav}>
-        <div className="pt-14 text-center sm:pt-[72px]">
-          <h1 className="font-display text-[38px] font-light leading-[1.02] tracking-[-0.035em] text-balance sm:text-[76px]">
-            {t.search.h1}
-          </h1>
-          <p className="mx-auto mt-6 max-w-[560px] text-lg leading-relaxed text-white/90">{t.search.sub}</p>
-          {catalog.data && industries.data && (
-            <p className="tnum mt-3 text-sm text-white/75">
-              {t.search.experts(catalog.data.experts)} · {t.search.industriesCount(industries.data.length)}
-            </p>
-          )}
-        </div>
+  const isIdle = state.status === 'idle'
 
-        <form onSubmit={submit} role="search" className="mx-auto mt-11 flex max-w-[920px] flex-col items-center gap-7">
-          <div className="w-full shadow-[0_22px_44px_-18px_rgb(8_12_40/0.7)]">
+  return (
+    <div>
+      <h1 className="sr-only">{t.search.h1}</h1>
+
+      {/* строка запроса прилипает к верху: новый запрос можно задать из любой точки выдачи */}
+      <div className="z-20 border-b border-line bg-ground/95 px-4 pb-3 pt-4 backdrop-blur sm:px-7 lg:sticky lg:top-0 lg:pt-5">
+        <form onSubmit={submit} role="search" aria-label={t.search.queryLabel}>
+          <div className="flex items-end gap-2 rounded-xl border border-line-strong bg-surface p-1.5 pl-4 shadow-[var(--shadow-panel)] focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-tint)]">
             <label htmlFor="query" className="sr-only">
               {t.search.queryLabel}
             </label>
-            {/* поле растёт по тексту: длинный запрос виден целиком и на телефоне; Enter ищет, Shift+Enter переносит */}
+            {/* поле растёт по тексту; Enter ищет, Shift+Enter переносит строку */}
             <textarea
+              ref={input}
               id="query"
               rows={1}
               value={query}
@@ -105,53 +100,27 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
               }}
               maxLength={500}
               placeholder={t.search.placeholder}
-              className="block min-h-[68px] w-full resize-none rounded-none border-b-[6px] border-ochre bg-plaster px-4 py-[19px] text-lg leading-snug text-grout outline-none [field-sizing:content] placeholder:font-display placeholder:font-light placeholder:tracking-[-0.02em] placeholder:text-stone focus:border-turquoise sm:min-h-[88px] sm:px-8 sm:py-[24px] sm:text-[24px]"
+              aria-describedby="query-hint"
+              className="min-h-11 flex-1 resize-none self-center bg-transparent py-2 text-[17px] font-medium leading-snug text-ink outline-none [field-sizing:content] placeholder:font-normal placeholder:text-ink-3 sm:text-lg"
             />
+            <Button type="submit" variant="primary" size="lg" className="flex-none">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="M16 16l4.5 4.5" />
+              </svg>
+              <span className="hidden sm:inline">{t.search.submit}</span>
+              <span className="sr-only sm:hidden">{t.search.submit}</span>
+            </Button>
           </div>
-          <Button type="submit" variant="primary" size="lg" className="w-full sm:w-auto">
-            {t.search.submit}
-            <ArrowRight />
-          </Button>
-          <p className="-mt-3 min-h-5 text-sm text-ochre-soft" aria-live="polite">
-            {emptyHint && t.search.emptyQuery}
+          <p id="query-hint" className="min-h-0 text-sm font-medium text-danger" aria-live="polite">
+            {emptyHint && <span className="mt-2 block">{t.search.emptyQuery}</span>}
           </p>
         </form>
 
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-7 gap-y-1">
-          <span className="text-sm text-white/80">{t.search.tryLabel}</span>
-          {t.search.examples.map((example, index) => (
-            <button
-              key={example}
-              type="button"
-              onClick={() => applyExample(example)}
-              // на телефоне три примера: остальные отодвигали результаты на второй экран
-              className={`${index >= 3 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-[15px] font-medium text-white underline decoration-white/45 decoration-[1.5px] underline-offset-[5px] hover:decoration-ochre`}
-            >
-              {example}
-            </button>
-          ))}
-        </div>
-
-        {recent.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1" aria-label={t.search.recent}>
-            <span className="text-sm text-white/80">{t.search.recent}</span>
-            {recent.map((item, index) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => applyExample(item)}
-                className={`${index >= 1 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-sm text-white/90 underline decoration-white/35 decoration-1 underline-offset-[5px] hover:decoration-ochre`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 pb-14">
-          <label className="flex items-center gap-3.5 text-[15px] font-medium">
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1">
+          <label className="flex items-center gap-2 text-sm font-medium text-ink-2">
             {t.search.industry}
-            <Select tone="dark" value={industry} onChange={(event) => changeFilters(event.target.value, hideBusy)}>
+            <Select value={industry} onChange={(event) => changeFilters(event.target.value, hideBusy)}>
               <option value="">{t.search.anyIndustry}</option>
               {industries.data?.map((item) => (
                 <option key={item} value={item}>
@@ -160,158 +129,287 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
               ))}
             </Select>
           </label>
-          <Checkbox
-            tone="dark"
-            checked={hideBusy}
-            onChange={(event) => changeFilters(industry, event.target.checked)}
-            label={t.search.hideBusy}
-          />
-        </div>
-      </HeroBand>
-
-      <section className="mx-auto max-w-[1120px] px-4 pb-6 pt-16 sm:px-6" aria-live="polite">
-        {state.status === 'idle' && (
-          <div className="flex flex-col items-center gap-5 border-2 border-dashed border-seam px-6 py-12 text-center text-slate">
-            <span aria-hidden className="flex gap-0.5">
-              {['bg-turquoise', 'bg-ochre', 'bg-smalt', 'bg-seam', 'bg-seam'].map((tone, index) => (
-                <span key={index} className={`size-4 ${tone}`} />
+          <Checkbox checked={hideBusy} onChange={(event) => changeFilters(industry, event.target.checked)} label={t.search.hideBusy} />
+          {!isIdle && (
+            <div className="hidden min-w-0 flex-1 items-center justify-end gap-x-3 text-sm text-ink-3 xl:flex">
+              <span className="flex-none">{t.search.tryLabel}</span>
+              {t.search.examples.slice(0, 3).map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  onClick={() => applyExample(example)}
+                  className="truncate font-medium text-ink-2 underline decoration-line-strong underline-offset-4 hover:text-ink hover:decoration-brand"
+                >
+                  {example}
+                </button>
               ))}
-            </span>
-            <p className="max-w-[46ch]">{t.search.idle}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="px-4 pb-8 pt-4 sm:px-7" aria-live="polite" aria-busy={state.status === 'loading'}>
+        {isIdle && (
+          <Welcome
+            experts={catalog.data?.experts}
+            industriesCount={industries.data?.length}
+            recent={recent}
+            onPick={applyExample}
+          />
+        )}
+
+        {state.status === 'loading' && (
+          <div role="status" aria-label={t.search.searching}>
+            <p className="mb-3 flex items-center gap-2.5 text-sm font-semibold text-ink-2">
+              <SarapMark size={22} isDrawing />
+              {t.search.searching}
+            </p>
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
+              <ResultListSkeleton />
+              <Panel className="hidden lg:block">
+                <ExpertPaneSkeleton />
+              </Panel>
+            </div>
           </div>
         )}
-        {state.status === 'loading' && <ResultsSkeleton />}
-        {state.status === 'error' && (
-          <ErrorBox message={state.message} onRetry={submitted ? () => start(submitted) : undefined} />
-        )}
+
+        {state.status === 'error' && <ErrorBox message={state.message} onRetry={submitted ? () => start(submitted) : undefined} />}
+
         {state.status === 'done' && submitted && (
-          <Results
-            data={state.data}
-            submitted={submitted}
-            isTeamOpen={isTeamOpen}
-            onToggleTeam={() => setIsTeamOpen((value) => !value)}
-            onOpen={setOpenExpertId}
-          />
+          <Results key={`${submitted.query}|${submitted.industry}|${submitted.hideBusy}`} data={state.data} submitted={submitted} />
         )}
-        <Formula />
-      </section>
-
-      {openExpertId && (
-        <ExpertDialog expertId={openExpertId} query={submitted?.query ?? ''} onClose={() => setOpenExpertId(null)} />
-      )}
-    </>
+      </div>
+    </div>
   )
 }
 
-interface ResultsProps {
-  data: SearchResponse
-  submitted: SubmittedSearch
-  isTeamOpen: boolean
-  onToggleTeam: () => void
-  onOpen: (expertId: string) => void
+interface WelcomeProps {
+  experts?: number
+  industriesCount?: number
+  recent: string[]
+  onPick: (query: string) => void
 }
 
-function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="mb-5 mt-16 font-display text-[26px] font-light leading-[1.1] tracking-[-0.025em] sm:text-[32px]">{children}</h2>
-  )
-}
-
-function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsProps) {
+/** Пустое состояние: что умеет поиск и с чего начать, без лендинговой шапки. */
+function Welcome({ experts, industriesCount, recent, onPick }: WelcomeProps) {
   const { t } = useI18n()
-  const [best, ...rest] = data.results
-  const alsoFit = rest.slice(0, 2)
-  const others = rest.slice(2)
+  return (
+    <div className="fade-in grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
+      <Panel className="p-5 sm:p-7">
+        <SarapMark size={40} />
+        <h2 className="mt-5 text-[26px] font-extrabold leading-tight tracking-[-0.03em] sm:text-[30px]">{t.search.h1}</h2>
+        <p className="mt-2 max-w-[52ch] text-[15px] leading-relaxed text-ink-2">{t.search.sub}</p>
+        {experts !== undefined && industriesCount !== undefined && (
+          <p className="tnum mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-3">
+            <span>
+              <b className="text-lg font-extrabold text-ink">{experts}</b> {t.search.expertsWord(experts)}
+            </span>
+            <span>
+              <b className="text-lg font-extrabold text-ink">{industriesCount}</b> {t.search.industriesWord(industriesCount)}
+            </span>
+          </p>
+        )}
+        <ul className="mt-6 space-y-3 border-t border-line pt-5">
+          {t.search.how.map((item, index) => (
+            <li key={item.title} className="flex gap-3.5">
+              <span className="tnum grid size-7 flex-none place-items-center rounded-full bg-brand-tint text-xs font-extrabold text-brand-deep">{index + 1}</span>
+              <span className="min-w-0">
+                <span className="block text-[15px] font-bold text-ink">{item.title}</span>
+                <span className="block text-sm leading-snug text-ink-2">{item.body}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        {recent.length > 0 && (
+          <div className="mt-6 border-t border-line pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-[0.08em] text-ink-3">{t.search.recent}</h3>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {recent.map((item) => (
+                <li key={item} className="min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => onPick(item)}
+                    className="max-w-full truncate rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink-2 hover:border-brand-soft hover:text-ink"
+                  >
+                    {item}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </Panel>
+      {/* на телефоне примеры первыми: с них проще всего начать */}
+      <Panel className="order-first p-5 sm:p-7 lg:order-none">
+        <h2 className="text-xs font-bold uppercase tracking-[0.08em] text-ink-3">{t.search.tryLabel}</h2>
+        <ul className="mt-3 space-y-2">
+          {t.search.examples.map((example, index) => (
+            <li key={example}>
+              <button
+                type="button"
+                onClick={() => onPick(example)}
+                className="group flex w-full items-center gap-3 rounded-lg border border-line px-4 py-3 text-left transition-colors hover:border-brand-soft hover:bg-brand-tint/40"
+              >
+                <span className="tnum grid size-7 flex-none place-items-center rounded-md bg-sunken text-xs font-bold text-ink-3 group-hover:bg-brand group-hover:text-white">
+                  {index + 1}
+                </span>
+                <span className="min-w-0 flex-1 text-[15px] font-medium text-ink">{example}</span>
+                <span aria-hidden className="text-ink-3 transition-transform group-hover:translate-x-0.5 group-hover:text-brand">
+                  →
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-5">
+          <Formula />
+        </div>
+      </Panel>
+    </div>
+  )
+}
+
+function Results({ data, submitted }: { data: SearchResponse; submitted: SubmittedSearch }) {
+  const { t } = useI18n()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const [view, setView] = useState<View>('candidates')
+  const [chosenId, setChosenId] = useState<string | null>(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const results = data.results
+  const showScore = !data.filter_only
+  // по умолчанию открыт лучший; выбранный вне выдачи (участник команды) тоже допустим
+  const selectedId = chosenId ?? results[0]?.id ?? null
+  const selectedIndex = results.findIndex((item) => item.id === selectedId)
+  const selected = selectedIndex >= 0 ? results[selectedIndex] : undefined
+
+  function open(expertId: string) {
+    setChosenId(expertId)
+    if (!isDesktop) setIsSheetOpen(true)
+  }
+
+  function labelFor(): string {
+    if (selectedIndex < 0) return t.card.profile
+    if (data.weak_match) return t.card.closestOne
+    if (selectedIndex === 0 && showScore) return t.card.best
+    return t.card.rank(selectedIndex + 1)
+  }
+
+  const pane = selectedId && (
+    <ExpertPane
+      key={`${selectedId}-${data.took_ms}`}
+      expertId={selectedId}
+      result={selected}
+      label={labelFor()}
+      query={submitted.query}
+      showScore={showScore && (selected !== undefined || data.parsed.terms.length > 0)}
+      onClose={isDesktop ? undefined : () => setIsSheetOpen(false)}
+    />
+  )
 
   return (
-    <div>
-      <Readback parsed={data.parsed} tookMs={data.took_ms} count={data.results.length} />
+    <div className="fade-in">
+      <div className="mb-3">
+        <Readback parsed={data.parsed} count={results.length} tookMs={data.took_ms} />
+      </div>
 
       {data.weak_match && (
-        <p role="status" className="mt-8 flex items-start gap-3 border-2 border-ochre-deep bg-ochre-soft/60 p-4 font-medium">
-          <span aria-hidden className="mt-1 size-3 flex-none bg-ochre-deep" />
-          <span>{t.search.weak}</span>
-        </p>
+        <Notice tone="weak">{t.search.weak}</Notice>
       )}
-
       {data.filter_only && (
-        <p role="status" className="mt-8 flex items-start gap-3 border-2 border-smalt bg-plaster p-4 font-medium">
-          <span aria-hidden className="mt-1 size-3 flex-none bg-smalt" />
-          <span>{t.search.filterOnly([data.parsed.city, data.parsed.industry].filter(Boolean).join(', '))}</span>
-        </p>
+        <Notice tone="info">{t.search.filterOnly([data.parsed.city, data.parsed.industry].filter(Boolean).join(', '))}</Notice>
       )}
 
-      {!best && <p className="mt-8 border-2 border-dashed border-seam p-10 text-center text-slate">{t.search.nobody}</p>}
-
-      {best && data.weak_match && (
-        // слабое совпадение не получает чёрную панель «лучшего»: это ближайшие профили, а не рекомендация
+      {results.length === 0 ? (
+        <Panel className="p-8 text-center">
+          <p className="mx-auto max-w-[48ch] text-[15px] text-ink-2">{t.search.nobody}</p>
+        </Panel>
+      ) : (
         <>
-          <SectionTitle>{t.card.closest}</SectionTitle>
-          <div className="border-t-2 border-grout">
-            {data.results.map((expert) => (
-              <CandidateRow key={expert.id} expert={expert} query={submitted.query} onOpen={onOpen} />
-            ))}
-          </div>
-        </>
-      )}
-
-      {best && !data.weak_match && (
-        <>
-          <div className="mt-12">
-            <BestMatch expert={best} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
-          </div>
-
-          {alsoFit.length > 0 && (
-            <>
-              <SectionTitle>{t.card.also}</SectionTitle>
-              <div className="grid gap-0.5 bg-seam p-0.5 md:grid-cols-2">
-                {alsoFit.map((expert) => (
-                  <div key={expert.id}>
-                    <AlsoFit expert={expert} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
-                  </div>
-                ))}
-              </div>
-            </>
+          {!data.weak_match && !data.filter_only && (
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <Segmented
+                label={t.search.viewLabel}
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: 'candidates', label: t.search.viewCandidates },
+                  { value: 'team', label: t.search.viewTeam },
+                ]}
+              />
+            </div>
           )}
-
-          {others.length > 0 && (
-            <>
-              <SectionTitle>{t.card.others}</SectionTitle>
-              <div className="border-t-2 border-grout">
-                {others.map((expert) => (
-                  <CandidateRow
-                    key={expert.id}
-                    expert={expert}
-                    query={submitted.query}
-                    onOpen={onOpen}
-                    showScore={!data.filter_only}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </>
-      )}
-
-      {best && !data.weak_match && (
-        <>
-          <div className="mt-14 flex flex-col items-center">
-            <Button variant="outline" onClick={onToggleTeam} aria-expanded={isTeamOpen}>
-              {isTeamOpen ? t.card.hideTeam : t.card.buildTeam}
-            </Button>
-            {isTeamOpen && (
-              <div className="mt-6 w-full">
-                <TeamPanel
-                  query={submitted.query}
-                  industry={submitted.industry}
-                  hideBusy={submitted.hideBusy}
-                  onOpen={onOpen}
-                />
-              </div>
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
+            <div className="min-w-0 space-y-4">
+              {view === 'team' ? (
+                <TeamView query={submitted.query} industry={submitted.industry} hideBusy={submitted.hideBusy} onOpen={open} />
+              ) : (
+                <ResultList results={results} selectedId={selectedId} onSelect={open} isWeak={data.weak_match} showScore={showScore} />
+              )}
+              <Formula />
+            </div>
+            {isDesktop && (
+              <Panel className="sticky top-[150px] max-h-[calc(100vh-170px)] overflow-y-auto" aria-label={t.dialog.label}>
+                {pane}
+              </Panel>
             )}
           </div>
         </>
       )}
+
+      {!isDesktop && isSheetOpen && pane && <Sheet onClose={() => setIsSheetOpen(false)}>{pane}</Sheet>}
+    </div>
+  )
+}
+
+function Notice({ tone, children }: { tone: 'weak' | 'info'; children: string }) {
+  return (
+    <p
+      role="status"
+      className={`mb-4 flex items-start gap-3 rounded-xl border p-4 text-[15px] font-medium ${
+        tone === 'weak' ? 'border-medium-bar/50 bg-cond-tint text-cond' : 'border-place/20 bg-place-tint text-place'
+      }`}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className="mt-0.5 flex-none">
+        <circle cx="12" cy="12" r="9.5" />
+        <path d="M12 11v5.5M12 7.5v.01" />
+      </svg>
+      <span>{children}</span>
+    </p>
+  )
+}
+
+/** Профиль на телефоне: окно на весь экран поверх выдачи, Esc и «К списку» закрывают, фокус возвращается. */
+function Sheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  const { t } = useI18n()
+  const box = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    box.current?.focus()
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = overflow
+      previous?.focus()
+    }
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-40 bg-night/60" onClick={onClose}>
+      <div
+        ref={box}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.dialog.label}
+        tabIndex={-1}
+        onClick={(event) => event.stopPropagation()}
+        className="sheet-in absolute inset-x-0 bottom-0 top-3 overflow-y-auto rounded-t-2xl bg-surface outline-none"
+      >
+        {children}
+      </div>
     </div>
   )
 }
