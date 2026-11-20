@@ -57,6 +57,16 @@ def result_for(
     )
 
 
+def is_without_evidence(
+    index: SearchIndex, best: list[int], parsed: ParsedQuery, query_vec: np.ndarray
+) -> bool:
+    """Ни один найденный эксперт не подтверждает термины запроса и нет близкой компетенции."""
+    if any(covered_terms(parsed.terms, index.texts[i]) for i in best):
+        return False
+    closest = max(float((index.competency_vecs[i] @ query_vec).max()) for i in best)
+    return closest < config.WEAK_COMPETENCY_COS
+
+
 def search(
     index: SearchIndex,
     req: SearchRequest,
@@ -94,6 +104,8 @@ def search(
     vec_ranks = {i: rank for rank, i in enumerate(vector, 1)}
     results = [result_for(index, i, parsed, query_vec, bm_ranks.get(i), vec_ranks.get(i)) for i in best]
     is_weak = not eligible or float(max(cosines[i] for i in eligible)) < config.WEAK_MATCH_COS
+    if not is_weak and results:
+        is_weak = is_without_evidence(index, best, parsed, query_vec)
     return SearchResponse(
         parsed=parsed, weak_match=is_weak, took_ms=round((perf_counter() - started) * 1000), results=results
     )
