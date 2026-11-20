@@ -20,7 +20,7 @@
 
 ## Запуск
 
-Нужны Python 3.11+ (у нас 3.12), Node 20+. Docker и база данных не нужны. Windows (PowerShell), из корня репозитория:
+Нужны Python 3.11+ (у нас 3.12), Node 20+. База данных не нужна. Windows (PowerShell), из корня репозитория:
 
 ```powershell
 python -m venv .venv
@@ -32,6 +32,12 @@ Copy-Item .env.example .env
 
 cd backend; ..\.venv\Scripts\python.exe -m uvicorn app.main:app   # API: http://localhost:8000/docs
 cd web; npm install; npm run dev                                   # UI:  http://localhost:5173
+```
+
+Или всё в Docker (модель всё равно скачать заранее командой выше):
+
+```powershell
+docker compose up --build   # UI: http://localhost:8080, API: http://localhost:8000/docs
 ```
 
 macOS / Linux: те же шаги, `source .venv/bin/activate`, затем `pip`, `hf`, `uvicorn` без путей.
