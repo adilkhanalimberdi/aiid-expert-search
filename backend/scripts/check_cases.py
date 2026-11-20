@@ -277,7 +277,7 @@ def a02() -> tuple[bool, str]:
     ) == 5 and too_big == 422, f"total={body['total']}, 500 → {too_big}"
 
 
-@case("K01", "запрос только с городом показывает экспертов этого города", known=True)
+@case("K01", "запрос только с городом показывает экспертов этого города")
 def k01() -> tuple[bool, str]:
     data = search("специалист из Шымкента", top_k=5)
     cities = [item["city"] for item in data["results"]]

@@ -171,6 +171,43 @@ def is_without_evidence(
     return closest < config.WEAK_COMPETENCY_COS
 
 
+def is_filter_only(parsed: ParsedQuery) -> bool:
+    """В запросе нет терминов, но есть город или отрасль: «специалист из Шымкента», «Алматы»."""
+    return not parsed.terms and bool(parsed.city or parsed.industry)
+
+
+def matches_filters(expert: Expert, parsed: ParsedQuery) -> bool:
+    """Эксперт подходит под названные в запросе город и отрасль."""
+    if parsed.city and canonical_city(expert.city) != canonical_city(parsed.city):
+        return False
+    return not parsed.industry or expert.industry == parsed.industry
+
+
+def filter_only_response(
+    index: SearchIndex, req: SearchRequest, parsed: ParsedQuery, candidates: list[int], started: float
+) -> SearchResponse:
+    """Отбор по городу и отрасли без смысла: порядок по доступности и опыту, процент один на всех."""
+
+    def weight(i: int) -> float:
+        expert = index.experts[i]
+        below = parsed.min_experience is not None and expert.experience_years < parsed.min_experience
+        return config.BOOST_AVAILABILITY[expert.availability] * (
+            config.BOOST_EXPERIENCE_BELOW if below else 1.0
+        )
+
+    best = sorted(candidates, key=lambda i: (-weight(i), -index.experts[i].experience_years, i))[: req.top_k]
+    query_vec = query_vector(req.query, parsed)
+    results = []
+    for i in best:
+        result = result_for(index, i, parsed, query_vec, lang=req.lang)
+        below = weight(i) / config.BOOST_AVAILABILITY[index.experts[i].availability] < 1
+        percent = round(config.FILTER_ONLY_PERCENT * (config.BOOST_EXPERIENCE_BELOW if below else 1.0))
+        results.append(result.model_copy(update={"match_percent": percent}))
+    return SearchResponse(
+        parsed=parsed, weak_match=False, took_ms=round((perf_counter() - started) * 1000), results=results
+    )
+
+
 def search(
     index: SearchIndex,
     req: SearchRequest,
@@ -197,6 +234,10 @@ def search(
         if (not req.industry or expert.industry == req.industry)
         and (not (req.hide_busy or parsed.available_only) or expert.availability != "busy")
     ]
+    if is_filter_only(parsed):
+        by_filters = [i for i in eligible if matches_filters(index.experts[i], parsed)]
+        if by_filters:
+            return filter_only_response(index, req, parsed, by_filters, started)
     bm25 = sorted((i for i in eligible if lexical[i] > 0), key=lambda i: (-lexical[i], i))[
         : config.TOP_N_PER_RETRIEVER
     ]

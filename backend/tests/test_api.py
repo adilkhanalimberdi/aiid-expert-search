@@ -255,3 +255,17 @@ def test_feedback_from_another_topic_does_not_change_ranking(client: TestClient)
         )
     after = [item["id"] for item in client.post("/api/search", json=query).json()["results"]]
     assert after == before
+
+
+@pytest.mark.parametrize("query", ["специалист из Шымкента", "Шымкент"])
+def test_city_only_query_filters_by_city(client: TestClient, query: str) -> None:
+    result = client.post("/api/search", json={"query": query, "top_k": 5}).json()
+    assert result["weak_match"] is False
+    assert result["results"]
+    assert {item["city"] for item in result["results"]} == {"Шымкент"}
+
+
+def test_city_only_query_orders_by_availability(client: TestClient) -> None:
+    result = client.post("/api/search", json={"query": "Алматы", "top_k": 20}).json()
+    statuses = [item["availability"] for item in result["results"]]
+    assert statuses == sorted(statuses, key={"available": 0, "partial": 1, "busy": 2}.__getitem__)
