@@ -8,8 +8,8 @@ from . import config
 from .explain import explain
 from .index import SearchIndex, encode_query
 from .query_parser import parse
-from .schemas import Expert, ParsedQuery, SearchRequest, SearchResponse, SearchResult
-from .text import covered_terms, expand_synonyms
+from .schemas import Expert, Language, ParsedQuery, SearchRequest, SearchResponse, SearchResult
+from .text import covered_terms, expand_synonyms, expand_vocabulary
 
 
 def rrf(rankings: list[list[int]]) -> dict[int, float]:
@@ -37,6 +37,7 @@ def result_for(
     query_vec: np.ndarray,
     bm25_rank: int | None = None,
     vec_rank: int | None = None,
+    lang: Language = "ru",
 ) -> SearchResult:
     """Строит карточку и процент по смыслу и покрытию терминов."""
     expert = index.experts[i]
@@ -46,7 +47,7 @@ def result_for(
     coverage = len(covered_terms(parsed.terms, index.texts[i])) / len(terms) if terms else 0.0
     percent = 100 * (config.W_SEMANTIC * semantic + config.W_COVERAGE * coverage)
     percent = min(config.PERCENT_CAP, round(percent * location_boost(expert, parsed)))
-    matched, related, reasons = explain(expert, parsed, query_vec, index.competency_vecs[i])
+    matched, related, reasons = explain(expert, parsed, query_vec, index.competency_vecs[i], lang)
     return SearchResult(
         **{key: value for key, value in expert.model_dump().items() if key in SearchResult.model_fields},
         match_percent=percent,
@@ -80,7 +81,7 @@ def search(
     parsed = parse(req.query)
     query_vec = encode_query(req.query)
     cosines = index.expert_vecs @ query_vec
-    lexical = index.bm25.get_scores(expand_synonyms(parsed.terms))
+    lexical = index.bm25.get_scores(expand_synonyms(expand_vocabulary(parsed.terms, index.bm25.idf)))
     eligible = [
         i
         for i, expert in enumerate(index.experts)
@@ -102,7 +103,9 @@ def search(
     best = sorted(scores, key=lambda i: (-scores[i], i))[: req.top_k]
     bm_ranks = {i: rank for rank, i in enumerate(bm25, 1)}
     vec_ranks = {i: rank for rank, i in enumerate(vector, 1)}
-    results = [result_for(index, i, parsed, query_vec, bm_ranks.get(i), vec_ranks.get(i)) for i in best]
+    results = [
+        result_for(index, i, parsed, query_vec, bm_ranks.get(i), vec_ranks.get(i), req.lang) for i in best
+    ]
     is_weak = not eligible or float(max(cosines[i] for i in eligible)) < config.WEAK_MATCH_COS
     if not is_weak and results:
         is_weak = is_without_evidence(index, best, parsed, query_vec)

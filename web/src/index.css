@@ -10,6 +10,8 @@
   --color-teal: #0b6e63;
   --color-teal-tint: #e2eeea;
   --color-muted: #5b6b64;
+  --color-amber-note: #e9cf8f;
+  --color-danger: #a33a2c;
 
   --color-free-bg: #ddf1e2;
   --color-free-fg: #17602f;
@@ -31,4 +33,15 @@ html {
 :focus-visible {
   outline: 3px solid var(--color-sky);
   outline-offset: 2px;
+}
+
+/* Фон шапки: мягкое свечение и сетка «компасных» линий; цвета только из токенов */
+.hero-surface {
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(60rem 28rem at 85% -10%, color-mix(in srgb, var(--color-sky) 22%, transparent), transparent 60%),
+    radial-gradient(40rem 20rem at 0% 110%, color-mix(in srgb, var(--color-teal) 35%, transparent), transparent 60%),
+    linear-gradient(color-mix(in srgb, var(--color-ground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-ground) 5%, transparent) 1px, transparent 1px);
+  background-size: auto, auto, 44px 44px, 44px 44px;
 }

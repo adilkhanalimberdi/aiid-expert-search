@@ -9,6 +9,7 @@ from time import perf_counter
 from fastapi import FastAPI, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import explain as explain_module
 from . import feedback as feedback_store
 from . import index, ranker, team
 from . import stats as stats_store
@@ -18,8 +19,10 @@ from .query_parser import parse
 from .schemas import (
     Expert,
     ExpertExplanation,
+    ExpertPage,
     FeedbackRequest,
     HealthResponse,
+    Language,
     SearchRequest,
     SearchResponse,
     SimilarExpert,
@@ -43,7 +46,9 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     raw = path.read_bytes()
     experts, report = load_csv(raw)
     application.state.index = index.build(experts, raw)
-    index.encode_query("проверка готовности")
+    ranker.search(
+        application.state.index, SearchRequest(query="проверка готовности")
+    )  # прогрев морфологии и модели
     with feedback_store.connection():
         pass
     logger.info(
@@ -98,6 +103,15 @@ def upload(file: UploadFile) -> UploadResponse:
     return report
 
 
+@app.get("/api/experts", response_model=ExpertPage)
+def list_experts(
+    offset: int = Query(default=0, ge=0), limit: int = Query(default=20, ge=1, le=100)
+) -> ExpertPage:
+    """Постраничный список каталога, чтобы показать загруженную базу."""
+    experts = app.state.index.experts
+    return ExpertPage(total=len(experts), offset=offset, items=experts[offset : offset + limit])
+
+
 @app.get("/api/experts/{expert_id}", response_model=Expert)
 def get_expert(expert_id: str) -> Expert:
     for expert in app.state.index.experts:
@@ -107,7 +121,9 @@ def get_expert(expert_id: str) -> Expert:
 
 
 @app.get("/api/experts/{expert_id}/explain", response_model=ExpertExplanation)
-def explain_expert(expert_id: str, query: str = Query(min_length=1, max_length=500)) -> ExpertExplanation:
+def explain_expert(
+    expert_id: str, query: str = Query(min_length=1, max_length=500), lang: Language = "ru"
+) -> ExpertExplanation:
     """Показывает подтверждённые совпадения и ограничения любого профиля."""
     if not query.strip():
         raise HTTPException(422, "Введите непустой поисковый запрос")
@@ -118,20 +134,11 @@ def explain_expert(expert_id: str, query: str = Query(min_length=1, max_length=5
     parsed = parse(query)
     expert = snapshot.experts[candidate]
     confirmed = covered_terms(parsed.terms, "; ".join(expert.competencies))
-    constraints = []
-    if parsed.city and parsed.city != expert.city:
-        constraints.append(f"Другой город: {expert.city}; запрошен {parsed.city}")
-    if parsed.industry and parsed.industry != expert.industry:
-        constraints.append(f"Другая отрасль: {expert.industry}; запрошена {parsed.industry}")
-    if parsed.min_experience is not None and expert.experience_years < parsed.min_experience:
-        constraints.append(f"Опыт {expert.experience_years} лет ниже запрошенных {parsed.min_experience}")
-    if expert.availability != "available":
-        constraints.append("Занят" if expert.availability == "busy" else "Частично доступен")
     return ExpertExplanation(
         parsed=parsed,
-        expert=ranker.result_for(snapshot, candidate, parsed, index.encode_query(query)),
+        expert=ranker.result_for(snapshot, candidate, parsed, index.encode_query(query), lang=lang),
         missing_terms=list(dict.fromkeys(term for term in parsed.terms if term not in confirmed)),
-        constraints=constraints,
+        constraints=explain_module.constraints(expert, parsed, lang),
     )
 
 

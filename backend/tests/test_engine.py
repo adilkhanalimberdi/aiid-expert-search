@@ -103,3 +103,43 @@ def test_years_label_declension():
         "22 года",
         "15 лет",
     ]
+
+
+def test_city_typo_is_fixed_but_ordinary_words_are_not():
+    assert parse("специалист из Алмты").city == "Алматы"
+    assert parse("из Шымкнте").city == "Шымкент"
+    assert parse("нужен станок и тариф").city is None
+
+
+def test_cyrillic_spelling_of_latin_term_expands_synonyms():
+    assert "devops" in expand_synonyms(["девопс"])
+    assert "python" in expand_synonyms(["питон"])
+
+
+def test_unknown_word_is_not_distorted_and_prefix_is_confirmed():
+    assert lemmas("деплой") == ["деплой"]
+    assert covered_terms(["кибер"], "кибербезопасность; DevOps") == {"кибер"}
+    assert covered_terms(["каб"], "кабель") == set()  # короче порога: не приставка
+
+
+def test_vocabulary_expansion_by_prefix_and_typo():
+    from app.text import expand_vocabulary
+
+    vocabulary = ["кибербезопасность", "devops", "промышленный"]
+    assert "кибербезопасность" in expand_vocabulary(["кибер"], vocabulary)
+    assert "кибербезопасность" in expand_vocabulary(["кибирбезопасность"], vocabulary)
+    assert expand_vocabulary(["devops"], vocabulary) == ["devops"]
+
+
+def test_english_explanations():
+    from app.explain import TEXTS, years_label
+
+    assert years_label(1, "en") == "1 year" and years_label(5, "en") == "5 years"
+    assert set(TEXTS["ru"]) == set(TEXTS["en"])
+
+
+def test_english_query_parsing():
+    parsed = parse("I need a cybersecurity expert from Almaty with 5+ years")
+    assert (parsed.city, parsed.min_experience, parsed.terms) == ("Алматы", 5, ["cybersecurity"])
+    assert "кибербезопасность" in expand_synonyms(["cybersecurity"])
+    assert parse("audit at least 10 years").min_experience == 10

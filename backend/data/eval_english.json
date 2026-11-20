@@ -1,0 +1,193 @@
+[
+  {
+    "query": "cybersecurity specialist",
+    "relevant": [
+      "E013",
+      "E048",
+      "E049",
+      "E060",
+      "E061",
+      "E062",
+      "E064",
+      "E067",
+      "E068",
+      "E069"
+    ]
+  },
+  {
+    "query": "machine learning engineer",
+    "relevant": [
+      "E006",
+      "E014",
+      "E046",
+      "E047",
+      "E048",
+      "E049",
+      "E050",
+      "E051",
+      "E052",
+      "E053",
+      "E054",
+      "E055",
+      "E056",
+      "E057",
+      "E058",
+      "E059",
+      "E060",
+      "E061",
+      "E062",
+      "E063",
+      "E064",
+      "E065",
+      "E066",
+      "E067",
+      "E068",
+      "E069",
+      "E070",
+      "E071",
+      "E072"
+    ]
+  },
+  {
+    "query": "clinical trials expert",
+    "relevant": [
+      "E001",
+      "E002",
+      "E003",
+      "E025",
+      "E031",
+      "E034",
+      "E037",
+      "E038",
+      "E039",
+      "E040",
+      "E044",
+      "E045"
+    ]
+  },
+  {
+    "query": "BIM designer for industrial plants, Astana",
+    "relevant": [
+      "E004",
+      "E087"
+    ]
+  },
+  {
+    "query": "lean manufacturing consultant",
+    "relevant": [
+      "E100",
+      "E104",
+      "E105",
+      "E112",
+      "E114",
+      "E116",
+      "E122"
+    ]
+  },
+  {
+    "query": "pharmacovigilance specialist",
+    "relevant": [
+      "E011",
+      "E021",
+      "E023",
+      "E024",
+      "E030",
+      "E036",
+      "E043",
+      "E044"
+    ]
+  },
+  {
+    "query": "teacher training and mentoring",
+    "relevant": [
+      "E019",
+      "E125",
+      "E126",
+      "E127",
+      "E128",
+      "E129",
+      "E130",
+      "E132",
+      "E135",
+      "E137",
+      "E141",
+      "E142",
+      "E144",
+      "E147",
+      "E148"
+    ]
+  },
+  {
+    "query": "oil and gas environmental monitoring",
+    "relevant": [
+      "E018",
+      "E099",
+      "E100",
+      "E102",
+      "E103",
+      "E104",
+      "E105",
+      "E109",
+      "E111",
+      "E112",
+      "E113",
+      "E116",
+      "E118",
+      "E120",
+      "E122",
+      "E123",
+      "E124"
+    ]
+  },
+  {
+    "query": "earthquake-resistant structures",
+    "relevant": [
+      "E015",
+      "E074",
+      "E078",
+      "E084",
+      "E086",
+      "E092",
+      "E096"
+    ]
+  },
+  {
+    "query": "online learning for adults",
+    "relevant": [
+      "E020",
+      "E125",
+      "E127",
+      "E128",
+      "E130",
+      "E131",
+      "E132",
+      "E133",
+      "E137",
+      "E139",
+      "E140",
+      "E142",
+      "E143",
+      "E149"
+    ]
+  },
+  {
+    "query": "cloud infrastructure and DevOps in Almaty",
+    "relevant": [
+      "E054"
+    ]
+  },
+  {
+    "query": "non destructive testing in metallurgy",
+    "relevant": [
+      "E017",
+      "E107",
+      "E111",
+      "E113",
+      "E114",
+      "E116",
+      "E120",
+      "E121",
+      "E123"
+    ]
+  }
+]

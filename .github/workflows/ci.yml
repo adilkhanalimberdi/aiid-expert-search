@@ -1,0 +1,55 @@
+# Быстрые проверки на каждый PR и пуш. Модель bge-m3 (2,3 ГБ) в CI не качаем:
+# тесты, которым нужна модель, запускаются локально (`pytest` из папки backend).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Зависимости без torch и sentence-transformers
+        run: |
+          grep -v -E '^sentence-transformers' backend/requirements.txt > "$RUNNER_TEMP/requirements-ci.txt"
+          pip install -r "$RUNNER_TEMP/requirements-ci.txt" ruff pytest httpx
+      - name: Линтер и формат
+        working-directory: backend
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Тесты без модели
+        working-directory: backend
+        run: pytest -q tests/test_engine.py tests/test_generator.py
+      - name: Каталог воспроизводим (генератор не дрейфует)
+        run: |
+          python backend/scripts/generate_data.py > /dev/null
+          git diff --exit-code -- backend/data
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Зависимости
+        working-directory: web
+        run: if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+      - name: Линтер
+        working-directory: web
+        run: npm run lint
+      - name: Сборка
+        working-directory: web
+        run: npm run build

@@ -37,6 +37,7 @@ export interface SearchRequest {
   industry?: string | null
   top_k?: number
   hide_busy?: boolean
+  lang?: 'ru' | 'en'
 }
 
 export interface Expert {
@@ -52,6 +53,12 @@ export interface Expert {
   bio: string | null
   languages: string[]
   email: string | null
+}
+
+export interface ExpertPage {
+  total: number
+  offset: number
+  items: Expert[]
 }
 
 export interface ExpertExplanation {
@@ -71,6 +78,7 @@ export interface TeamRequest {
   industry?: string | null
   hide_busy?: boolean
   max_members?: number
+  lang?: 'ru' | 'en'
 }
 
 export interface TeamResponse {
@@ -88,13 +96,23 @@ export interface UploadResponse {
   errors: string[]
 }
 
+export interface EvalRun {
+  dataset: string
+  mode: 'hybrid' | 'bm25' | 'vector'
+  k: number
+  hits: number
+  total: number
+  avg_ms: number
+  p95_ms: number
+}
+
 export interface StatsResponse {
   total_queries: number
   avg_took_ms: number
   fit_rate: number | null
   top_competencies: { term: string; count: number }[]
   unmet_demand: { term: string; count: number }[]
-  evaluations: Record<string, unknown>[]
+  evaluations: EvalRun[]
 }
 
 export interface FeedbackRequest {
@@ -106,23 +124,49 @@ export interface FeedbackRequest {
 // В dev запросы идут через прокси Vite (/api → :8000). VITE_API_URL нужен для сборки без прокси.
 const BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? '')
 
+// Язык обоснований (reasons, constraints) совпадает с языком интерфейса
+const UI_LANGUAGE = 'en'
+
+const NETWORK_ERROR = 'Cannot reach the server. Make sure the backend is running.'
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  })
+  const isJsonBody = typeof init?.body === 'string'
+  let res: Response
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...init,
+      headers: isJsonBody ? { 'Content-Type': 'application/json' } : undefined,
+    })
+  } catch {
+    throw new Error(NETWORK_ERROR)
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? `Ошибка сервера: ${res.status}`)
+    throw new Error(typeof body.detail === 'string' ? body.detail : `Server error: ${res.status}`)
   }
   return res.status === 204 ? (undefined as T) : res.json()
 }
 
+const post = <T>(path: string, body: unknown) =>
+  request<T>(path, { method: 'POST', body: JSON.stringify(body) })
+
 export const api = {
-  search: (req: SearchRequest) =>
-    request<SearchResponse>('/api/search', { method: 'POST', body: JSON.stringify(req) }),
+  search: (req: SearchRequest) => post<SearchResponse>('/api/search', { lang: UI_LANGUAGE, ...req }),
+  team: (req: TeamRequest) => post<TeamResponse>('/api/team', { lang: UI_LANGUAGE, ...req }),
   industries: () => request<string[]>('/api/industries'),
-  feedback: (query: string, expert_id: string, verdict: 'fit' | 'not_fit') =>
-    request<void>('/api/feedback', { method: 'POST', body: JSON.stringify({ query, expert_id, verdict }) }),
+  experts: (offset = 0, limit = 20) => request<ExpertPage>(`/api/experts?offset=${offset}&limit=${limit}`),
+  expert: (id: string) => request<Expert>(`/api/experts/${encodeURIComponent(id)}`),
+  explain: (id: string, query: string) =>
+    request<ExpertExplanation>(`/api/experts/${encodeURIComponent(id)}/explain?query=${encodeURIComponent(query)}&lang=${UI_LANGUAGE}`),
+  similar: (id: string, limit = 5) =>
+    request<SimilarExpert[]>(`/api/experts/${encodeURIComponent(id)}/similar?limit=${limit}`),
+  feedback: (query: string, expert_id: string, verdict: FeedbackRequest['verdict']) =>
+    post<void>('/api/feedback', { query, expert_id, verdict }),
+  upload: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return request<UploadResponse>('/api/upload', { method: 'POST', body: form })
+  },
+  stats: () => request<StatsResponse>('/api/stats'),
   health: () => request<{ status: string; experts: number; model: string }>('/api/health'),
 }
