@@ -61,6 +61,22 @@ export interface ExpertExplanation {
   constraints: string[]
 }
 
+export interface TeamRequest {
+  query: string
+  industry?: string | null
+  hide_busy?: boolean
+  max_members?: number
+}
+
+export interface TeamResponse {
+  parsed: ParsedQuery
+  members: SearchResult[]
+  coverage: { expert_id: string; terms: Record<string, boolean> }[]
+  uncovered_terms: string[]
+  complete: boolean
+  took_ms: number
+}
+
 export interface UploadResponse {
   loaded: number
   skipped: number

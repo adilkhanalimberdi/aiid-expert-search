@@ -125,6 +125,23 @@ def test_explain_any_expert(client: TestClient) -> None:
     assert client.get("/api/experts/unknown/explain", params={"query": "GMP"}).status_code == 404
 
 
+def test_team_coverage(client: TestClient) -> None:
+    response = client.post("/api/team", json={"query": "GMP и BIM", "hide_busy": True})
+    assert response.status_code == 200
+    result = response.json()
+    assert 2 <= len(result["members"]) <= 3
+    assert result["complete"] and result["uncovered_terms"] == []
+    assert {row["expert_id"] for row in result["coverage"]} == {item["id"] for item in result["members"]}
+    assert all(item["availability"] != "busy" for item in result["members"])
+    for term in ["gmp", "bim"]:
+        assert any(row["terms"][term] for row in result["coverage"])
+    missing = client.post(
+        "/api/team", json={"query": "GMP и телепортация", "industry": "Фармацевтика"}
+    ).json()
+    assert not missing["complete"] and "телепортация" in missing["uncovered_terms"]
+    assert client.post("/api/team", json={"query": "  "}).status_code == 422
+
+
 def test_csv_aliases_duplicates_and_quotes() -> None:
     raw = (
         "id,ФИО,Должность,Отрасль,Компетенции,Город,Опыт,Статус\n"

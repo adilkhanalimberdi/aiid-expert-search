@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import feedback as feedback_store
-from . import index, ranker
+from . import index, ranker, team
 from . import stats as stats_store
 from .config import UPLOAD_MAX_BYTES, settings
 from .data_loader import load_csv
@@ -23,6 +23,8 @@ from .schemas import (
     SearchRequest,
     SearchResponse,
     StatsResponse,
+    TeamRequest,
+    TeamResponse,
     UploadResponse,
 )
 from .text import covered_terms
@@ -67,6 +69,11 @@ def search(req: SearchRequest) -> SearchResponse:
     response = ranker.search(snapshot, req, feedback_scores=feedback_store.multipliers())
     stats_store.log_query(response.parsed.terms, response.took_ms, response.weak_match)
     return response
+
+
+@app.post("/api/team", response_model=TeamResponse)
+def assemble_team(req: TeamRequest) -> TeamResponse:
+    return team.assemble(app.state.index, req)
 
 
 @app.post("/api/upload", response_model=UploadResponse)

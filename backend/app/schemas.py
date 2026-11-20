@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from .config import TEAM_MAX_MEMBERS, TEAM_MIN_MEMBERS
+
 Availability = Literal["available", "partial", "busy"]
 
 
@@ -71,6 +73,32 @@ class ExpertExplanation(BaseModel):
     expert: SearchResult
     missing_terms: list[str]
     constraints: list[str]
+
+
+class TeamRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
+    industry: str | None = None
+    hide_busy: bool = False
+    max_members: int = Field(default=TEAM_MAX_MEMBERS, ge=TEAM_MIN_MEMBERS, le=TEAM_MAX_MEMBERS)
+
+    @field_validator("query")
+    @classmethod
+    def nonblank_query(cls, value: str) -> str:
+        return SearchRequest(query=value).query
+
+
+class CoverageRow(BaseModel):
+    expert_id: str
+    terms: dict[str, bool]
+
+
+class TeamResponse(BaseModel):
+    parsed: ParsedQuery
+    members: list[SearchResult]
+    coverage: list[CoverageRow]
+    uncovered_terms: list[str]
+    complete: bool
+    took_ms: int
 
 
 class UploadResponse(BaseModel):
