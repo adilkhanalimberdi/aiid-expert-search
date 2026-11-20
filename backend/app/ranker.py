@@ -235,7 +235,11 @@ def filter_only_response(
         percent = round(config.FILTER_ONLY_PERCENT * (config.BOOST_EXPERIENCE_BELOW if below else 1.0))
         results.append(result.model_copy(update={"match_percent": percent}))
     return SearchResponse(
-        parsed=parsed, weak_match=False, took_ms=round((perf_counter() - started) * 1000), results=results
+        parsed=parsed,
+        weak_match=False,
+        took_ms=round((perf_counter() - started) * 1000),
+        results=results,
+        filter_only=True,
     )
 
 

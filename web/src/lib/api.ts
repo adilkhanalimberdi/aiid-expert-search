@@ -35,6 +35,8 @@ export interface SearchResponse {
   weak_match: boolean
   took_ms: number
   results: SearchResult[]
+  /** в запросе нет темы, только город или отрасль: процент не показываем */
+  filter_only: boolean
 }
 
 export interface SearchRequest {

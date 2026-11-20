@@ -277,3 +277,11 @@ def test_excluded_term_is_not_searched_and_pushes_experts_down(client: TestClien
     assert result["parsed"]["excluded_terms"] == ["gmp"]
     assert all("GMP" not in item["matched"] for item in result["results"])
     assert result["results"][0]["matched"] == ["BIM"]
+
+
+def test_filter_only_flag_only_without_topic(client: TestClient) -> None:
+    city_only = client.post("/api/search", json={"query": "специалист из Шымкента"}).json()
+    assert city_only["filter_only"] and not city_only["weak_match"]
+    assert all(item["city"] == "Шымкент" for item in city_only["results"])
+    with_topic = client.post("/api/search", json={"query": "GMP из Шымкента"}).json()
+    assert not with_topic["filter_only"]
