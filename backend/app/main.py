@@ -18,6 +18,7 @@ from .query_parser import parse
 from .schemas import (
     Expert,
     ExpertExplanation,
+    ExpertPage,
     FeedbackRequest,
     HealthResponse,
     SearchRequest,
@@ -98,6 +99,15 @@ def upload(file: UploadFile) -> UploadResponse:
         temporary.replace(target)
         app.state.index = replacement
     return report
+
+
+@app.get("/api/experts", response_model=ExpertPage)
+def list_experts(
+    offset: int = Query(default=0, ge=0), limit: int = Query(default=20, ge=1, le=100)
+) -> ExpertPage:
+    """Постраничный список каталога, чтобы показать загруженную базу."""
+    experts = app.state.index.experts
+    return ExpertPage(total=len(experts), offset=offset, items=experts[offset : offset + limit])
 
 
 @app.get("/api/experts/{expert_id}", response_model=Expert)

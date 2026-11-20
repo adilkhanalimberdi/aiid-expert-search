@@ -29,6 +29,12 @@ class SimilarExpert(BaseModel):
     cosine: float
 
 
+class ExpertPage(BaseModel):
+    total: int
+    offset: int
+    items: list[Expert]
+
+
 class SearchRequest(BaseModel):
     query: str = Field(min_length=1, max_length=500)
     industry: str | None = None

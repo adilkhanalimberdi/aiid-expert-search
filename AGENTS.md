@@ -162,6 +162,7 @@ CSV в UTF-8, компетенции через `;`.
 | POST | `/api/search` | поиск, главный эндпоинт |
 | POST | `/api/team` | `{query, industry?, hide_busy?, max_members?: 2–3}` → участники, матрица подтверждённых терминов, `uncovered_terms`, `complete`; при нехватке подходящих профилей команда может быть меньше |
 | POST | `/api/upload` | CSV (multipart), пересборка индекса без перезапуска |
+| GET | `/api/experts?offset=0&limit=20` | постраничный каталог `{total, offset, items}`; limit 1–100 |
 | GET | `/api/experts/{id}` | полная карточка |
 | GET | `/api/experts/{id}/explain?query=...` | совпадения, `missing_terms` (не подтверждены компетенциями профиля), ограничения города, отрасли, опыта и доступности |
 | GET | `/api/experts/{id}/similar?limit=5` | ближайшие профили по косинусу векторов, без исходного эксперта; limit 1–20 |

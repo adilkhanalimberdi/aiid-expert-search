@@ -174,3 +174,12 @@ def test_unmet_demand_counts_only_weak_queries(client: TestClient) -> None:
     unmet = {item["term"] for item in summary["unmet_demand"]}
     assert {"юрист", "налог"} <= unmet
     assert "gmp" not in unmet
+
+
+def test_experts_are_paginated(client: TestClient) -> None:
+    page = client.get("/api/experts", params={"offset": 10, "limit": 5}).json()
+    assert page["total"] == 150
+    assert [item["id"] for item in page["items"]] == ["E011", "E012", "E013", "E014", "E015"]
+    assert client.get("/api/experts", params={"offset": 149, "limit": 5}).json()["items"][0]["id"] == "E150"
+    assert client.get("/api/experts", params={"limit": 0}).status_code == 422
+    assert client.get("/api/experts", params={"limit": 101}).status_code == 422

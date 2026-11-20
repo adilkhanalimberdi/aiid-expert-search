@@ -54,6 +54,12 @@ export interface Expert {
   email: string | null
 }
 
+export interface ExpertPage {
+  total: number
+  offset: number
+  items: Expert[]
+}
+
 export interface ExpertExplanation {
   parsed: ParsedQuery
   expert: SearchResult
@@ -143,6 +149,7 @@ export const api = {
   search: (req: SearchRequest) => post<SearchResponse>('/api/search', req),
   team: (req: TeamRequest) => post<TeamResponse>('/api/team', req),
   industries: () => request<string[]>('/api/industries'),
+  experts: (offset = 0, limit = 20) => request<ExpertPage>(`/api/experts?offset=${offset}&limit=${limit}`),
   expert: (id: string) => request<Expert>(`/api/experts/${encodeURIComponent(id)}`),
   explain: (id: string, query: string) =>
     request<ExpertExplanation>(`/api/experts/${encodeURIComponent(id)}/explain?query=${encodeURIComponent(query)}`),
