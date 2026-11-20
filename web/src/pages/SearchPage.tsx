@@ -6,6 +6,7 @@ import { ExpertDialog } from '../components/ExpertDialog'
 import { ExpertCardSkeleton } from '../components/Skeleton'
 import { TeamPanel } from '../components/TeamPanel'
 import { useAsync } from '../hooks/useAsync'
+import { useRecentQueries } from '../hooks/useRecentQueries'
 import { useSearch } from '../hooks/useSearch'
 import { api, type ParsedQuery, type SearchResponse } from '../lib/api'
 import { EXAMPLE_QUERIES, yearsLabel } from '../lib/format'
@@ -29,9 +30,11 @@ export function SearchPage() {
   const industries = useAsync(() => api.industries(), [])
   const catalog = useAsync(() => api.health(), [])
   const { state, run } = useSearch()
+  const { recent, remember } = useRecentQueries()
 
   function start(next: SubmittedSearch) {
     setSubmitted(next)
+    remember(next.query)
     setIsTeamOpen(false)
     run({ query: next.query, industry: next.industry, hide_busy: next.hideBusy, top_k: TOP_K })
   }
@@ -61,39 +64,39 @@ export function SearchPage() {
         <CompassRose />
         <div className="relative mx-auto max-w-[1160px] px-4 pb-10 pt-6 sm:px-6">
           <h1 className="max-w-2xl font-display text-2xl font-bold leading-tight text-white sm:text-4xl">
-            Компас найдёт эксперта <span className="text-sky">под вашу задачу</span>
+            Lodestar finds the expert <span className="text-sky">for your task</span>
           </h1>
           <p className="mt-3 max-w-2xl text-ground/80">
-            Опишите задачу своими словами: компетенцию, город, нужный опыт. Компас покажет, кто подходит и почему.
+            Describe the task in your own words: the skill, the city, the experience you need. Lodestar shows who fits and why. Queries work in English, Russian and Kazakh.
           </p>
           <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ground/70">
-            {catalog.data && <span>{catalog.data.experts} экспертов в базе</span>}
-            {industries.data && <span>{industries.data.length} отраслей</span>}
-            <span>ответ за доли секунды</span>
-            <span>без интернета и внешних сервисов</span>
+            {catalog.data && <span>{catalog.data.experts} experts in the database</span>}
+            {industries.data && <span>{industries.data.length} industries</span>}
+            <span>answers in a fraction of a second</span>
+            <span>no internet or external services</span>
           </p>
 
           <form onSubmit={submit} className="mt-6 flex flex-col gap-3 sm:flex-row" role="search">
             <label htmlFor="query" className="sr-only">
-              Запрос
+              Query
             </label>
             <input
               id="query"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               maxLength={500}
-              placeholder="Например: специалист по GMP из Алматы"
+              placeholder="For example: GMP specialist from Almaty"
               className="min-h-12 flex-1 rounded-xl bg-white px-4 text-ink placeholder:text-muted"
             />
             <button type="submit" className="min-h-12 rounded-xl bg-sky px-6 font-semibold text-ink hover:brightness-95">
-              Найти экспертов
+              Find experts
             </button>
           </form>
           <p className="mt-2 min-h-5 text-sm text-amber-note" aria-live="polite">
-            {emptyHint && 'Введите запрос: что за специалист вам нужен.'}
+            {emptyHint && 'Type a query: what kind of expert do you need?'}
           </p>
 
-          <div className="mt-2 flex flex-wrap gap-2" aria-label="Примеры запросов">
+          <div className="mt-2 flex flex-wrap gap-2" aria-label="Example queries">
             {EXAMPLE_QUERIES.map((example) => (
               <button
                 key={example}
@@ -106,15 +109,31 @@ export function SearchPage() {
             ))}
           </div>
 
+          {recent.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2" aria-label="Recent queries">
+              <span className="text-sm text-ground/70">Recent:</span>
+              {recent.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => applyExample(item)}
+                  className="rounded-full border border-ground/25 px-3 py-1 text-sm text-ground hover:bg-white/10"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
             <label className="flex items-center gap-2 text-sm">
-              Отрасль
+              Industry
               <select
                 value={industry}
                 onChange={(event) => changeFilters(event.target.value, hideBusy)}
                 className="rounded-lg bg-white px-3 py-2 text-ink"
               >
-                <option value="">Любая</option>
+                <option value="">Any</option>
                 {industries.data?.map((item) => (
                   <option key={item} value={item}>
                     {item}
@@ -129,7 +148,7 @@ export function SearchPage() {
                 onChange={(event) => changeFilters(industry, event.target.checked)}
                 className="size-4 accent-sky"
               />
-              Скрыть занятых
+              Hide busy experts
             </label>
           </div>
         </div>
@@ -138,7 +157,7 @@ export function SearchPage() {
       <section className="mx-auto max-w-[1160px] px-4 py-8 sm:px-6" aria-live="polite">
         {state.status === 'idle' && (
           <p className="rounded-2xl border border-dashed border-line p-8 text-center text-muted">
-            Введите запрос или выберите пример, и здесь появятся эксперты.
+            Type a query or pick an example and the experts will appear here.
           </p>
         )}
         {state.status === 'loading' && (
@@ -195,13 +214,13 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
 
       {data.weak_match && (
         <p role="status" className="rounded-2xl border border-partial-fg/30 bg-partial-bg p-4 text-partial-fg">
-          Точных совпадений нет, вот ближайшие. Попробуйте переформулировать запрос или убрать ограничения.
+          No exact matches, here are the closest ones. Try rephrasing the query or removing constraints.
         </p>
       )}
 
       {!best && (
         <p className="rounded-2xl border border-line bg-white p-8 text-center text-muted">
-          Никого не нашли. Снимите фильтр отрасли или «Скрыть занятых».
+          Nobody found. Remove the industry filter or “Hide busy experts”.
         </p>
       )}
 
@@ -211,7 +230,7 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
 
           {alsoFit.length > 0 && (
             <div>
-              <h2 className="mb-3 font-display text-lg font-bold">Тоже подходят</h2>
+              <h2 className="mb-3 font-display text-lg font-bold">Also a good fit</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 {alsoFit.map((expert) => (
                   <ExpertCard key={expert.id} expert={expert} query={submitted.query} variant="compact" onOpen={onOpen} />
@@ -222,7 +241,7 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
 
           {others.length > 0 && (
             <div>
-              <h2 className="mb-3 font-display text-lg font-bold">Другие кандидаты</h2>
+              <h2 className="mb-3 font-display text-lg font-bold">Other candidates</h2>
               <div className="space-y-3">
                 {others.map((expert) => (
                   <ExpertCard key={expert.id} expert={expert} query={submitted.query} variant="row" onOpen={onOpen} />
@@ -238,7 +257,7 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
               aria-expanded={isTeamOpen}
               className="rounded-xl bg-ink px-5 py-3 font-semibold text-white hover:bg-ink-soft"
             >
-              {isTeamOpen ? 'Скрыть команду' : 'Собрать команду под этот запрос'}
+              {isTeamOpen ? 'Hide the team' : 'Build a team for this query'}
             </button>
             {isTeamOpen && (
               <div className="mt-4">
@@ -261,22 +280,22 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
 
 function ParsedLine({ parsed, tookMs }: { parsed: ParsedQuery; tookMs: number }) {
   const chips = [
-    parsed.city && `Город: ${parsed.city}`,
-    parsed.industry && `Отрасль: ${parsed.industry}`,
-    parsed.min_experience !== null && `Опыт от ${yearsLabel(parsed.min_experience)}`,
+    parsed.city && `City: ${parsed.city}`,
+    parsed.industry && `Industry: ${parsed.industry}`,
+    parsed.min_experience !== null && `Experience from ${yearsLabel(parsed.min_experience)}`,
     ...parsed.terms.map((term) => `«${term}»`),
   ].filter(Boolean) as string[]
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-muted">Как понят запрос:</span>
-      {chips.length === 0 && <span className="text-muted">ключевых терминов не найдено</span>}
+      <span className="text-muted">How the query was understood:</span>
+      {chips.length === 0 && <span className="text-muted">no key terms found</span>}
       {chips.map((chip) => (
         <span key={chip} className="rounded-full bg-white px-3 py-1 ring-1 ring-line">
           {chip}
         </span>
       ))}
-      <span className="ml-auto text-muted">{tookMs} мс</span>
+      <span className="ml-auto text-muted">{tookMs} ms</span>
     </div>
   )
 }
@@ -284,14 +303,14 @@ function ParsedLine({ parsed, tookMs }: { parsed: ParsedQuery; tookMs: number })
 function MatchExplainer() {
   return (
     <details className="rounded-2xl border border-line bg-white p-5">
-      <summary className="cursor-pointer font-semibold">Как считается совпадение</summary>
+      <summary className="cursor-pointer font-semibold">How the match is calculated</summary>
       <div className="mt-3 space-y-2 text-sm text-ink-soft">
-        <p>Процент складывается из двух частей: 60% смысловая близость запроса к профилю, 40% доля найденных терминов.</p>
+        <p>The percentage has two parts: 60% semantic closeness of the query to the profile, 40% share of query terms found.</p>
         <p>
-          Порядок в выдаче задают два поиска: по точным словам и по смыслу. Затем учитываются город (совпал: выше,
-          другой: ниже), отрасль, опыт и доступность: занятые эксперты опускаются, но не пропадают.
+          The order comes from two searches, by exact words and by meaning. Then city (same: higher, different: lower), industry,
+          experience and availability are applied: busy experts move down but never disappear.
         </p>
-        <p>Причины в карточке берутся из реальных полей профиля, текст не генерируется.</p>
+        <p>Reasons on a card are built from real profile fields; no text is generated.</p>
       </div>
     </details>
   )
