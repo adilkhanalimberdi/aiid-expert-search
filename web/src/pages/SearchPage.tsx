@@ -111,12 +111,13 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
 
         <div className="mt-3 flex flex-wrap items-center justify-center gap-x-7 gap-y-1">
           <span className="text-sm text-white/80">{t.search.tryLabel}</span>
-          {t.search.examples.map((example) => (
+          {t.search.examples.map((example, index) => (
             <button
               key={example}
               type="button"
               onClick={() => applyExample(example)}
-              className="min-h-11 cursor-pointer text-[15px] font-medium text-white underline decoration-[1.5px] underline-offset-[5px] hover:decoration-lime"
+              // на телефоне три примера: остальные отодвигали результаты на второй экран
+              className={`${index >= 3 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-[15px] font-medium text-white underline decoration-[1.5px] underline-offset-[5px] hover:decoration-lime`}
             >
               {example}
             </button>
@@ -126,12 +127,12 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
         {recent.length > 0 && (
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1" aria-label={t.search.recent}>
             <span className="text-sm text-white/80">{t.search.recent}</span>
-            {recent.map((item) => (
+            {recent.map((item, index) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => applyExample(item)}
-                className="min-h-11 cursor-pointer text-sm text-white/90 underline decoration-white/40 decoration-1 underline-offset-[5px] hover:decoration-lime"
+                className={`${index >= 1 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-sm text-white/90 underline decoration-white/40 decoration-1 underline-offset-[5px] hover:decoration-lime`}
               >
                 {item}
               </button>
@@ -223,7 +224,19 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
 
       {!best && <p className="mt-8 border-2 border-ink bg-white p-10 text-center text-muted">{t.search.nobody}</p>}
 
-      {best && (
+      {best && data.weak_match && (
+        // слабое совпадение не получает чёрную панель «лучшего»: это ближайшие профили, а не рекомендация
+        <>
+          <SectionTitle>{t.card.closest}</SectionTitle>
+          <div className="border-t-2 border-ink">
+            {data.results.map((expert) => (
+              <CandidateRow key={expert.id} expert={expert} query={submitted.query} onOpen={onOpen} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {best && !data.weak_match && (
         <>
           <div className="mt-12">
             <BestMatch expert={best} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
@@ -258,7 +271,11 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
               </div>
             </>
           )}
+        </>
+      )}
 
+      {best && !data.weak_match && (
+        <>
           <div className="mt-14 flex flex-col items-center">
             <Button variant="outline" onClick={onToggleTeam} aria-expanded={isTeamOpen}>
               {isTeamOpen ? t.card.hideTeam : t.card.buildTeam}
