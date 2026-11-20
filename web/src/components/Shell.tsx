@@ -4,6 +4,9 @@ import { TABS, type TabId } from '../lib/tabs'
 import { useI18n } from '../lib/useI18n'
 import { Brand } from './Logo'
 
+/** Ширина и поля рабочей области: одинаковые у шапки и у содержимого, края совпадают. */
+export const CONTAINER = 'mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8'
+
 function NavIcon({ tab }: { tab: TabId }) {
   const paths: Record<TabId, ReactNode> = {
     search: (
@@ -18,19 +21,19 @@ function NavIcon({ tab }: { tab: TabId }) {
         <path d="M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3" />
       </>
     ),
-    analytics: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+    analytics: <path d="M5 20V11M12 20V5M19 20v-6" />,
   }
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       {paths[tab]}
     </svg>
   )
 }
 
-function LanguageSwitch({ dense = false }: { dense?: boolean }) {
+function LanguageSwitch() {
   const { lang, setLang, t } = useI18n()
   return (
-    <div role="group" aria-label={t.nav.language} className="grid grid-cols-3 gap-0.5 rounded-lg bg-night-2 p-0.5">
+    <div role="group" aria-label={t.nav.language} className="flex rounded-lg bg-night-2 p-0.5">
       {LANGUAGES.map((code) => (
         <button
           key={code}
@@ -38,24 +41,14 @@ function LanguageSwitch({ dense = false }: { dense?: boolean }) {
           lang={code}
           aria-pressed={lang === code}
           onClick={() => setLang(code)}
-          className={`rounded-md text-[13px] font-bold tracking-[0.04em] transition-colors ${dense ? 'h-8 min-w-10 px-2' : 'h-9'} ${
-            lang === code ? 'bg-white text-night' : 'text-night-text hover:bg-night-line hover:text-white'
+          className={`h-8 min-w-10 rounded-md px-2.5 text-[13px] font-semibold transition-colors ${
+            lang === code ? 'bg-white text-night' : 'text-night-dim hover:text-white'
           }`}
         >
           {code.toUpperCase()}
         </button>
       ))}
     </div>
-  )
-}
-
-function SyntheticNote({ className = '' }: { className?: string }) {
-  const { t } = useI18n()
-  return (
-    <p className={`flex items-start gap-2 text-xs leading-snug ${className}`}>
-      <span aria-hidden className="mt-1 size-1.5 flex-none rounded-full bg-spark" />
-      {t.synthetic}
-    </p>
   )
 }
 
@@ -66,15 +59,34 @@ interface ShellProps {
 }
 
 /**
- * Оболочка приложения. На широком экране ночная боковая панель с разделами, языком и плашкой о данных.
- * На телефоне шапка с плашкой сверху и разделы в нижней панели: плашка видна всегда.
+ * Оболочка: тёмно-синяя верхняя панель (лого-лок, разделы, язык) и под ней плашка о синтетических данных.
+ * Обе прилипают к верху, поэтому плашка видна на любом экране. На телефоне разделы второй строкой панели.
  */
 export function Shell({ tab, onTab, children }: ShellProps) {
   const { t } = useI18n()
-  const navItems = TABS.map((id) => ({ id, label: t.nav[id] }))
+
+  const tabs = (className: string) =>
+    TABS.map((id) => (
+      <li key={id} className={className}>
+        <button
+          type="button"
+          onClick={() => onTab(id)}
+          aria-current={tab === id ? 'page' : undefined}
+          className={`relative flex h-full w-full items-center justify-center gap-2 px-3.5 text-[15px] font-semibold transition-colors ${
+            tab === id ? 'text-white' : 'text-night-dim hover:text-white'
+          }`}
+        >
+          <span className={tab === id ? 'text-spark' : ''}>
+            <NavIcon tab={id} />
+          </span>
+          {t.nav[id]}
+          {tab === id && <span aria-hidden className="absolute inset-x-3 bottom-0 h-[3px] rounded-t-full bg-spark" />}
+        </button>
+      </li>
+    ))
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[248px_minmax(0,1fr)] lg:bg-[linear-gradient(to_right,var(--color-night)_248px,transparent_248px)]">
+    <div className="min-h-screen">
       <a
         href="#content"
         className="sr-only z-50 rounded-lg bg-brand px-4 py-2 font-semibold text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
@@ -82,86 +94,48 @@ export function Shell({ tab, onTab, children }: ShellProps) {
         {t.nav.skip}
       </a>
 
-      {/* широкий экран */}
-      <aside className="on-dark sticky top-0 hidden h-screen flex-col bg-night px-4 pb-5 pt-6 text-night-text lg:flex">
-        <div className="px-2">
+      <header className="on-dark sticky top-0 z-30 bg-night shadow-[0_1px_0_var(--color-night-line)]">
+        <div className={`${CONTAINER} flex h-16 items-center gap-6 lg:h-[72px]`}>
           <Brand />
+          <nav aria-label={t.nav.sections} className="hidden h-full flex-1 justify-center md:flex">
+            <ul className="flex h-full">{tabs('h-full')}</ul>
+          </nav>
+          <div className="ml-auto md:ml-0">
+            <LanguageSwitch />
+          </div>
         </div>
-        <nav aria-label={t.nav.sections} className="mt-9">
-          <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => onTab(item.id)}
-                  aria-current={tab === item.id ? 'page' : undefined}
-                  className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-[15px] font-semibold transition-colors ${
-                    tab === item.id ? 'bg-night-2 text-white' : 'text-night-text hover:bg-night-2/60 hover:text-white'
-                  }`}
-                >
-                  <span className={tab === item.id ? 'text-brand-soft' : 'text-night-dim'}>
-                    <NavIcon tab={item.id} />
-                  </span>
-                  {item.label}
-                  {tab === item.id && <span aria-hidden className="ml-auto size-1.5 rounded-full bg-spark" />}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <nav aria-label={t.nav.sections} className="border-t border-night-line md:hidden">
+          <ul className="grid h-12 grid-cols-3">{tabs('h-full')}</ul>
         </nav>
-        <div className="mt-auto space-y-4">
-          <LanguageSwitch />
-          <SyntheticNote className="border-t border-night-line pt-4 text-night-dim" />
-          <p className="text-xs leading-snug text-night-dim">{t.footer}</p>
-        </div>
-      </aside>
-
-      {/* телефон и планшет: шапка */}
-      <header className="on-dark sticky top-0 z-30 bg-night text-night-text lg:hidden">
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-          <Brand compact />
-          <LanguageSwitch dense />
-        </div>
-        <SyntheticNote className="border-t border-night-line px-4 py-1.5 text-night-dim" />
+        <p className="border-t border-spark/30 bg-spark-tint text-spark-text">
+          <span className={`${CONTAINER} flex items-center gap-2 py-1.5 text-xs font-medium`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className="flex-none">
+              <circle cx="12" cy="12" r="9.5" />
+              <path d="M12 11v5.5M12 7.5v.01" />
+            </svg>
+            {t.synthetic}
+          </span>
+        </p>
       </header>
 
-      <div id="content" className="min-w-0 pb-20 lg:pb-0">
-        {children}
-      </div>
+      <div id="content">{children}</div>
 
-      {/* телефон и планшет: разделы снизу */}
-      <nav aria-label={t.nav.sections} className="on-dark fixed inset-x-0 bottom-0 z-30 border-t border-night-line bg-night lg:hidden">
-        <ul className="grid grid-cols-3">
-          {navItems.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                onClick={() => onTab(item.id)}
-                aria-current={tab === item.id ? 'page' : undefined}
-                className={`flex min-h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-semibold ${
-                  tab === item.id ? 'text-white' : 'text-night-dim'
-                }`}
-              >
-                <span className={tab === item.id ? 'text-brand-soft' : ''}>
-                  <NavIcon tab={item.id} />
-                </span>
-                {item.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <footer className="mt-10 border-t border-line">
+        <div className={`${CONTAINER} flex flex-wrap items-center justify-between gap-3 py-6 text-sm text-ink-3`}>
+          <span>{t.footer}</span>
+        </div>
+      </footer>
     </div>
   )
 }
 
-/** Заголовок служебного раздела внутри рабочей области. */
+/** Заголовок раздела внутри рабочей области. */
 export function PageHeader({ title, subtitle, children }: { title: string; subtitle?: ReactNode; children?: ReactNode }) {
   return (
-    <header className="flex flex-wrap items-end justify-between gap-4 px-4 pb-2 pt-6 sm:px-7 lg:pt-8">
+    <header className="flex flex-wrap items-end justify-between gap-4 pb-6 pt-8 lg:pt-10">
       <div className="min-w-0">
-        <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.03em] sm:text-[32px]">{title}</h1>
-        {subtitle && <p className="mt-1 text-[15px] text-ink-2">{subtitle}</p>}
+        <h1 className="text-[28px] font-bold leading-tight tracking-[-0.025em] sm:text-[32px]">{title}</h1>
+        {subtitle && <p className="mt-1.5 text-[15px] text-ink-2">{subtitle}</p>}
       </div>
       {children}
     </header>

@@ -4,7 +4,7 @@ import { BOOST_AVAILABILITY_BUSY, BOOST_CITY, WEIGHT_COVERAGE, WEIGHT_SEMANTIC }
 function Term({ value, label }: { value: string; label: string }) {
   return (
     <span className="inline-flex items-baseline gap-1.5 whitespace-nowrap">
-      <b className="tnum font-extrabold text-ink">{value}</b>
+      <b className="tnum font-bold text-ink">{value}</b>
       {label}
     </span>
   )

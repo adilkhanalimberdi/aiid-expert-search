@@ -101,7 +101,7 @@ function Profile({ expertId, result, label, query, showScore, onOpen }: ProfileP
         <div className="min-w-0">
           <Eyebrow className="!text-brand-deep">{label}</Eyebrow>
           {name ? (
-            <h2 id={`expert-${expertId}`} className="mt-1.5 text-[26px] font-extrabold leading-[1.12] tracking-[-0.03em] [overflow-wrap:anywhere] sm:text-[30px]">
+            <h2 id={`expert-${expertId}`} className="mt-1.5 text-[26px] font-bold leading-[1.12] tracking-[-0.03em] [overflow-wrap:anywhere] sm:text-[30px]">
               {name}
             </h2>
           ) : (

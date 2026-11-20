@@ -1,5 +1,5 @@
 import { ErrorBox } from '../components/ErrorBox'
-import { PageHeader } from '../components/Shell'
+import { CONTAINER, PageHeader } from '../components/Shell'
 import { Eyebrow, Panel, Skeleton } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
 import { api, type EvalRun } from '../lib/api'
@@ -15,9 +15,9 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
   const stats = useAsync(isActive ? () => api.stats() : null, [isActive])
 
   return (
-    <div className="pb-8">
+    <div className={CONTAINER}>
       <PageHeader title={t.analytics.title} subtitle={t.analytics.subtitle} />
-      <div className="space-y-5 px-4 pt-4 sm:px-7">
+      <div className="space-y-6 pb-6">
         {stats.isLoading && !stats.data && (
           <div className="grid gap-4 sm:grid-cols-3" role="status" aria-label={t.dialog.loading}>
             <Skeleton className="h-32" />
@@ -65,7 +65,7 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
 function Metric({ label, value, note, accent = false }: { label: string; value: string; note?: string; accent?: boolean }) {
   return (
     <Panel className={`p-5 sm:p-6 ${accent ? '!border-night !bg-night text-white' : ''}`}>
-      <dd className={`tnum text-[44px] font-extrabold leading-none tracking-[-0.045em] ${accent ? 'text-white' : 'text-ink'}`}>{value}</dd>
+      <dd className={`tnum text-[44px] font-bold leading-none tracking-[-0.045em] ${accent ? 'text-white' : 'text-ink'}`}>{value}</dd>
       <dt className={`mt-3 text-sm font-semibold ${accent ? 'text-night-text' : 'text-ink-2'}`}>{label}</dt>
       {note && <p className="mt-0.5 text-sm text-ink-3">{note}</p>}
     </Panel>
@@ -87,7 +87,7 @@ function Bars({ id, title, hint, items, empty, tone }: { id: string; title: stri
                 <span className="tnum w-4 text-xs font-bold text-ink-3">{index + 1}</span>
                 <span className="[overflow-wrap:anywhere]">{item.term}</span>
               </span>
-              <span className={`tnum text-lg font-extrabold ${tone === 'brand' ? 'text-brand-deep' : 'text-medium'}`}>{item.count}</span>
+              <span className={`tnum text-lg font-bold ${tone === 'brand' ? 'text-brand-deep' : 'text-medium'}`}>{item.count}</span>
             </div>
             <span aria-hidden className="mt-2 ml-7 block h-1.5 overflow-hidden rounded-full bg-line">
               <span
@@ -142,7 +142,7 @@ function EvalTable({ runs }: { runs: EvalRun[] }) {
                     <td key={mode} className="px-3 py-3.5">
                       {run ? (
                         <span className="flex items-center gap-2.5">
-                          <span className={`tnum ${mode === 'hybrid' ? 'text-lg font-extrabold text-brand-deep' : 'text-ink-2'}`}>
+                          <span className={`tnum ${mode === 'hybrid' ? 'text-lg font-bold text-brand-deep' : 'text-ink-2'}`}>
                             {run.hits}/{run.total}
                           </span>
                           <span aria-hidden className="hidden h-1.5 w-14 overflow-hidden rounded-full bg-line sm:block">

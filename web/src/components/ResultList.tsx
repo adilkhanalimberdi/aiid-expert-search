@@ -62,7 +62,7 @@ function Row({ expert, isSelected, onSelect, showScore }: { expert: SearchResult
         <Score percent={expert.match_percent} />
       ) : (
         <span className="flex w-12 flex-col">
-          <span className="tnum text-2xl font-extrabold leading-none tracking-[-0.03em] text-ink">{expert.experience_years}</span>
+          <span className="tnum text-2xl font-bold leading-none tracking-[-0.03em] text-ink">{expert.experience_years}</span>
           <span className="mt-1 text-[11px] font-semibold text-ink-3">{t.card.yearsShort}</span>
         </span>
       )}

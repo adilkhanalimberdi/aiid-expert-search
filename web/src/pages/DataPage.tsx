@@ -1,7 +1,7 @@
 import { useRef, useState, type DragEvent } from 'react'
 import { CatalogTable } from '../components/CatalogTable'
 import { ErrorBox } from '../components/ErrorBox'
-import { PageHeader } from '../components/Shell'
+import { CONTAINER, PageHeader } from '../components/Shell'
 import { Button, Eyebrow, Panel, Skeleton } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
 import { api, type UploadResponse } from '../lib/api'
@@ -42,9 +42,9 @@ export function DataPage() {
   }
 
   return (
-    <div className="pb-8">
+    <div className={CONTAINER}>
       <PageHeader title={t.data.title} subtitle={t.data.subtitle} />
-      <div className="space-y-5 px-4 pt-4 sm:px-7">
+      <div className="space-y-6 pb-6">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
           <Panel className="p-5 sm:p-6" aria-labelledby="current-title">
             <Eyebrow id="current-title">{t.data.current}</Eyebrow>
@@ -58,11 +58,11 @@ export function DataPage() {
               <>
                 <dl className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-lg bg-sunken p-4">
-                    <dd className="tnum text-[40px] font-extrabold leading-none tracking-[-0.04em] text-brand-deep">{health.data.experts}</dd>
+                    <dd className="tnum text-[40px] font-bold leading-none tracking-[-0.04em] text-brand-deep">{health.data.experts}</dd>
                     <dt className="mt-2 text-sm font-medium text-ink-2">{t.data.experts}</dt>
                   </div>
                   <div className="rounded-lg bg-sunken p-4">
-                    <dd className="tnum text-[40px] font-extrabold leading-none tracking-[-0.04em] text-ink">{industries.data?.length ?? '—'}</dd>
+                    <dd className="tnum text-[40px] font-bold leading-none tracking-[-0.04em] text-ink">{industries.data?.length ?? '—'}</dd>
                     <dt className="mt-2 text-sm font-medium text-ink-2">{t.data.industries}</dt>
                   </div>
                 </dl>
@@ -99,7 +99,7 @@ export function DataPage() {
                 <path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
               </svg>
             </span>
-            <p className="mt-4 text-xl font-extrabold tracking-[-0.02em]">{t.data.dropTitle}</p>
+            <p className="mt-4 text-xl font-bold tracking-[-0.02em]">{t.data.dropTitle}</p>
             <p className="mt-1.5 max-w-[46ch] text-sm text-ink-2">{t.data.dropHint}</p>
             <input
               ref={fileInput}
@@ -125,10 +125,10 @@ export function DataPage() {
             <Eyebrow id="report-title">{t.data.result}</Eyebrow>
             <p className="tnum mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[15px]">
               <span>
-                {t.data.loaded}: <strong className="text-lg font-extrabold text-free">{report.loaded}</strong>
+                {t.data.loaded}: <strong className="text-lg font-bold text-free">{report.loaded}</strong>
               </span>
               <span>
-                {t.data.skipped}: <strong className="text-lg font-extrabold">{report.skipped}</strong>
+                {t.data.skipped}: <strong className="text-lg font-bold">{report.skipped}</strong>
               </span>
             </p>
             {report.errors.length > 0 && (

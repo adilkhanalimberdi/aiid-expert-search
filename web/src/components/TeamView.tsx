@@ -21,7 +21,7 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
 
   return (
     <Panel className="fade-in p-5 sm:p-6" aria-labelledby="team-title">
-      <h2 id="team-title" className="text-xl font-extrabold tracking-[-0.02em]">
+      <h2 id="team-title" className="text-xl font-bold tracking-[-0.02em]">
         {t.team.title}
       </h2>
       {team.isLoading && <Skeleton className="mt-4 h-40 w-full" />}

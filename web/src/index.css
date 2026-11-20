@@ -1,61 +1,63 @@
 @import 'tailwindcss';
 
 /*
- * Sarap как рабочее приложение: ночная боковая панель, светлая рабочая область, белые панели.
- * Фиолетовый бренд отвечает за действие, выбор и сильное совпадение; абрикос только в знаке.
+ * Sarap: тёмно-синяя верхняя панель, светлая рабочая область, белые карточки.
+ * Голубой отвечает за действие, выбор и сильное совпадение; золото только в знаке и активном разделе.
  */
 @theme {
-  /* оболочка */
-  --color-night: #17122b;
-  --color-night-2: #221c3b;
-  --color-night-line: #322a55;
-  --color-night-text: #d4d0e6;
-  --color-night-dim: #a29cc0;
+  /* верхняя панель */
+  --color-night: #0e1a2b;
+  --color-night-2: #182a42;
+  --color-night-line: #263b57;
+  --color-night-text: #dbe4ef;
+  --color-night-dim: #9fb0c6;
 
   /* бренд */
-  --color-brand: #5b3df5;
-  --color-brand-hover: #4a2de6;
-  --color-brand-deep: #4327d4;
-  --color-brand-tint: #eeeaff;
-  --color-brand-soft: #a594ff;
-  --color-spark: #ff8a4c;
+  --color-brand: #1a6fe0;
+  --color-brand-hover: #155bc0;
+  --color-brand-deep: #1452b0;
+  --color-brand-tint: #e8f1fe;
+  --color-brand-soft: #7fb2f5;
+  --color-spark: #f2b33d;
+  --color-spark-tint: #fdf4de;
+  --color-spark-text: #7a5300;
 
   /* поверхности и текст */
-  --color-ground: #f4f3f8;
+  --color-ground: #f4f6f9;
   --color-surface: #ffffff;
-  --color-sunken: #f8f7fb;
-  --color-line: #e4e2ec;
-  --color-line-strong: #cfccdb;
-  --color-ink: #17151f;
-  --color-ink-2: #4a4759;
-  --color-ink-3: #67637a;
+  --color-sunken: #f7f9fc;
+  --color-line: #e3e8ef;
+  --color-line-strong: #cbd3de;
+  --color-ink: #0f172a;
+  --color-ink-2: #475569;
+  --color-ink-3: #5f6e84;
 
   /* смысловые */
-  --color-medium: #a86400;
-  --color-medium-bar: #e09a2b;
-  --color-weak: #8a8797;
-  --color-weak-bar: #c9c6d3;
-  --color-free: #138a5e;
-  --color-partial: #c98a12;
-  --color-busy: #8a8797;
-  --color-place: #1d5a78;
-  --color-place-tint: #e2f0f7;
-  --color-cond: #7d4e00;
-  --color-cond-tint: #fbf0da;
-  --color-danger: #c2381e;
-  --color-danger-tint: #fce7e2;
+  --color-medium: #b45309;
+  --color-medium-bar: #f59e0b;
+  --color-weak: #7b879a;
+  --color-weak-bar: #cbd3de;
+  --color-free: #15803d;
+  --color-partial: #d97706;
+  --color-busy: #8a94a6;
+  --color-place: #0f6b63;
+  --color-place-tint: #e3f4f2;
+  --color-cond: #8a5300;
+  --color-cond-tint: #fdf2dc;
+  --color-danger: #c0362c;
+  --color-danger-tint: #fdeceb;
 
-  --font-sans: 'Commissioner', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
 
-  --shadow-panel: 0 1px 2px rgb(23 18 43 / 0.05), 0 1px 0 rgb(23 18 43 / 0.02);
-  --shadow-raised: 0 10px 30px -12px rgb(23 18 43 / 0.25);
+  --shadow-panel: 0 1px 2px rgb(15 23 42 / 0.04), 0 2px 8px -2px rgb(15 23 42 / 0.05);
+  --shadow-raised: 0 12px 32px -12px rgb(15 23 42 / 0.22);
 }
 
 html {
   background: var(--color-ground);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-feature-settings: 'ss01';
+  font-feature-settings: 'cv11', 'ss03';
   -webkit-font-smoothing: antialiased;
   scrollbar-gutter: stable;
 }
@@ -118,7 +120,7 @@ textarea {
 
 /* Заглушки загрузки: мягкое мерцание, без анимации при reduced motion */
 .sk {
-  background: linear-gradient(90deg, #ebe9f2 0%, #f5f4f9 50%, #ebe9f2 100%);
+  background: linear-gradient(90deg, #e9edf3 0%, #f4f6f9 50%, #e9edf3 100%);
   background-size: 200% 100%;
   border-radius: 6px;
   animation: shimmer 1.4s ease-in-out infinite;
@@ -133,18 +135,14 @@ textarea {
   }
 }
 
-/* Знак при загрузке: дуги прорисовываются заново */
-.mark-draw path {
-  stroke-dasharray: 40;
-  animation: draw 1.2s ease-in-out infinite alternate;
+/* Знак при загрузке: линза совпадения пульсирует */
+.mark-pulse .mark-lens {
+  animation: lens 0.9s ease-in-out infinite alternate;
 }
 
-@keyframes draw {
+@keyframes lens {
   from {
-    stroke-dashoffset: 40;
-  }
-  to {
-    stroke-dashoffset: 0;
+    opacity: 0.25;
   }
 }
 
