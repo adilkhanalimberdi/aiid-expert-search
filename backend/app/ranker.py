@@ -43,8 +43,8 @@ def query_vector(query: str, parsed: ParsedQuery) -> np.ndarray:
 
 def term_credits(index: SearchIndex, parsed: ParsedQuery) -> np.ndarray:
     """Смысловое покрытие терминов по каждому эксперту: от 0 до 1, не зависит от языка и словаря синонимов."""
-    if not parsed.terms:
-        return np.zeros((len(index.experts), 0))
+    if not parsed.terms or index.target_matrix is None:
+        return np.zeros((len(index.experts), len(parsed.terms)))
     scores = index.term_scores(encode_terms(parsed.terms))
     span = config.TERM_SEMANTIC_CEIL - config.TERM_SEMANTIC_FLOOR
     return np.clip((scores - config.TERM_SEMANTIC_FLOOR) / span, 0, 1)
