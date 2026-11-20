@@ -206,12 +206,26 @@ def synonym_hints(terms: list[str], limit: int) -> list[str]:
     return hints[:limit]
 
 
+@lru_cache(maxsize=65536)
+def text_lemmas(text: str) -> tuple[list[str], frozenset[str]]:
+    """Леммы текста и их множество, с кэшем: подбор команды проверяет всех экспертов на каждый запрос."""
+    words = lemmas(text)
+    return words, frozenset(words)
+
+
+def has_phrase(words: list[str], word_set: frozenset[str], phrase: tuple[str, ...]) -> bool:
+    """Фраза есть в тексте: однословная проверяется по множеству за O(1), многословная подряд по списку."""
+    if len(phrase) == 1:
+        return phrase[0] in word_set
+    return phrase[0] in word_set and contains(words, phrase)
+
+
 def covered_terms(terms: list[str], text: str) -> set[str]:
     """Возвращает исходные термины, подтверждённые текстом или фразовым синонимом."""
-    words = lemmas(text)
-    covered = set(terms) & set(words)
+    words, word_set = text_lemmas(text)
+    covered = set(terms) & word_set
     covered |= {term for term in terms if is_prefix_of_any(term, words)}
     for source, group in active_groups(tuple(terms)):
-        if any(contains(words, phrase) for phrase in group):
+        if any(has_phrase(words, word_set, phrase) for phrase in group):
             covered.update(term for term in terms if any(same_stem(term, p) for ph in source for p in ph))
     return covered
