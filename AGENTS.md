@@ -27,7 +27,7 @@
 5. **Обоснование собирается кодом** из реальных полей эксперта. Никакого сгенерированного текста.
 6. **Данные синтетические.** В интерфейсе всегда плашка «Данные синтетические и не содержат реальных персональных данных».
 7. Не коммитить `models/`, `.venv/`, `.env`, `*.npy`, `backend/data/feedback.db`.
-8. Маленькие шаги: один этап = один коммит с понятным сообщением.
+8. **Git, стиль кода и имена: [CONVENTIONS.md](CONVENTIONS.md).** Ветки `<тип>/<имя>`, коммиты `<тип>(<зона>): <что сделано>`, один коммит = одна правка, коммит только после зелёных проверок своей зоны.
 
 ## Команды
 
@@ -38,8 +38,8 @@
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -U pip "huggingface_hub[cli]"
 .venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
-.venv\Scripts\hf.exe download BAAI/bge-m3 --local-dir backend\models\bge-m3 --exclude "onnx/*" "imgs/*"
+.venv\Scripts\python.exe -m pip install -r backend\requirements-dev.txt
+.venv\Scripts\hf.exe download BAAI/bge-m3 --local-dir backend\models\bge-m3 --exclude "onnx/*" --exclude "imgs/*"
 Copy-Item .env.example .env
 
 # бэкенд (http://localhost:8000, Swagger на /docs)
@@ -58,7 +58,7 @@ cd web; npm install; npm run dev
 
 ## Стек
 
-- Backend: Python 3.11, FastAPI, sentence-transformers (`BAAI/bge-m3`, запасная `intfloat/multilingual-e5-base`), rank_bm25, pymorphy3, numpy, pandas, SQLite для отзывов.
+- Backend: Python 3.12 (`.venv`), FastAPI, sentence-transformers (`BAAI/bge-m3`, запасная `intfloat/multilingual-e5-base`), rank_bm25, pymorphy3, numpy, pandas, SQLite для отзывов.
 - Frontend: Vite + React + TypeScript + Tailwind. Без внешних CDN во время работы.
 
 ## Структура
@@ -217,6 +217,8 @@ CSV в UTF-8, компетенции через `;`.
 | Индекс в памяти, без БД | 150 записей; для 10 000 переезд в PostgreSQL + pgvector |
 | Отзывы в SQLite | один файл, без сервера |
 | Настройки через pydantic-settings из `.env` | путь к модели и префиксы меняются без правки кода |
+| Без Docker и PostgreSQL/pgvector | 150 векторов по 1024 числа: ~0,6 МБ в памяти, сравнение одним `numpy`-умножением за доли миллисекунды. База добавит настройку и точку отказа на демо, а баллов не даст |
+| Векторы в памяти + кэш `.npy` | считаются один раз при загрузке CSV, при перезапуске читаются с диска за миллисекунды |
 
 Новое решение дописываем строкой в эту таблицу.
 

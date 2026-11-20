@@ -20,14 +20,14 @@
 
 ## Запуск
 
-Нужны Python 3.11+, Node 20+. Windows (PowerShell), из корня репозитория:
+Нужны Python 3.11+ (у нас 3.12), Node 20+. Docker и база данных не нужны. Windows (PowerShell), из корня репозитория:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -U pip "huggingface_hub[cli]"
 .venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
-.venv\Scripts\hf.exe download BAAI/bge-m3 --local-dir backend\models\bge-m3 --exclude "onnx/*" "imgs/*"   # ~2,3 ГБ, один раз
+.venv\Scripts\python.exe -m pip install -r backend\requirements-dev.txt
+.venv\Scripts\hf.exe download BAAI/bge-m3 --local-dir backend\models\bge-m3 --exclude "onnx/*" --exclude "imgs/*"   # ~2,3 ГБ, один раз
 Copy-Item .env.example .env
 
 cd backend; ..\.venv\Scripts\python.exe -m uvicorn app.main:app   # API: http://localhost:8000/docs
