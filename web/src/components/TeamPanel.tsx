@@ -59,7 +59,7 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
                           <button
                             type="button"
                             onClick={() => onOpen(member.id)}
-                            className="cursor-pointer text-left font-semibold text-cobalt-deep underline decoration-[1.5px] underline-offset-4 hover:decoration-lime"
+                            className="min-h-11 cursor-pointer text-left font-semibold text-cobalt-deep underline decoration-[1.5px] underline-offset-4 hover:decoration-lime"
                           >
                             {member.full_name}
                           </button>

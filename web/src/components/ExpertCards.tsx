@@ -131,7 +131,7 @@ export function CandidateRow({ expert, query, onOpen }: CardProps) {
         <button
           type="button"
           onClick={() => onOpen(expert.id)}
-          className="cursor-pointer text-left font-display text-xl font-normal tracking-[-0.02em] hover:underline hover:decoration-lime hover:decoration-2 hover:underline-offset-4"
+          className="min-h-11 cursor-pointer text-left font-display text-xl font-normal tracking-[-0.02em] hover:underline hover:decoration-lime hover:decoration-2 hover:underline-offset-4"
         >
           {expert.full_name}
         </button>
