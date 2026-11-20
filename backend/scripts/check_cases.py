@@ -286,7 +286,7 @@ def k01() -> tuple[bool, str]:
     ), f"weak={data['weak_match']} {cities}"
 
 
-@case("K02", "отрицание: «не нужен GMP, нужен BIM» не ищет GMP", known=True)
+@case("K02", "отрицание: «не нужен GMP, нужен BIM» не ищет GMP")
 def k02() -> tuple[bool, str]:
     data = search("не нужен GMP, нужен BIM")
     return "gmp" not in data["parsed"]["terms"], f"terms={data['parsed']['terms']}"

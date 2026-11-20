@@ -356,3 +356,21 @@ def test_availability_words_are_not_terms(query: str, terms: list[str], availabl
     parsed = parse(query)
     assert parsed.available_only is available_only
     assert parsed.terms == terms
+
+
+@pytest.mark.parametrize(
+    ("query", "terms", "excluded"),
+    [
+        ("не нужен GMP, нужен BIM", ["bim"], ["gmp"]),
+        ("BIM, кроме GMP", ["bim"], ["gmp"]),
+        ("not GMP, need BIM", ["bim"], ["gmp"]),
+        ("не GMP а BIM", ["bim"], ["gmp"]),
+        ("не менее 10 лет BIM", ["bim"], []),
+    ],
+)
+def test_negation_moves_terms_to_excluded(query: str, terms: list[str], excluded: list[str]) -> None:
+    parsed = parse(query)
+    assert parsed.terms == terms
+    assert parsed.excluded_terms == excluded
+    if "10 лет" in query:
+        assert parsed.min_experience == 10

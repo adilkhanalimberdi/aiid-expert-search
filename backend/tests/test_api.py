@@ -269,3 +269,11 @@ def test_city_only_query_orders_by_availability(client: TestClient) -> None:
     result = client.post("/api/search", json={"query": "Алматы", "top_k": 20}).json()
     statuses = [item["availability"] for item in result["results"]]
     assert statuses == sorted(statuses, key={"available": 0, "partial": 1, "busy": 2}.__getitem__)
+
+
+def test_excluded_term_is_not_searched_and_pushes_experts_down(client: TestClient) -> None:
+    result = client.post("/api/search", json={"query": "не нужен GMP, нужен BIM", "top_k": 5}).json()
+    assert result["parsed"]["terms"] == ["bim"]
+    assert result["parsed"]["excluded_terms"] == ["gmp"]
+    assert all("GMP" not in item["matched"] for item in result["results"])
+    assert result["results"][0]["matched"] == ["BIM"]

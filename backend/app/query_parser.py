@@ -25,6 +25,21 @@ AVAILABILITY_WORDS = frozenset(
 )
 # Слова о занятости: это не тема поиска и не просьба скрыть кого-то, поэтому просто отбрасываются.
 BUSY_WORDS = frozenset({"busy", "occupied", "занят", "занятый", "занята"})
+# Отрицание: «не нужен GMP, нужен BIM», «без GMP», «кроме GMP», «not GMP», «except GMP». Исключённая часть
+# доходит до запятой, точки или слова, которым начинается нужное («нужен», «а», «but», «need»).
+NEGATION_PATTERN = re.compile(
+    r"(?:\bне\s+(?:нужен|нужна|нужны|нужно|надо|ищу|хочу)\b|\bне\b(?!\s+(?:менее|более|ниже|выше|старше|моложе|меньше|больше))"
+    r"|\bбез\b|\bкроме\b|\bnot\b|\bexcept\b|\bexcluding\b|\bwithout\b)\s*"
+    r"(?:(?:нужен|нужна|нужны|нужно|надо|needed|need)\s+)?"
+    r"(?P<excluded>[^,;.!?]+?)(?=\s*(?:[,;.!?]|$)|\s+(?:а|но|нужен|нужна|нужны|нужно|need|want|but|looking)\b)"
+)
+
+
+def split_negation(query: str) -> tuple[str, str]:
+    """Делит запрос на нужное и исключённое: «не нужен GMP, нужен BIM» → («, нужен BIM», «GMP»)."""
+    text = query.lower().replace("ё", "е")
+    excluded = [match.group("excluded") for match in NEGATION_PATTERN.finditer(text)]
+    return NEGATION_PATTERN.sub(" ", text), " ".join(excluded)
 
 
 @lru_cache(maxsize=4)
@@ -105,6 +120,7 @@ def parse(
     С `vocabulary` (леммы базы) термины с опечатками заменяются словами базы; с `industries` (отрасли
     загруженного каталога) отрасль ищется только среди них; с `cities` города каталога узнаются в запросе.
     """
+    query, excluded_text = split_negation(query)
     normalized = normalize(query)
     words = normalized.split()
     available_only = any(word in AVAILABILITY_WORDS for word in words)
@@ -140,10 +156,14 @@ def parse(
         for name, phrases in industry_aliases(industries).items()
     }
     industry = max(scores, key=scores.get) if any(scores.values()) else None
+    excluded_terms = lemmas(normalize(excluded_text)) if excluded_text else []
+    if vocabulary is not None:
+        excluded_terms = correct_terms(excluded_terms, vocabulary)
     return ParsedQuery(
         city=city,
         industry=industry,
         min_experience=min_experience,
         terms=terms,
         available_only=available_only,
+        excluded_terms=excluded_terms,
     )

@@ -57,6 +57,9 @@ BOOST_CITY_MATCH = 1.3
 BOOST_CITY_MISMATCH = 0.8  # город указан, но другой: не исключаем
 BOOST_INDUSTRY_MATCH = 1.2
 BOOST_EXPERIENCE_BELOW = 0.85
+BOOST_EXCLUDED_TERM = (
+    0.3  # у эксперта есть то, что в запросе исключили («не нужен GMP»): опускаем, но не убираем
+)
 BOOST_AVAILABILITY = {"available": 1.0, "partial": 0.85, "busy": 0.7}
 FEEDBACK_STEP = 0.1  # x(1 + step * сумма голосов с весом похожести запросов)
 FEEDBACK_MIN, FEEDBACK_MAX = 0.7, 1.3

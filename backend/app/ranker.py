@@ -8,7 +8,7 @@ from . import config
 from . import feedback as feedback_store
 from .explain import explain
 from .index import SearchIndex, encode_queries, encode_query, encode_terms
-from .query_parser import canonical_city, parse
+from .query_parser import canonical_city, parse, split_negation
 from .schemas import Expert, Language, ParsedQuery, SearchRequest, SearchResponse, SearchResult
 from .text import covered_terms, expand_synonyms, expand_vocabulary, synonym_hints
 
@@ -32,6 +32,13 @@ def location_boost(expert: Expert, parsed: ParsedQuery) -> float:
     return boost
 
 
+def exclusion_boost(index: SearchIndex, i: int, parsed: ParsedQuery) -> float:
+    """Множитель для эксперта, у которого есть исключённое в запросе («не нужен GMP»)."""
+    if parsed.excluded_terms and covered_terms(parsed.excluded_terms, index.texts[i]):
+        return config.BOOST_EXCLUDED_TERM
+    return 1.0
+
+
 def query_vector(query: str, parsed: ParsedQuery) -> np.ndarray:
     """Вектор запроса с синонимами терминов: «мұғалім», «учитель» и «teacher» дают близкие векторы.
 
@@ -41,7 +48,8 @@ def query_vector(query: str, parsed: ParsedQuery) -> np.ndarray:
 
 
 def embedding_text(query: str, parsed: ParsedQuery) -> str:
-    """Текст запроса для модели: сам запрос и до EMBED_HINTS_MAX синонимов его терминов."""
+    """Текст запроса для модели без исключённого («не нужен GMP») и до EMBED_HINTS_MAX синонимов терминов."""
+    query = " ".join(split_negation(query)[0].split()).strip(" ,;.") or query
     hints = synonym_hints(parsed.terms, config.EMBED_HINTS_MAX)
     return f"{query} {' '.join(hints)}" if hints else query
 
@@ -73,7 +81,7 @@ def match_score(
     semantic = float(np.clip((cosine - config.COS_FLOOR) / (config.COS_CEIL - config.COS_FLOOR), 0, 1))
     coverage = coverage_of(index, i, parsed, credits)
     percent = 100 * (config.W_SEMANTIC * semantic + config.W_COVERAGE * coverage)
-    return percent * location_boost(index.experts[i], parsed)
+    return percent * location_boost(index.experts[i], parsed) * exclusion_boost(index, i, parsed)
 
 
 def result_for(
@@ -249,6 +257,7 @@ def search(
         scores[i] *= location_boost(expert, parsed) * config.BOOST_AVAILABILITY[expert.availability]
         if parsed.min_experience is not None and expert.experience_years < parsed.min_experience:
             scores[i] *= config.BOOST_EXPERIENCE_BELOW
+        scores[i] *= exclusion_boost(index, i, parsed)
         scores[i] *= (feedback_scores or {}).get(expert.id, 1.0)
     best = sorted(scores, key=lambda i: (-scores[i], i))[: req.top_k]
     bm_ranks = {i: rank for rank, i in enumerate(bm25, 1)}
