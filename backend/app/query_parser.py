@@ -9,7 +9,7 @@ from functools import lru_cache
 from . import config
 from .config import settings
 from .schemas import ParsedQuery
-from .text import contains_stem, correct_terms, lemmas, normalize, related_phrases
+from .text import contains_stem, correct_terms, is_dictionary_word, lemmas, normalize, related_phrases
 
 MIN_FUZZY_LENGTH = 5
 # «от 10 лет», «20+ лет», «более 5 лет», «опыт 7 лет», «10 жыл», «5+ years», «at least 10 years».
@@ -66,7 +66,8 @@ def fuzzy_city(words: list[str], cities: dict[str, list[str]] | None = None) -> 
         if len(spelling) >= MIN_FUZZY_LENGTH
     }
     for word in words:
-        if len(word) < MIN_FUZZY_LENGTH:
+        # настоящее русское слово («сетей») не опечатка в названии города («Семей»)
+        if len(word) < MIN_FUZZY_LENGTH or is_dictionary_word(word):
             continue
         close = get_close_matches(word, list(spellings), n=1, cutoff=config.CITY_TYPO_CUTOFF)
         if close:
@@ -114,7 +115,8 @@ def parse(
             word
             for word in words
             if any(lemmas(word, False) == alias for alias in alias_lemmas)
-            or word.startswith(normalize(canonical))
+            # префикс для казахских падежей («Алматыдан»); русское слово «семейный» городом не считается
+            or (word.startswith(normalize(canonical)) and not is_dictionary_word(word))
         ]
         if matched:
             city = canonical

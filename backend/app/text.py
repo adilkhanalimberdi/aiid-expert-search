@@ -29,6 +29,12 @@ def morphology() -> pymorphy3.MorphAnalyzer:
 
 
 @lru_cache(maxsize=50000)
+def is_dictionary_word(word: str) -> bool:
+    """Обычное русское слово из словаря pymorphy («сетей», «семейный»), а не опечатка и не казахская форма."""
+    return not word.isascii() and morphology().word_is_known(word)
+
+
+@lru_cache(maxsize=50000)
 def lemma(word: str) -> str:
     """Лемма слова; латиницу и короткие аббревиатуры (ИИ, ML) не трогаем."""
     if word.isascii() or len(word) <= 2 or not morphology().word_is_known(word):
