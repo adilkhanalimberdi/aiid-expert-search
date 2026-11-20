@@ -49,6 +49,8 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     ranker.search(
         application.state.index, SearchRequest(query="проверка готовности")
     )  # прогрев морфологии и модели
+    # векторы запросов из отзывов считаем сейчас, иначе их посчитает первый поиск пользователя
+    ranker.warm_feedback(application.state.index, [row[0] for row in feedback_store.votes()])
     with feedback_store.connection():
         pass
     logger.info(
@@ -100,6 +102,7 @@ def upload(file: UploadFile) -> UploadResponse:
         temporary.write_bytes(raw)
         temporary.replace(target)
         app.state.index = replacement
+    ranker.warm_feedback(replacement, [row[0] for row in feedback_store.votes()])
     return report
 
 
@@ -165,6 +168,8 @@ def industries() -> list[str]:
 def feedback(req: FeedbackRequest) -> None:
     get_expert(req.expert_id)
     feedback_store.save(req.query, req.expert_id, req.verdict)
+    # вектор запроса этого голоса считаем сразу: следующий поиск не будет ждать модель
+    ranker.warm_feedback(app.state.index, [req.query])
 
 
 @app.get("/api/stats", response_model=StatsResponse)

@@ -311,3 +311,34 @@ def test_feedback_is_weighted_by_query_similarity() -> None:
 )
 def test_extra_cities_are_found(query: str, city: str) -> None:
     assert parse(query).city == city
+
+
+def test_feedback_queries_are_encoded_once_in_one_batch(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app import ranker
+
+    calls: list[list[str]] = []
+
+    def fake_encode(texts: list[str]) -> np.ndarray:
+        calls.append(texts)
+        return np.ones((len(texts), 2))
+
+    monkeypatch.setattr(ranker, "encode_queries", fake_encode)
+    index = SearchIndex([], BM25Okapi([["а"]]), np.zeros((0, 2)), [], [])
+    ranker.warm_feedback(index, ["GMP Алматы", "кибербезопасность", "GMP Алматы"])
+    ranker.warm_feedback(index, ["GMP Алматы", "мұғалім"])
+    assert [len(batch) for batch in calls] == [2, 1]  # дубли и уже известные запросы не кодируются
+
+
+@pytest.mark.parametrize(
+    "query",
+    ["проектирование электрических сетей для завода", "семейный бизнес и наследство", "сетевой инженер"],
+)
+def test_ordinary_words_are_not_cities(query: str) -> None:
+    assert parse(query).city is None
+
+
+@pytest.mark.parametrize(
+    ("query", "city"), [("Алматыдан маман", "Алматы"), ("эколог алмты", "Алматы"), ("Шымкентке", "Шымкент")]
+)
+def test_city_typos_and_kazakh_cases_still_work(query: str, city: str) -> None:
+    assert parse(query).city == city
