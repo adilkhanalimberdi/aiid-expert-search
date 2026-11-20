@@ -43,7 +43,9 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     raw = path.read_bytes()
     experts, report = load_csv(raw)
     application.state.index = index.build(experts, raw)
-    index.encode_query("проверка готовности")
+    ranker.search(
+        application.state.index, SearchRequest(query="проверка готовности")
+    )  # прогрев морфологии и модели
     with feedback_store.connection():
         pass
     logger.info(
