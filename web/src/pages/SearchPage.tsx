@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { CompassRose } from '../components/CompassRose'
+import { Constellation } from '../components/Constellation'
 import { ErrorBox } from '../components/ErrorBox'
 import { ExpertCard } from '../components/ExpertCard'
 import { ExpertDialog } from '../components/ExpertDialog'
@@ -61,6 +62,13 @@ export function SearchPage() {
   return (
     <>
       <section className="hero-surface relative overflow-hidden text-ground">
+        <Constellation
+          dotColorVar="--color-sky"
+          lineColorVar="--color-sky"
+          density={9}
+          intensity={0.75}
+          className="absolute inset-0 size-full"
+        />
         <CompassRose />
         <div className="relative mx-auto max-w-[1160px] px-4 pb-10 pt-6 sm:px-6">
           <h1 className="max-w-2xl font-display text-2xl font-bold leading-tight text-white sm:text-4xl">

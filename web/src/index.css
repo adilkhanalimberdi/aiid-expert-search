@@ -45,15 +45,3 @@ html {
     linear-gradient(90deg, color-mix(in srgb, var(--color-ground) 5%, transparent) 1px, transparent 1px);
   background-size: auto, auto, 44px 44px, 44px 44px;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .needle-sweep {
-    animation: needle-sweep 14s ease-in-out infinite;
-    transform-origin: 50% 50%;
-  }
-}
-
-@keyframes needle-sweep {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(24deg); }
-}
