@@ -10,7 +10,14 @@ from .explain import explain
 from .index import SearchIndex, encode_queries, encode_query, encode_terms
 from .query_parser import canonical_city, parse, split_negation
 from .schemas import Expert, Language, ParsedQuery, SearchRequest, SearchResponse, SearchResult
-from .text import covered_terms, expand_synonyms, expand_vocabulary, synonym_hints
+from .text import (
+    contains_stem,
+    covered_terms,
+    expand_synonyms,
+    expand_vocabulary,
+    fix_keyboard_layout,
+    synonym_hints,
+)
 
 
 def rrf(rankings: list[list[int]]) -> dict[int, float]:
@@ -131,7 +138,10 @@ def warm_feedback(index: SearchIndex, queries: list[str]) -> None:
     if not missing:
         return
     texts = [
-        embedding_text(text, parse(text, index.bm25.idf, index.industry_names, index.city_names))
+        embedding_text(
+            text,
+            parse(text, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries),
+        )
         for text in missing
     ]
     for text, vector in zip(missing, encode_queries(texts), strict=True):
@@ -150,21 +160,34 @@ def feedback_for(
 
 
 def order_by_percent(
-    results: list[SearchResult], feedback_scores: dict[str, float] | None = None
+    results: list[SearchResult],
+    feedback_scores: dict[str, float] | None = None,
+    city: str | None = None,
 ) -> list[SearchResult]:
-    """Упорядочивает по проценту с учётом доступности и отзывов внутри топа и внутри остальных.
+    """Окончательный порядок: процент × доступность × отзывы.
 
-    Кто попал в первую группу, решает RRF (это то, что меряет eval), а порядок внутри группы
-    совпадает с процентом на карточке: 60% не стоит выше 80% только из-за города.
-    Отзывы («подошёл» / «не подошёл») двигают эксперта и внутри группы, иначе в топ-3 они бы не работали.
+    Без города состав топ-3 решает RRF (так он устойчивее на запросах без ограничений), а внутри групп
+    порядок совпадает с процентом. С городом сортируются все кандидаты окна: сначала подходящие эксперты
+    из названного города, потом остальные. Иначе эксперт с нужной компетенцией в нужном городе (93%)
+    оставался четвёртым за 60%-ными из других городов: вектор его профиля шире запроса, а RRF города не видит.
     """
+
+    def weight(result: SearchResult) -> float:
+        availability = config.BOOST_AVAILABILITY[result.availability]
+        return -result.match_percent * availability * (feedback_scores or {}).get(result.id, 1.0)
+
+    if city:
+
+        def key(result: SearchResult) -> tuple[int, float]:
+            in_city = canonical_city(result.city) == canonical_city(city)
+            return (
+                0 if in_city and result.match_percent >= config.CITY_PRIORITY_MIN_PERCENT else 1,
+                weight(result),
+            )
+
+        return sorted(results, key=key)
     head = config.ORDER_GROUP_SIZE
-
-    def key(result: SearchResult) -> float:
-        weight = config.BOOST_AVAILABILITY[result.availability] * (feedback_scores or {}).get(result.id, 1.0)
-        return -result.match_percent * weight
-
-    return sorted(results[:head], key=key) + sorted(results[head:], key=key)
+    return sorted(results[:head], key=weight) + sorted(results[head:], key=weight)
 
 
 def is_without_evidence(
@@ -216,6 +239,23 @@ def filter_only_response(
     )
 
 
+def phrase_holders(index: SearchIndex, terms: list[str], eligible: list[int]) -> list[int]:
+    """Эксперты, у которых в профиле целиком есть компетенция, названная в запросе (с синонимами и языками).
+
+    BM25 видит слова поодиночке: «контроль дефектов на производстве» проигрывал «инженерам производства»,
+    а единственный владелец редкой компетенции терялся. Длинная фраза весит больше короткой.
+    """
+    if not terms:
+        return []
+    expanded = expand_synonyms(terms)
+    asked = [phrase for phrase in index.competency_industries if contains_stem(expanded, phrase)]
+    if not asked:
+        return []
+    weight = {i: sum(len(p) for p in asked if p in index.competency_phrases[i]) for i in eligible}
+    holders = [i for i in eligible if weight[i]]
+    return sorted(holders, key=lambda i: (-weight[i], i))[: config.TOP_N_PER_RETRIEVER]
+
+
 def search(
     index: SearchIndex,
     req: SearchRequest,
@@ -226,7 +266,10 @@ def search(
     if mode not in {"hybrid", "bm25", "vector"}:
         raise ValueError("Неизвестный режим поиска")
     started = perf_counter()
-    parsed = parse(req.query, index.bm25.idf, index.industry_names, index.city_names)
+    req = req.model_copy(update={"query": fix_keyboard_layout(req.query, index.bm25.idf)})
+    parsed = parse(
+        req.query, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries
+    )
     query_vec = query_vector(req.query, parsed)
     cosines = index.expert_vecs @ query_vec
     credits = term_credits(index, parsed)
@@ -251,6 +294,12 @@ def search(
     ]
     vector = sorted(eligible, key=lambda i: (-cosines[i], i))[: config.TOP_N_PER_RETRIEVER]
     rankings = [bm25, vector] if mode == "hybrid" else [bm25 if mode == "bm25" else vector]
+    if (
+        mode == "hybrid"
+        and config.PHRASE_RANKING
+        and (holders := phrase_holders(index, parsed.terms, eligible))
+    ):
+        rankings.append(holders)
     scores = rrf(rankings)
     for i in scores:
         expert = index.experts[i]
@@ -259,15 +308,18 @@ def search(
             scores[i] *= config.BOOST_EXPERIENCE_BELOW
         scores[i] *= exclusion_boost(index, i, parsed)
         scores[i] *= (feedback_scores or {}).get(expert.id, 1.0)
-    best = sorted(scores, key=lambda i: (-scores[i], i))[: req.top_k]
+    window = max(req.top_k, config.RERANK_WINDOW_WITH_CITY) if mode == "hybrid" and parsed.city else req.top_k
+    candidates = sorted(scores, key=lambda i: (-scores[i], i))[:window]
     bm_ranks = {i: rank for rank, i in enumerate(bm25, 1)}
     vec_ranks = {i: rank for rank, i in enumerate(vector, 1)}
     results = [
         result_for(index, i, parsed, query_vec, bm_ranks.get(i), vec_ranks.get(i), req.lang, credits)
-        for i in best
+        for i in candidates
     ]
     if mode == "hybrid":
-        results = order_by_percent(results, feedback_scores)
+        results = order_by_percent(results, feedback_scores, parsed.city)[: req.top_k]
+    position = {expert.id: i for i, expert in enumerate(index.experts)}
+    best = [position[result.id] for result in results]
     is_weak = not eligible or float(max(cosines[i] for i in eligible)) < config.WEAK_MATCH_COS
     if not is_weak and results:
         is_weak = is_without_evidence(index, best, parsed, query_vec, credits)

@@ -75,11 +75,10 @@ const en = {
   },
   formula: {
     title: 'How the match is counted',
-    body: 'Meaning is how close the profile is to your query. Coverage is the share of your terms found in the profile. City and industry raise the score; busy experts drop, they are never hidden unless you ask. Every reason on a card comes from real profile fields; no text is generated.',
+    body: 'Meaning is how close the profile is to your query. Coverage is the share of your terms found in the profile. The same city raises the score; busy experts drop, they are never hidden unless you ask. Every reason on a card comes from real profile fields; no text is generated.',
     meaning: 'meaning',
     coverage: 'coverage',
     sameCity: 'same city',
-    sameIndustry: 'same industry',
     busy: 'busy',
   },
   team: {
@@ -233,11 +232,10 @@ const ru: Dict = {
   },
   formula: {
     title: 'Как считается совпадение',
-    body: 'Смысл показывает, насколько профиль близок к запросу. Покрытие это доля ваших терминов, найденных в профиле. Город и отрасль повышают оценку; занятые опускаются, но не скрываются, пока вы не попросите. Каждая причина на карточке взята из реальных полей профиля, текст не генерируется.',
+    body: 'Смысл показывает, насколько профиль близок к запросу. Покрытие это доля ваших терминов, найденных в профиле. Тот же город повышает оценку; занятые опускаются, но не скрываются, пока вы не попросите. Каждая причина на карточке взята из реальных полей профиля, текст не генерируется.',
     meaning: 'смысл',
     coverage: 'покрытие',
     sameCity: 'тот же город',
-    sameIndustry: 'та же отрасль',
     busy: 'занят',
   },
   team: {
@@ -386,11 +384,10 @@ const kk: Dict = {
   },
   formula: {
     title: 'Сәйкестік қалай есептеледі',
-    body: 'Мағына профильдің сұранысқа қаншалықты жақын екенін көрсетеді. Қамту сіздің терминдеріңіздің профильден табылған үлесі. Қала мен сала бағаны арттырады; бос емес сарапшылар төмендейді, бірақ сіз сұрамайынша жасырылмайды. Карточкадағы әр себеп профильдің нақты өрістерінен алынған, мәтін генерацияланбайды.',
+    body: 'Мағына профильдің сұранысқа қаншалықты жақын екенін көрсетеді. Қамту сіздің терминдеріңіздің профильден табылған үлесі. Сол қала бағаны арттырады; бос емес сарапшылар төмендейді, бірақ сіз сұрамайынша жасырылмайды. Карточкадағы әр себеп профильдің нақты өрістерінен алынған, мәтін генерацияланбайды.',
     meaning: 'мағына',
     coverage: 'қамту',
     sameCity: 'сол қала',
-    sameIndustry: 'сол сала',
     busy: 'бос емес',
   },
   team: {

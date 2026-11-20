@@ -374,3 +374,73 @@ def test_negation_moves_terms_to_excluded(query: str, terms: list[str], excluded
     assert parsed.excluded_terms == excluded
     if "10 лет" in query:
         assert parsed.min_experience == 10
+
+
+def test_kazakh_without_special_letters_matches() -> None:
+    assert normalize("Қауіпсіздік Өндіріс") == normalize("кауипсиздик ондирис") == "кауипсиздик ондирис"
+    assert covered_terms(lemmas("онеркасиптик кауипсиздик"), "промышленная безопасность")
+    assert parse("колжетимди GMP маманы").available_only
+
+
+@pytest.mark.parametrize(
+    ("typed", "expected"),
+    [
+        ("vfibyyjt j,extybt", "машинное обучение"),
+        ("ye;ty cgtwbfkbcn gj BIM", "нужен специалист gj BIM"),
+        ("GMP Алматы", "GMP Алматы"),
+        ("data scientist", "data scientist"),
+        ("lean manufacturing", "lean manufacturing"),
+        ("DevOps", "DevOps"),
+    ],
+)
+def test_keyboard_layout_is_fixed_only_for_russian_words(typed: str, expected: str) -> None:
+    from app.text import fix_keyboard_layout
+
+    assert fix_keyboard_layout(typed) == expected
+
+
+def test_city_query_puts_matching_city_first() -> None:
+    from app.ranker import order_by_percent
+    from app.schemas import SearchResult
+
+    def card(i: str, percent: int, city: str, availability: str = "available") -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city=city, industry="", experience_years=1,
+            availability=availability, match_percent=percent, matched=[], related=[], reasons=[],
+        )  # fmt: skip
+
+    results = [card("far", 63, "Астана"), card("near", 76, "Алматы", "busy"), card("weak", 30, "Алматы")]
+    assert [r.id for r in order_by_percent(results, city="Алматы")] == ["near", "far", "weak"]
+    assert [r.id for r in order_by_percent(results)] == [
+        "far",
+        "near",
+        "weak",
+    ]  # без города: процент × доступность
+
+
+def test_typos_are_corrected_against_dictionary_words_and_stopwords() -> None:
+    vocabulary = {"логистика": 1.0}
+    assert correct_terms(["logidtics"], vocabulary) == ["logistics"]  # английское слово из словаря синонимов
+    assert correct_terms(["мманы", "логистика"], vocabulary) == [
+        "логистика"
+    ]  # опечатка в стоп-слове «маманы»
+    assert correct_terms(["юрист"], vocabulary) == ["юрист"]  # слово вне базы не превращается в другое
+
+
+def test_phrase_holders_prefer_whole_competency() -> None:
+    from app.ranker import phrase_holders
+
+    def expert(i: str, competencies: list[str]) -> Expert:
+        return Expert(
+            id=i, full_name="Т", position="Инженер производства", industry="X", competencies=competencies,
+            city="Астана", experience_years=5, availability="available",
+        )  # fmt: skip
+
+    experts = [
+        expert("words", ["контроль качества", "производство"]),
+        expert("phrase", ["контроль дефектов на производстве"]),
+    ]
+    index = SearchIndex(experts, BM25Okapi([["а"], ["б"]]), np.zeros((2, 2)), [], ["", ""])
+    terms = lemmas("контроль дефектов на производстве")
+    # «производство» тоже компетенция каталога, но целая фраза из четырёх слов весит больше
+    assert phrase_holders(index, terms, [0, 1]) == [1, 0]

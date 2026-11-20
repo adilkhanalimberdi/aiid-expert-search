@@ -12,10 +12,49 @@ import pymorphy3
 from . import config
 from .config import settings
 
+# Казахские буквы сводятся к русским: многие пишут без казахской раскладки («кауипсиздик», «ондирис»).
+# Свёртка одинакова для запроса, словарей и профилей, поэтому «қауіпсіздік» и «кауипсиздик» совпадают.
+# Модель (эмбеддинги) видит исходный текст: свёртка только для слов, BM25 и словарей.
+KAZAKH_FOLD = str.maketrans("әғқңөұүһі", "агкноуухи")
+
 
 def normalize(text: str) -> str:
-    """Приводит текст к нижнему регистру и удаляет пунктуацию кроме дефиса."""
-    return " ".join(re.sub(r"[^\w\s-]", " ", text.lower().replace("ё", "е"), flags=re.UNICODE).split())
+    """Нижний регистр, ё → е, казахские буквы → русские, без пунктуации кроме дефиса."""
+    folded = text.lower().replace("ё", "е").translate(KAZAKH_FOLD)
+    return " ".join(re.sub(r"[^\w\s-]", " ", folded, flags=re.UNICODE).split())
+
+
+LAYOUT_TO_RU = str.maketrans(
+    "qwertyuiop[]asdfghjkl;'zxcvbnm,.`QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>~",
+    "йцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ",
+)
+LAYOUT_TOKEN = re.compile(r"[A-Za-z\[\];',.`{}:\"<>~]{3,}")
+
+
+def fix_keyboard_layout(query: str, vocabulary: Iterable[str] = ()) -> str:
+    """Русские слова, набранные в английской раскладке («rb,th,tpjgfcyjcnm»), переводятся в кириллицу.
+
+    Слово заменяется, только если после перевода получается русское слово из словаря pymorphy или слово
+    каталога: настоящие английские слова и аббревиатуры («GMP», «data», «lean») так не превращаются.
+    """
+    known = set(vocabulary)
+
+    def convert(match: re.Match) -> str:
+        token = match.group(0)
+        letters = token.strip(",.;:")
+        # аббревиатуры (BIM, GMP) пишут заглавными, а текст в чужой раскладке обычно строчный;
+        # короткое слово без раскладочных знаков слишком легко случайно совпадает с русским («ишь»)
+        if letters.isupper() or letters.lower() in known:
+            return token
+        if len(letters) < 4 and not re.search(r"[\[\];',.`]", letters):
+            return token
+        converted = token.translate(LAYOUT_TO_RU)
+        word = normalize(converted)
+        if word and " " not in word and (lemma(word) in known or morphology().word_is_known(word)):
+            return converted
+        return token
+
+    return LAYOUT_TOKEN.sub(convert, query)
 
 
 def model_text(text: str) -> str:
@@ -47,7 +86,12 @@ def stopwords() -> frozenset[str]:
     lines = (
         (settings.path(settings.dictionaries_dir) / "stopwords.txt").read_text(encoding="utf-8").splitlines()
     )
-    return frozenset(lemma(line.strip()) for line in lines if line.strip() and not line.startswith("#"))
+    return frozenset(
+        lemma(word)
+        for line in lines
+        if line.strip() and not line.startswith("#")
+        for word in normalize(line).split()
+    )
 
 
 def lemmas(text: str, drop_stopwords: bool = True) -> list[str]:
@@ -153,13 +197,29 @@ def expand_vocabulary(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
     return list(dict.fromkeys(expanded))
 
 
+_correction_pool: dict[int, tuple[frozenset[str], list[str]]] = {}
+
+
+def correction_pool(vocabulary: Iterable[str]) -> tuple[frozenset[str], list[str]]:
+    """Слова, к которым исправляем опечатки: слова каталога, словаря синонимов (английские, казахские)
+    и стоп-слова (опечатка в «маманы» должна стать стоп-словом, а не термином). Кэш по словарю индекса."""
+    key = id(vocabulary)
+    if key not in _correction_pool:
+        known = frozenset(vocabulary)
+        synonym_words = {word for group in synonym_groups() for phrase in group for word in phrase}
+        _correction_pool.clear()
+        _correction_pool[key] = (known, sorted(known | synonym_words | stopwords()))
+    return _correction_pool[key]
+
+
 def correct_terms(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
-    """Заменяет термин с опечаткой словом базы («кибербезопастность» → «кибербезопасность»).
+    """Заменяет термин с опечаткой ближайшим известным словом («кибербезопастность» → «кибербезопасность»,
+    «logidtics» → «logistics»); опечатка в стоп-слове убирает термин.
 
     Не трогает слова базы, приставки слов базы и термины из словаря синонимов (в том числе
     казахские формы), чтобы не превращать правильный запрос в другой.
     """
-    known = set(vocabulary)
+    known, pool = correction_pool(vocabulary)
     synonym_words = {word for group in synonym_groups() for phrase in group for word in phrase}
     fixed = []
     for term in terms:
@@ -171,7 +231,9 @@ def correct_terms(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
         ):
             fixed.append(term)
             continue
-        close = get_close_matches(term, sorted(known), n=1, cutoff=config.TERM_FIX_CUTOFF)
+        close = get_close_matches(term, pool, n=1, cutoff=config.TERM_FIX_CUTOFF)
+        if close and close[0] in stopwords():
+            continue
         fixed.append(close[0] if close else term)
     return list(dict.fromkeys(fixed))
 
