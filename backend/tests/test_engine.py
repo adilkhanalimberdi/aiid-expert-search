@@ -397,3 +397,22 @@ def test_keyboard_layout_is_fixed_only_for_russian_words(typed: str, expected: s
     from app.text import fix_keyboard_layout
 
     assert fix_keyboard_layout(typed) == expected
+
+
+def test_city_query_puts_matching_city_first() -> None:
+    from app.ranker import order_by_percent
+    from app.schemas import SearchResult
+
+    def card(i: str, percent: int, city: str, availability: str = "available") -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city=city, industry="", experience_years=1,
+            availability=availability, match_percent=percent, matched=[], related=[], reasons=[],
+        )  # fmt: skip
+
+    results = [card("far", 63, "Астана"), card("near", 76, "Алматы", "busy"), card("weak", 30, "Алматы")]
+    assert [r.id for r in order_by_percent(results, city="Алматы")] == ["near", "far", "weak"]
+    assert [r.id for r in order_by_percent(results)] == [
+        "far",
+        "near",
+        "weak",
+    ]  # без города: процент × доступность

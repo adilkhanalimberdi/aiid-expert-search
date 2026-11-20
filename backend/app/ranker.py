@@ -153,21 +153,34 @@ def feedback_for(
 
 
 def order_by_percent(
-    results: list[SearchResult], feedback_scores: dict[str, float] | None = None
+    results: list[SearchResult],
+    feedback_scores: dict[str, float] | None = None,
+    city: str | None = None,
 ) -> list[SearchResult]:
-    """Упорядочивает по проценту с учётом доступности и отзывов внутри топа и внутри остальных.
+    """Окончательный порядок: процент × доступность × отзывы.
 
-    Кто попал в первую группу, решает RRF (это то, что меряет eval), а порядок внутри группы
-    совпадает с процентом на карточке: 60% не стоит выше 80% только из-за города.
-    Отзывы («подошёл» / «не подошёл») двигают эксперта и внутри группы, иначе в топ-3 они бы не работали.
+    Без города состав топ-3 решает RRF (так он устойчивее на запросах без ограничений), а внутри групп
+    порядок совпадает с процентом. С городом сортируются все кандидаты окна: сначала подходящие эксперты
+    из названного города, потом остальные. Иначе эксперт с нужной компетенцией в нужном городе (93%)
+    оставался четвёртым за 60%-ными из других городов: вектор его профиля шире запроса, а RRF города не видит.
     """
+
+    def weight(result: SearchResult) -> float:
+        availability = config.BOOST_AVAILABILITY[result.availability]
+        return -result.match_percent * availability * (feedback_scores or {}).get(result.id, 1.0)
+
+    if city:
+
+        def key(result: SearchResult) -> tuple[int, float]:
+            in_city = canonical_city(result.city) == canonical_city(city)
+            return (
+                0 if in_city and result.match_percent >= config.CITY_PRIORITY_MIN_PERCENT else 1,
+                weight(result),
+            )
+
+        return sorted(results, key=key)
     head = config.ORDER_GROUP_SIZE
-
-    def key(result: SearchResult) -> float:
-        weight = config.BOOST_AVAILABILITY[result.availability] * (feedback_scores or {}).get(result.id, 1.0)
-        return -result.match_percent * weight
-
-    return sorted(results[:head], key=key) + sorted(results[head:], key=key)
+    return sorted(results[:head], key=weight) + sorted(results[head:], key=weight)
 
 
 def is_without_evidence(
@@ -265,15 +278,18 @@ def search(
             scores[i] *= config.BOOST_EXPERIENCE_BELOW
         scores[i] *= exclusion_boost(index, i, parsed)
         scores[i] *= (feedback_scores or {}).get(expert.id, 1.0)
-    best = sorted(scores, key=lambda i: (-scores[i], i))[: req.top_k]
+    window = max(req.top_k, config.RERANK_WINDOW_WITH_CITY) if mode == "hybrid" and parsed.city else req.top_k
+    candidates = sorted(scores, key=lambda i: (-scores[i], i))[:window]
     bm_ranks = {i: rank for rank, i in enumerate(bm25, 1)}
     vec_ranks = {i: rank for rank, i in enumerate(vector, 1)}
     results = [
         result_for(index, i, parsed, query_vec, bm_ranks.get(i), vec_ranks.get(i), req.lang, credits)
-        for i in best
+        for i in candidates
     ]
     if mode == "hybrid":
-        results = order_by_percent(results, feedback_scores)
+        results = order_by_percent(results, feedback_scores, parsed.city)[: req.top_k]
+    position = {expert.id: i for i, expert in enumerate(index.experts)}
+    best = [position[result.id] for result in results]
     is_weak = not eligible or float(max(cosines[i] for i in eligible)) < config.WEAK_MATCH_COS
     if not is_weak and results:
         is_weak = is_without_evidence(index, best, parsed, query_vec, credits)

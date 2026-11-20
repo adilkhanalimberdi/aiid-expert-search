@@ -168,13 +168,19 @@ def s16() -> tuple[bool, str]:
     return not data["weak_match"], f"weak={data['weak_match']} top1={data['results'][0]['position']}"
 
 
-@case("S17", "порядок топ-3 совпадает с процентом × доступность")
+@case("S17", "порядок: с городом сначала эксперты из него, затем процент × доступность")
 def s17() -> tuple[bool, str]:
     broken = []
     for query in ("аудитор ISO 9001", "охрана труда Караганда", "GMP Алматы", "BIM Астана", "cybersecurity"):
-        results = search(query, top_k=8)["results"]
-        keys = [item["match_percent"] * WEIGHT[item["availability"]] for item in results[:3]]
-        if keys != sorted(keys, reverse=True):
+        data = search(query, top_k=8)
+        city = data["parsed"]["city"]
+
+        def key(item: dict, city: str | None = city) -> tuple[int, float]:
+            first = city is not None and item["city"] == city and item["match_percent"] >= 40
+            return (0 if first else 1, -item["match_percent"] * WEIGHT[item["availability"]])
+
+        top = data["results"][:3]
+        if [key(item) for item in top] != sorted(key(item) for item in top):
             broken.append(query)
     return not broken, f"нарушения: {broken}"
 
