@@ -113,7 +113,7 @@ def test_upload_missing_column(client: TestClient) -> None:
 
 
 def test_explain_any_expert(client: TestClient) -> None:
-    response = client.get("/api/experts/E008/explain", params={"query": "GMP из Алматы от 20 лет"})
+    response = client.get("/api/experts/E008/explain", params={"query": "GMP из Алматы от 30 лет"})
     assert response.status_code == 200
     result = response.json()
     assert result["expert"]["id"] == "E008"

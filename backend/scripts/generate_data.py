@@ -3,6 +3,7 @@
 import csv
 import json
 import random
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -110,6 +111,20 @@ POSITIONS = {
     ],
     "Образование": ["Методист", "Разработчик учебных программ", "Преподаватель"],
 }
+ORGANIZATIONS = {
+    "Фармацевтика": ["ФармаЦентр", "БиоЛаб Казахстан", "МедСинтез", "Центр клинических исследований"],
+    "IT": ["Дата Степь", "КазТех Лаб", "Цифровой Алтай", "Нейро Сервис"],
+    "Инженерия": ["Проектный институт Сарыарка", "ИнжСтрой Групп", "КазПроект", "Строй Дизайн Бюро"],
+    "Промышленность": ["Степной Металл", "ПромАудит", "Казахстанская горная компания", "ЭнергоСервис"],
+    "Образование": ["Школа будущего", "Академия педагогики", "Центр Алем", "ЦифроУниверситет"],
+}  # fmt: skip
+BIO_TEMPLATES = [
+    "Ведёт проекты по направлению «{main}», также работает с темой «{second}».",
+    "Больше десяти лет занимается практикой: {main}, {second}. Выступает на отраслевых конференциях.",
+    "Консультирует организации по вопросам «{main}» и «{second}», обучает команды заказчика.",
+    "Руководил внедрением решений в области «{main}»; регулярно привлекается как эксперт по «{second}».",
+    "Практик в области «{main}». Участвует в рабочих группах по «{second}».",
+]  # fmt: skip
 # Сценарные профили заданы до поиска; ранжирование не знает их идентификаторов.
 FIXTURES = [
     (0, "Алматы", "available", "GMP;клинические исследования;валидация процессов;GCP"),
@@ -150,14 +165,25 @@ def generate() -> list[dict]:
     rng = random.Random(SEED)
     industries = list(POOLS)
     cities = list(json.loads((DATA / "dictionaries/cities.json").read_text(encoding="utf-8")))
-    female_names = ["Айгерим", "Алия", "Динара", "Елена", "Мария", "Анна", "Жанна", "Аружан"]
-    male_names = ["Азамат", "Ерлан", "Тимур", "Иван", "Алексей", "Дмитрий", "Нурлан", "Данияр"]
-    surnames = ["Сатпаев", "Омаров", "Ахметов", "Иванов", "Петров", "Смирнов", "Беков", "Соколов"]
+    female_names = [
+        "Айгерим", "Алия", "Динара", "Елена", "Мария", "Анна", "Жанна", "Аружан", "Гульнара", "Ольга",
+        "Сауле", "Мадина", "Наталья", "Асель", "Татьяна", "Карлыгаш", "Дарья", "Томирис",
+    ]  # fmt: skip
+    male_names = [
+        "Азамат", "Ерлан", "Тимур", "Иван", "Алексей", "Дмитрий", "Нурлан", "Данияр", "Арман", "Сергей",
+        "Бауыржан", "Андрей", "Руслан", "Марат", "Виктор", "Асхат", "Максим", "Темирлан",
+    ]  # fmt: skip
+    surnames = [
+        "Сатпаев", "Омаров", "Ахметов", "Иванов", "Петров", "Смирнов", "Беков", "Соколов", "Жумабаев",
+        "Касымов", "Нурпеисов", "Кузнецов", "Волков", "Искаков", "Тулегенов", "Попов", "Мукашев",
+        "Рахимов", "Абдрахманов", "Орлов", "Серикбаев", "Лебедев",
+    ]  # fmt: skip
     counts = Counter(industries[item[0]] for item in FIXTURES)
     remaining = [industry for industry in industries for _ in range(30 - counts[industry])]
     statuses = ["available"] * 80 + ["partial"] * 21 + ["busy"] * 29
     rng.shuffle(statuses)
     rows = []
+    used_names = set()
     for i in range(150):
         if i < len(FIXTURES):
             sector, city, status, skills = FIXTURES[i]
@@ -168,8 +194,14 @@ def generate() -> list[dict]:
             status = statuses[i - len(FIXTURES)]
             skills = ";".join(rng.sample(POOLS[industry].split(";"), rng.randint(3, 6)))
         is_female = i % 2 == 0
-        name = rng.choice(female_names if is_female else male_names)
-        surname = rng.choice(surnames) + ("а" if is_female else "")
+        while True:
+            name = rng.choice(female_names if is_female else male_names)
+            surname = rng.choice(surnames) + ("а" if is_female else "")
+            if f"{name} {surname}" not in used_names:
+                used_names.add(f"{name} {surname}")
+                break
+        skill_list = skills.split(";")
+        organization = f"{rng.choice(ORGANIZATIONS[industry])} ({city})"
         rows.append(
             {
                 "id": f"E{i + 1:03}",
@@ -178,11 +210,11 @@ def generate() -> list[dict]:
                 "industry": industry,
                 "competencies": skills,
                 "city": city,
-                "experience_years": 15 if i < len(FIXTURES) else rng.randint(2, 30),
+                "experience_years": rng.randint(10, 25) if i < len(FIXTURES) else rng.randint(2, 30),
                 "availability": status,
-                "organization": f"Синтез-{industry}-{i + 1:03}",
-                "bio": (
-                    f"Консультирует команды: {skills.replace(';', ', ')}. Участвует в отраслевых проектах."
+                "organization": organization,
+                "bio": rng.choice(BIO_TEMPLATES).format(
+                    main=skill_list[0], second=skill_list[1] if len(skill_list) > 1 else skill_list[0]
                 ),
                 "languages": "русский;казахский" + (";английский" if i % 3 == 0 else ""),
                 "email": f"expert{i + 1:03}@example.invalid",
@@ -192,6 +224,7 @@ def generate() -> list[dict]:
 
 
 def main() -> None:
+    sys.stdout.reconfigure(encoding="utf-8")
     """Сохраняет каталог и фиксированные наборы для оценки качества."""
     rows = generate()
     with (DATA / "experts.csv").open("w", encoding="utf-8-sig", newline="") as stream:
@@ -201,6 +234,12 @@ def main() -> None:
     evaluation = json.loads((DATA / "eval_queries.example.json").read_text(encoding="utf-8"))
     for item, ids in zip(evaluation, [[1], [1, 3], [4], [6], [7], [9], [10]], strict=True):
         item["relevant"] = [f"E{i:03}" for i in ids]
+    # Синонимы «исследования» и «испытания»: релевантен каждый, у кого есть любая из фраз.
+    evaluation[1]["relevant"] = [
+        row["id"]
+        for row in rows
+        if {"клинические исследования", "клинические испытания"} & set(row["competencies"].split(";"))
+    ]
     holdout_queries = [
         "Актобе: регистрация лекарств и фармаконадзор",
         "Логистика лекарств по GDP в Атырау",
