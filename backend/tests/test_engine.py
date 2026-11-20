@@ -75,12 +75,12 @@ def test_filters_and_zero_bm25(monkeypatch: pytest.MonkeyPatch) -> None:
         [np.array([[1.0, 0.0]])] * 3,
         ["BIM"] * 3,
     )
-    monkeypatch.setattr("app.ranker.encode_query", lambda _: np.array([1.0, 0.0]))
+    monkeypatch.setattr("app.ranker.encode_query", lambda *_: np.array([1.0, 0.0]))
     response = search(index, SearchRequest(query="несуществующий", industry="Инженерия", hide_busy=True))
     assert [result.id for result in response.results] == ["0"]
     assert response.results[0].debug["bm25_rank"] is None
     assert response.results[0].matched == []
-    monkeypatch.setattr("app.ranker.encode_query", lambda _: np.array([0.0, 1.0]))
+    monkeypatch.setattr("app.ranker.encode_query", lambda *_: np.array([0.0, 1.0]))
     assert search(index, SearchRequest(query="несуществующий")).weak_match
     assert search(index, SearchRequest(query="bim", industry="Нет такой отрасли")).results == []
 
@@ -207,3 +207,80 @@ def test_kazakh_explanations() -> None:
 
     assert set(TEXTS["kk"]) == set(TEXTS["ru"])
     assert years_label(23, "kk") == "23 жыл"
+
+
+def test_embedding_text_ignores_case_and_spaces() -> None:
+    from app.text import model_text
+
+    assert model_text("МҰҒАЛІМ ") == model_text("мұғалім") == "мұғалім"
+    assert model_text("Ёлка   Вуз") == "елка вуз"
+
+
+def test_overlapping_synonym_groups_are_merged() -> None:
+    from app.text import related_phrases
+
+    related = {" ".join(phrase) for phrase in related_phrases(("искусственный", "интеллект"))}
+    assert {"ml", "нейросеть", "жасанды интеллект", "машинный обучение"} <= related
+
+
+def test_synonyms_cross_languages() -> None:
+    position = "Преподаватель. Компетенции: методика преподавания"
+    for word in ("мұғалім", "оқытушы", "teacher", "учитель", "педагог"):
+        assert covered_terms(lemmas(word), position), word
+    assert not covered_terms(lemmas("юрист"), position)
+
+
+def test_industry_is_found_by_synonym_in_any_language() -> None:
+    industries = ("IT", "Образование", "Промышленность")
+    assert parse("мұғалім", None, industries).industry == "Образование"
+    assert parse("teacher", None, industries).industry == "Образование"
+    assert parse("мұнай", None, industries).industry == "Промышленность"
+    assert parse("бағдарламашы", None, industries).industry == "IT"
+    # отрасль чужого каталога находится по её названию и синонимам, а не по демо-словарю
+    assert parse("нужен банк", None, ("Банк", "IT")).industry != "IT"
+
+
+def test_semantic_coverage_counts_without_dictionary(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.ranker import coverage_of, term_credits
+
+    experts = [
+        Expert(
+            id=str(i), full_name="Т", position="П", industry="X", competencies=["К"], city="Астана",
+            experience_years=1, availability="available",
+        )
+        for i in range(2)
+    ]  # fmt: skip
+    index = SearchIndex(
+        experts,
+        BM25Okapi([["а"], ["б"]]),
+        np.eye(2),
+        [np.eye(2)[:1]] * 2,
+        ["а", "б"],
+        position_vecs=np.eye(2),
+        target_matrix=np.array([[1.0, 0.0], [1.0, 0.0], [0.0, 1.0], [0.0, 1.0]]),
+        target_offsets=np.array([0, 2]),
+    )
+    monkeypatch.setattr("app.ranker.encode_terms", lambda _: np.array([[1.0, 0.0]]))
+    parsed = parse("незнакомоеслово")
+    credits = term_credits(index, parsed)
+    assert credits.shape == (2, 1)
+    assert coverage_of(index, 0, parsed, credits) == 1.0  # косинус 1 выше CEIL: покрытие полное
+    assert coverage_of(index, 1, parsed, credits) == 0.0  # косинус 0 ниже FLOOR
+
+
+def test_feedback_moves_expert_inside_top_group() -> None:
+    from app.ranker import order_by_percent
+    from app.schemas import SearchResult
+
+    def card(i: str, percent: int) -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city="", industry="", experience_years=1,
+            availability="available", match_percent=percent, matched=[], related=[], reasons=[],
+        )  # fmt: skip
+
+    results = [card("a", 80), card("b", 78), card("c", 70)]
+    assert [r.id for r in order_by_percent(results)] == ["a", "b", "c"]
+    assert [r.id for r in order_by_percent(results, {"a": 0.8})] == ["b", "c", "a"] or [
+        r.id for r in order_by_percent(results, {"a": 0.8})
+    ] == ["b", "a", "c"]
+    assert order_by_percent(results, {"a": 0.8})[0].id == "b"

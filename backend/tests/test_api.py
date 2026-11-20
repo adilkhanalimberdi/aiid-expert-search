@@ -193,3 +193,53 @@ def test_english_reasons_and_constraints(client: TestClient) -> None:
     ).json()
     assert "Busy" in explanation["constraints"]
     assert client.post("/api/search", json={"query": "GMP", "lang": "de"}).status_code == 422
+
+
+def test_case_and_language_do_not_change_results(client: TestClient) -> None:
+    def top(query: str) -> list[str]:
+        response = client.post("/api/search", json={"query": query, "top_k": 3}).json()
+        return [item["id"] for item in response["results"]]
+
+    assert top("мұғалім") == top("Мұғалім") == top("МҰҒАЛІМ")
+    kazakh, russian, english = top("мұғалім"), top("учитель"), top("teacher")
+    assert len(set(kazakh) & set(russian)) >= 2
+    assert len(set(russian) & set(english)) >= 2
+
+
+def test_percent_does_not_depend_on_language(client: TestClient) -> None:
+    def best_percent(query: str) -> int:
+        return client.post("/api/search", json={"query": query, "top_k": 3}).json()["results"][0][
+            "match_percent"
+        ]
+
+    teachers = [best_percent(word) for word in ("мұғалім", "учитель", "teacher", "преподаватель")]
+    assert max(teachers) - min(teachers) <= 15
+    ml = [best_percent(word) for word in ("машиналық оқыту", "машинное обучение", "machine learning")]
+    assert max(ml) - min(ml) <= 10
+
+
+def test_unknown_profession_is_still_weak(client: TestClient) -> None:
+    for query in ("юрист", "заңгер", "бухгалтер", "повар", "lawyer"):
+        assert client.post("/api/search", json={"query": query}).json()["weak_match"], query
+
+
+def test_feedback_changes_ranking(client: TestClient) -> None:
+    query = {"query": "GMP Алматы", "top_k": 20}
+    before = client.post("/api/search", json=query).json()["results"]
+    # соседи в одной группе порядка (топ-3 или остальные) с одинаковой доступностью и близким процентом
+    pairs = [
+        (before[i], before[i + 1])
+        for i in range(len(before) - 1)
+        if (i + 1 < 3 or i >= 3)
+        and before[i]["availability"] == before[i + 1]["availability"]
+        and before[i]["match_percent"] <= 1.4 * before[i + 1]["match_percent"]
+    ]
+    assert pairs
+    first, second = pairs[-1]
+    for _ in range(6):  # множитель отзывов ограничен: от 0,8 до 1,2
+        client.post("/api/feedback", json={"query": "GMP", "expert_id": first["id"], "verdict": "not_fit"})
+        client.post("/api/feedback", json={"query": "GMP", "expert_id": second["id"], "verdict": "fit"})
+    after = [item["id"] for item in client.post("/api/search", json=query).json()["results"]]
+    # демотированный эксперт либо стоит ниже соседа, либо выпал из выдачи совсем
+    assert first["id"] not in after or after.index(second["id"]) < after.index(first["id"])
+    assert second["id"] in after
