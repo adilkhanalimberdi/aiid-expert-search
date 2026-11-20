@@ -7,6 +7,8 @@ export interface ParsedQuery {
   industry: string | null
   min_experience: number | null
   terms: string[]
+  /** в запросе просили свободных («свободный сейчас»): занятые не попадают в выдачу */
+  available_only: boolean
 }
 
 export interface SearchResult {

@@ -13,14 +13,14 @@ from .text import covered_terms
 def assemble(index: SearchIndex, req: TeamRequest) -> TeamResponse:
     """Сначала максимизирует новые подтверждённые термины, затем релевантность."""
     started = perf_counter()
-    parsed = parse(req.query)
+    parsed = parse(req.query, index.bm25.idf)
     terms = list(dict.fromkeys(parsed.terms))
     query_vec = encode_query(req.query)
     covers = {
         i: covered_terms(terms, "; ".join(expert.competencies))
         for i, expert in enumerate(index.experts)
         if (not req.industry or expert.industry == req.industry)
-        and (not req.hide_busy or expert.availability != "busy")
+        and (not (req.hide_busy or parsed.available_only) or expert.availability != "busy")
     }
     candidates = {i for i, coverage in covers.items() if coverage}
     uncovered = set(terms)

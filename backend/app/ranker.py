@@ -30,6 +30,16 @@ def location_boost(expert: Expert, parsed: ParsedQuery) -> float:
     return boost
 
 
+def match_score(index: SearchIndex, i: int, parsed: ParsedQuery, query_vec: np.ndarray) -> float:
+    """Процент без потолка: смысл и покрытие терминов с бустами города и отрасли."""
+    cosine = float(index.expert_vecs[i] @ query_vec)
+    semantic = float(np.clip((cosine - config.COS_FLOOR) / (config.COS_CEIL - config.COS_FLOOR), 0, 1))
+    terms = set(parsed.terms)
+    coverage = len(covered_terms(parsed.terms, index.texts[i])) / len(terms) if terms else 0.0
+    percent = 100 * (config.W_SEMANTIC * semantic + config.W_COVERAGE * coverage)
+    return percent * location_boost(index.experts[i], parsed)
+
+
 def result_for(
     index: SearchIndex,
     i: int,
@@ -42,11 +52,7 @@ def result_for(
     """Строит карточку и процент по смыслу и покрытию терминов."""
     expert = index.experts[i]
     cosine = float(index.expert_vecs[i] @ query_vec)
-    semantic = float(np.clip((cosine - config.COS_FLOOR) / (config.COS_CEIL - config.COS_FLOOR), 0, 1))
-    terms = set(parsed.terms)
-    coverage = len(covered_terms(parsed.terms, index.texts[i])) / len(terms) if terms else 0.0
-    percent = 100 * (config.W_SEMANTIC * semantic + config.W_COVERAGE * coverage)
-    percent = min(config.PERCENT_CAP, round(percent * location_boost(expert, parsed)))
+    percent = min(config.PERCENT_CAP, round(match_score(index, i, parsed, query_vec)))
     matched, related, reasons = explain(expert, parsed, query_vec, index.competency_vecs[i], lang)
     return SearchResult(
         **{key: value for key, value in expert.model_dump().items() if key in SearchResult.model_fields},
@@ -78,7 +84,7 @@ def search(
     if mode not in {"hybrid", "bm25", "vector"}:
         raise ValueError("Неизвестный режим поиска")
     started = perf_counter()
-    parsed = parse(req.query)
+    parsed = parse(req.query, index.bm25.idf)
     query_vec = encode_query(req.query)
     cosines = index.expert_vecs @ query_vec
     lexical = index.bm25.get_scores(expand_synonyms(expand_vocabulary(parsed.terms, index.bm25.idf)))
@@ -86,7 +92,7 @@ def search(
         i
         for i, expert in enumerate(index.experts)
         if (not req.industry or expert.industry == req.industry)
-        and (not req.hide_busy or expert.availability != "busy")
+        and (not (req.hide_busy or parsed.available_only) or expert.availability != "busy")
     ]
     bm25 = sorted((i for i in eligible if lexical[i] > 0), key=lambda i: (-lexical[i], i))[
         : config.TOP_N_PER_RETRIEVER

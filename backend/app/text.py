@@ -1,6 +1,7 @@
 """Нормализация, морфология и фразовые синонимы для поиска."""
 
 import json
+import os
 import re
 from collections.abc import Iterable
 from difflib import get_close_matches
@@ -49,6 +50,29 @@ def contains(words: list[str], phrase: list[str] | tuple[str, ...]) -> bool:
     return bool(phrase) and any(words[i : i + len(phrase)] == list(phrase) for i in range(len(words)))
 
 
+def same_stem(word: str, base: str) -> bool:
+    """Слово вне словаря pymorphy совпадает с формой из словаря по основе.
+
+    Казахские окончания («зерттеулер» → «зерттеу», «қауіпсіздігі» → «қауіпсіздік») и русские
+    формы, которых не знает pymorphy («нейросетях» → «нейросеть»). Латиница только точно.
+    """
+    if word == base:
+        return True
+    if word.isascii() or base.isascii() or len(base) < config.MIN_STEM_LENGTH:
+        return False
+    common = len(os.path.commonprefix([word, base]))
+    return common >= max(config.MIN_STEM_LENGTH, len(base) - config.STEM_TAIL_TOLERANCE)
+
+
+def contains_stem(words: list[str], phrase: list[str] | tuple[str, ...]) -> bool:
+    """Как contains, но слово запроса может отличаться от фразы окончанием."""
+    n = len(phrase)
+    return bool(phrase) and any(
+        all(same_stem(w, p) for w, p in zip(words[i : i + n], phrase, strict=True))
+        for i in range(len(words) - n + 1)
+    )
+
+
 @lru_cache(maxsize=1)
 def synonym_groups() -> tuple:
     data = json.loads(
@@ -61,7 +85,7 @@ def expand_synonyms(terms: list[str]) -> list[str]:
     """Расширяет только целиком найденные фразы, без рекурсивного разрастания."""
     expanded = list(terms)
     for group in synonym_groups():
-        if any(contains(terms, phrase) for phrase in group):
+        if any(contains_stem(terms, phrase) for phrase in group):
             expanded.extend(word for phrase in group for word in phrase)
     return list(dict.fromkeys(expanded))
 
@@ -85,13 +109,36 @@ def expand_vocabulary(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
     return list(dict.fromkeys(expanded))
 
 
+def correct_terms(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
+    """Заменяет термин с опечаткой словом базы («кибербезопастность» → «кибербезопасность»).
+
+    Не трогает слова базы, приставки слов базы и термины из словаря синонимов (в том числе
+    казахские формы), чтобы не превращать правильный запрос в другой.
+    """
+    known = set(vocabulary)
+    synonym_words = {word for group in synonym_groups() for phrase in group for word in phrase}
+    fixed = []
+    for term in terms:
+        if (
+            term in known
+            or term in synonym_words
+            or len(term) < config.MIN_TERM_LENGTH
+            or any(word.startswith(term) for word in known)
+        ):
+            fixed.append(term)
+            continue
+        close = get_close_matches(term, sorted(known), n=1, cutoff=config.TERM_FIX_CUTOFF)
+        fixed.append(close[0] if close else term)
+    return list(dict.fromkeys(fixed))
+
+
 def covered_terms(terms: list[str], text: str) -> set[str]:
     """Возвращает исходные термины, подтверждённые текстом или фразовым синонимом."""
     words = lemmas(text)
     covered = set(terms) & set(words)
     covered |= {term for term in terms if is_prefix_of_any(term, words)}
     for group in synonym_groups():
-        source = [phrase for phrase in group if contains(terms, phrase)]
+        source = [phrase for phrase in group if contains_stem(terms, phrase)]
         if source and any(contains(words, phrase) for phrase in group):
-            covered.update(word for phrase in source for word in phrase)
+            covered.update(term for term in terms if any(same_stem(term, p) for ph in source for p in ph))
     return covered

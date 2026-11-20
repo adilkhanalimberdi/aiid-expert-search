@@ -8,7 +8,7 @@ from app.index import SearchIndex
 from app.query_parser import parse
 from app.ranker import rrf, search
 from app.schemas import Expert, SearchRequest
-from app.text import covered_terms, expand_synonyms, lemmas, normalize
+from app.text import correct_terms, covered_terms, expand_synonyms, lemmas, normalize, same_stem
 
 
 def test_normalize() -> None:
@@ -143,3 +143,42 @@ def test_english_query_parsing():
     assert (parsed.city, parsed.min_experience, parsed.terms) == ("Алматы", 5, ["cybersecurity"])
     assert "кибербезопасность" in expand_synonyms(["cybersecurity"])
     assert parse("audit at least 10 years").min_experience == 10
+
+
+@pytest.mark.parametrize(
+    ("query", "years"),
+    [
+        ("металлург 20+ лет", 20),
+        ("более 7 лет опыта", 7),
+        ("опыт 5 лет", 5),
+        ("10 жылдан астам тәжірибе", 10),
+        ("5+ years", 5),
+        ("GMP в Алматы", None),
+    ],
+)
+def test_experience_forms(query: str, years: int | None) -> None:
+    assert parse(query).min_experience == years
+
+
+def test_availability_intent_is_not_a_term() -> None:
+    parsed = parse("специалист по GMP, свободный сейчас")
+    assert parsed.available_only and parsed.terms == ["gmp"]
+    assert not parse("специалист по GMP").available_only
+
+
+def test_kazakh_phrases_reach_russian_competencies() -> None:
+    assert covered_terms(lemmas("клиникалық зерттеулер"), "клинические исследования")
+    assert covered_terms(lemmas("өнеркәсіптік қауіпсіздігі"), "промышленная безопасность")
+    assert "кибербезопасность" in expand_synonyms(lemmas("киберқауіпсіздік"))
+
+
+def test_same_stem_is_strict_for_latin_and_short_words() -> None:
+    assert same_stem("нейросетях", "нейросеть")
+    assert not same_stem("gmps", "gmp")
+    assert not same_stem("банкир", "банк")
+
+
+def test_typo_is_corrected_only_against_the_base() -> None:
+    vocabulary = ["кибербезопасность", "промбезопасность", "аудит"]
+    assert correct_terms(["кибербезопастность"], vocabulary) == ["кибербезопасность"]
+    assert correct_terms(["аудитор", "зерттеулер"], vocabulary) == ["аудитор", "зерттеулер"]

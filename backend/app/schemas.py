@@ -56,6 +56,7 @@ class ParsedQuery(BaseModel):
     industry: str | None = None
     min_experience: int | None = None
     terms: list[str] = Field(default_factory=list)
+    available_only: bool = False  # в запросе просили свободных: занятые не попадают в выдачу
 
 
 class SearchResult(BaseModel):
