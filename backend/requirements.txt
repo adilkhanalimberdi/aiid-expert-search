@@ -1,12 +1,13 @@
 # torch ставится отдельно, версия для CPU:
 #   .venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-fastapi
-uvicorn[standard]
-python-multipart
-pydantic-settings
-sentence-transformers
-rank_bm25
-pymorphy3
-pymorphy3-dicts-ru
-numpy
-pandas
+# Версии закреплены по проверенной сборке (torch 2.15.0+cpu), чтобы пересборка Docker не меняла поведение.
+fastapi==0.165.0
+uvicorn[standard]==0.54.0
+python-multipart==0.0.34
+pydantic-settings==2.16.3
+sentence-transformers==6.3.0
+rank_bm25==0.2.2
+pymorphy3==2.0.6
+pymorphy3-dicts-ru==2.4.417150.4580142
+numpy==2.5.5
+pandas==3.1.1

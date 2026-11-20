@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # torch для CPU ставим первым и отдельно: иначе sentence-transformers притащит сборку с CUDA на 2+ ГБ
-RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
