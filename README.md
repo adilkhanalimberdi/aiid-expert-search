@@ -64,6 +64,10 @@ cd web; npm install; npm run dev                                   # UI:  http:/
 docker compose up --build   # UI: http://localhost:8080, API: http://localhost:8000/docs
 ```
 
+Если `docker compose` пишет `dial tcp 127.0.0.1:2375: connectex: ... refused`, в окружении задана `DOCKER_HOST=tcp://127.0.0.1:2375`, а Docker Desktop не слушает этот порт. Запустите Docker Desktop и дождитесь «Engine running», затем уберите переменную в текущей сессии: `Remove-Item Env:DOCKER_HOST` (PowerShell). Либо включите в настройках Docker Desktop «Expose daemon on tcp://localhost:2375 without TLS».
+
+Деплой на сервер и требования к памяти: [docs/deploy.md](docs/deploy.md).
+
 macOS / Linux: те же шаги, `source .venv/bin/activate`, затем `pip`, `hf`, `uvicorn` без путей.
 
 ## Как это работает
