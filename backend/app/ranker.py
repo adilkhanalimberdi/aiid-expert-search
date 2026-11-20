@@ -15,7 +15,7 @@ from .text import (
     covered_terms,
     expand_synonyms,
     expand_vocabulary,
-    fix_keyboard_layout,
+    fix_typing,
     synonym_hints,
 )
 
@@ -294,7 +294,7 @@ def search(
     if mode not in {"hybrid", "bm25", "vector"}:
         raise ValueError("Неизвестный режим поиска")
     started = perf_counter()
-    req = req.model_copy(update={"query": fix_keyboard_layout(req.query, index.bm25.idf)})
+    req = req.model_copy(update={"query": fix_typing(req.query, index.bm25.idf)})
     parsed = parse(
         req.query, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries
     )

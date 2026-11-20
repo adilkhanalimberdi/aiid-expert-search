@@ -444,3 +444,23 @@ def test_phrase_holders_prefer_whole_competency() -> None:
     terms = lemmas("контроль дефектов на производстве")
     # «производство» тоже компетенция каталога, но целая фраза из четырёх слов весит больше
     assert phrase_holders(index, terms, [0, 1]) == [1, 0]
+
+
+def test_translit_becomes_cyrillic_but_english_stays() -> None:
+    from app.text import fix_translit
+
+    assert fix_translit("klinicheskie issledovaniya") == "клинические исследования"
+    assert fix_translit("ekspert po GMP") == "эксперт по GMP"
+    assert fix_translit("kiberbezopasnost", ["кибербезопасность"]) == "кибербезопасность"
+    assert fix_translit("razbiraetsya") == "разбирается"
+    for english in ("data scientist", "machine learning", "project manager", "teacher", "GMP BIM"):
+        assert fix_translit(english) == english
+
+
+def test_translit_service_words_only_with_translit_content() -> None:
+    from app.text import fix_translit
+
+    assert fix_translit("nuzhen ekspert bez GMP") == "нужен эксперт без GMP"
+    assert fix_translit("data scientist to do machine learning") == "data scientist to do machine learning"
+    assert fix_translit("ekspert po GMP") == "эксперт по GMP"
+    assert fix_translit("GMP in Almaty") == "GMP in алматы"

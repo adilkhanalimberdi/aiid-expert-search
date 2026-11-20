@@ -57,6 +57,88 @@ def fix_keyboard_layout(query: str, vocabulary: Iterable[str] = ()) -> str:
     return LAYOUT_TOKEN.sub(convert, query)
 
 
+TRANSLIT_TO_RU = [  # длинные сочетания раньше коротких: «shch» до «sh», «kh» до «h»
+    ("shch", "щ"), ("sch", "щ"), ("zh", "ж"), ("kh", "х"), ("ts", "ц"), ("ch", "ч"), ("sh", "ш"),
+    ("yu", "ю"), ("ya", "я"), ("yo", "е"), ("ye", "е"),
+    ("a", "а"), ("b", "б"), ("v", "в"), ("g", "г"), ("d", "д"), ("e", "е"), ("z", "з"), ("i", "и"),
+    ("j", "й"), ("k", "к"), ("l", "л"), ("m", "м"), ("n", "н"), ("o", "о"), ("p", "п"), ("r", "р"),
+    ("s", "с"), ("t", "т"), ("u", "у"), ("f", "ф"), ("h", "х"), ("c", "ц"), ("y", "ы"), ("w", "в"),
+    ("x", "кс"), ("q", "к"),
+]  # fmt: skip
+LATIN_WORD = re.compile(r"\b[A-Za-z]{2,}\b")
+TRANSLIT_SERVICE_WORDS = {"без", "кроме", "не"}  # отрицание транслитом тоже должно работать: «bez GMP»
+
+
+def from_translit(word: str) -> str:
+    """Русское слово, написанное латиницей: «issledovaniya» → «исследования»."""
+    text, out = word.lower(), []
+    while text:
+        if text in ("iy", "yy"):  # окончание «-ий», «-ый»; внутри слова «iya» это «ия»
+            out.append("ий" if text == "iy" else "ый")
+            break
+        for latin, cyrillic in TRANSLIT_TO_RU:
+            if text.startswith(latin):
+                # «e» в начале слова чаще «э»: ekspert, effektivnost
+                out.append("э" if latin == "e" and not out else cyrillic)
+                text = text[len(latin) :]
+                break
+        else:
+            out.append(text[0])
+            text = text[1:]
+    return "".join(out)
+
+
+@lru_cache(maxsize=1)
+def english_words() -> frozenset[str]:
+    """Латинские слова словаря синонимов: их не переводим из транслита."""
+    return frozenset(
+        word for group in synonym_groups() for phrase in group for word in phrase if word.isascii()
+    )
+
+
+def fix_translit(query: str, vocabulary: Iterable[str] = ()) -> str:
+    """Транслит («klinicheskie issledovaniya») переводится в кириллицу, если получается русское слово.
+
+    Английские слова из словаря синонимов и слова каталога не трогаются («data» не станет «дата»),
+    аббревиатуры (GMP, BIM) тоже: их пишут заглавными. Предлоги («po», «iz», «bez») переводятся,
+    только если в запросе есть и содержательное слово транслитом.
+    """
+    known = set(vocabulary)
+    english = english_words()
+
+    def translit_word(token: str, service: bool) -> str:
+        lower = token.lower()
+        if token.isupper() or lower in known or lower in english:
+            return token
+        converted = from_translit(lower)
+        # мягкий знак латиницей обычно не пишут: kiberbezopasnost → кибербезопасность
+        for candidate in (
+            converted,
+            converted + "ь",
+            converted.replace("э", "е", 1),
+            re.sub(r"ц(я|ь)$", r"тс\1", converted),  # razbiraetsya → разбирается
+        ):
+            word = normalize(candidate)
+            if service and (word in stopwords() or word in TRANSLIT_SERVICE_WORDS):
+                return candidate
+            if len(word) >= 4 and (lemma(word) in known or morphology().word_is_known(word)):
+                return candidate
+        return token
+
+    content = LATIN_WORD.sub(lambda match: translit_word(match.group(0), service=False), query)
+    latin_left = [word for word in LATIN_WORD.findall(content) if not word.isupper()]
+    converted = len([word for word in LATIN_WORD.findall(query) if not word.isupper()]) - len(latin_left)
+    if converted == 0 or converted < len(latin_left):
+        return content  # запрос в основном английский: «to», «do», «in» не трогаем
+    return LATIN_WORD.sub(lambda match: translit_word(match.group(0), service=True), content)
+
+
+def fix_typing(query: str, vocabulary: Iterable[str] = ()) -> str:
+    """Чужая раскладка, затем транслит: всё, что человек набрал не той системой письма."""
+    known = list(vocabulary)
+    return fix_translit(fix_keyboard_layout(query, known), known)
+
+
 def model_text(text: str) -> str:
     """Запрос для эмбеддинга: регистр и пробелы не должны менять результат («Мұғалім» = «мұғалім»)."""
     return " ".join(text.lower().replace("ё", "е").split())

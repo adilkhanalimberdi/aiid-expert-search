@@ -7,13 +7,13 @@ from .index import SearchIndex
 from .query_parser import parse
 from .ranker import location_boost, query_vector, result_for
 from .schemas import CoverageRow, TeamRequest, TeamResponse
-from .text import covered_terms, fix_keyboard_layout
+from .text import covered_terms, fix_typing
 
 
 def assemble(index: SearchIndex, req: TeamRequest) -> TeamResponse:
     """Сначала максимизирует новые подтверждённые термины, затем релевантность."""
     started = perf_counter()
-    req = req.model_copy(update={"query": fix_keyboard_layout(req.query, index.bm25.idf)})
+    req = req.model_copy(update={"query": fix_typing(req.query, index.bm25.idf)})
     parsed = parse(
         req.query, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries
     )
