@@ -22,6 +22,7 @@ from .schemas import (
     HealthResponse,
     SearchRequest,
     SearchResponse,
+    SimilarExpert,
     StatsResponse,
     TeamRequest,
     TeamResponse,
@@ -132,6 +133,20 @@ def explain_expert(expert_id: str, query: str = Query(min_length=1, max_length=5
         missing_terms=list(dict.fromkeys(term for term in parsed.terms if term not in confirmed)),
         constraints=constraints,
     )
+
+
+@app.get("/api/experts/{expert_id}/similar", response_model=list[SimilarExpert])
+def similar_experts(expert_id: str, limit: int = Query(default=5, ge=1, le=20)) -> list[SimilarExpert]:
+    """Возвращает ближайшие векторы профилей, исключая исходного эксперта."""
+    snapshot = app.state.index
+    source = next((i for i, expert in enumerate(snapshot.experts) if expert.id == expert_id), None)
+    if source is None:
+        raise HTTPException(404, "Эксперт не найден")
+    scores = snapshot.expert_vecs @ snapshot.expert_vecs[source]
+    candidates = sorted(
+        (i for i in range(len(snapshot.experts)) if i != source), key=lambda i: (-scores[i], i)
+    )
+    return [SimilarExpert(expert=snapshot.experts[i], cosine=float(scores[i])) for i in candidates[:limit]]
 
 
 @app.get("/api/industries", response_model=list[str])

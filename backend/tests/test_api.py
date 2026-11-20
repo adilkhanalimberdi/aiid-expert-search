@@ -142,6 +142,18 @@ def test_team_coverage(client: TestClient) -> None:
     assert client.post("/api/team", json={"query": "  "}).status_code == 422
 
 
+def test_similar_experts(client: TestClient) -> None:
+    response = client.get("/api/experts/E001/similar", params={"limit": 3})
+    assert response.status_code == 200
+    results = response.json()
+    assert len(results) == 3
+    assert all(item["expert"]["id"] != "E001" for item in results)
+    assert results[0]["expert"]["id"] == "E002"
+    assert [item["cosine"] for item in results] == sorted([item["cosine"] for item in results], reverse=True)
+    assert client.get("/api/experts/unknown/similar").status_code == 404
+    assert client.get("/api/experts/E001/similar?limit=0").status_code == 422
+
+
 def test_csv_aliases_duplicates_and_quotes() -> None:
     raw = (
         "id,ФИО,Должность,Отрасль,Компетенции,Город,Опыт,Статус\n"

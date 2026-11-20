@@ -61,6 +61,11 @@ export interface ExpertExplanation {
   constraints: string[]
 }
 
+export interface SimilarExpert {
+  expert: Expert
+  cosine: number
+}
+
 export interface TeamRequest {
   query: string
   industry?: string | null

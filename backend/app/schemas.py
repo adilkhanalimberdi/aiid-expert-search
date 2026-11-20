@@ -24,6 +24,11 @@ class Expert(BaseModel):
     email: str | None = None
 
 
+class SimilarExpert(BaseModel):
+    expert: Expert
+    cosine: float
+
+
 class SearchRequest(BaseModel):
     query: str = Field(min_length=1, max_length=500)
     industry: str | None = None
