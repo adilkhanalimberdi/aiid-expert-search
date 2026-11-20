@@ -63,7 +63,7 @@ def main() -> None:
     parser.add_argument("--file", type=Path, default=settings.path(settings.eval_queries))
     parser.add_argument("--k", type=int, choices=range(1, 21), default=3)
     parser.add_argument(
-        "--all", action="store_true", help="Все режимы на эталоне и holdout (после настройки)"
+        "--all", action="store_true", help="Все режимы на эталоне, holdout и jury (после настройки)"
     )
     args = parser.parse_args()
     raw = settings.path(settings.experts_csv).read_bytes()
@@ -76,7 +76,10 @@ def main() -> None:
     if args.all:
         runs = [
             (path, mode)
-            for path in [args.file, args.file.with_name("eval_holdout.json")]
+            for path in [
+                args.file,
+                *(args.file.with_name(n) for n in ("eval_holdout.json", "eval_jury.json")),
+            ]
             for mode in ["hybrid", "bm25", "vector"]
         ]
     for path, mode in runs:
