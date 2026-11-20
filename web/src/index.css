@@ -30,6 +30,8 @@ html {
   color: var(--color-ink);
   font-family: var(--font-sans);
   scrollbar-color: var(--color-ink) var(--color-paper);
+  /* место под полосу прокрутки занято всегда: при открытии окна страница не сдвигается */
+  scrollbar-gutter: stable;
 }
 
 ::selection {

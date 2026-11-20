@@ -181,12 +181,7 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
       </section>
 
       {openExpertId && (
-        <ExpertDialog
-          expertId={openExpertId}
-          query={submitted?.query ?? ''}
-          onOpen={setOpenExpertId}
-          onClose={() => setOpenExpertId(null)}
-        />
+        <ExpertDialog expertId={openExpertId} query={submitted?.query ?? ''} onClose={() => setOpenExpertId(null)} />
       )}
     </>
   )
