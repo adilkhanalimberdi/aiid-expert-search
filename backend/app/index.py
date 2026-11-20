@@ -13,7 +13,7 @@ from rank_bm25 import BM25Okapi
 
 from .config import CPU_THREADS, ENCODE_BATCH_SIZE, settings
 from .schemas import Expert
-from .text import lemmas
+from .text import lemmas, model_text
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer
@@ -48,8 +48,27 @@ def encode(texts: list[str]) -> np.ndarray:
         )
 
 
-def encode_query(text: str) -> np.ndarray:
-    return encode([settings.query_prefix + text])[0]
+_term_cache: dict[str, np.ndarray] = {}
+
+
+def encode_query(text: str, terms: tuple[str, ...] | list[str] = ()) -> np.ndarray:
+    """Вектор запроса; новые термины кодируются тем же батчем и кладутся в кэш (один вызов модели)."""
+    missing = [term for term in dict.fromkeys(terms) if term not in _term_cache]
+    vectors = encode(
+        [settings.query_prefix + model_text(text)] + [settings.query_prefix + t for t in missing]
+    )
+    for term, vector in zip(missing, vectors[1:], strict=True):
+        _term_cache[term] = vector
+    return vectors[0]
+
+
+def encode_terms(terms: list[str]) -> np.ndarray:
+    """Векторы отдельных терминов запроса; повторные термины берутся из кэша."""
+    missing = [term for term in dict.fromkeys(terms) if term not in _term_cache]
+    if missing:
+        for term, vector in zip(missing, encode([settings.query_prefix + t for t in missing]), strict=True):
+            _term_cache[term] = vector
+    return np.stack([_term_cache[term] for term in terms]) if terms else np.zeros((0, 1))
 
 
 def expert_text(expert: Expert) -> str:
@@ -67,6 +86,26 @@ class SearchIndex:
     expert_vecs: np.ndarray
     competency_vecs: list[np.ndarray]
     texts: list[str]
+    # должность каждого эксперта и все смысловые «мишени» (компетенции и должность) для покрытия терминов
+    position_vecs: np.ndarray | None = None
+    target_matrix: np.ndarray | None = None
+    target_offsets: np.ndarray | None = None
+
+    @property
+    def industry_names(self) -> tuple[str, ...]:
+        """Отрасли загруженного каталога: по ним разбирается запрос и строится фильтр."""
+        return tuple(sorted({expert.industry for expert in self.experts}))
+
+    @property
+    def city_names(self) -> tuple[str, ...]:
+        """Города загруженного каталога: узнаём их в запросе, даже если их нет в словаре городов."""
+        return tuple(sorted({expert.city for expert in self.experts}))
+
+    def term_scores(self, term_vecs: np.ndarray) -> np.ndarray:
+        """Лучший косинус термина с компетенциями и должностью эксперта: матрица (эксперты, термины)."""
+        if self.target_matrix is None or self.target_offsets is None or term_vecs.shape[0] == 0:
+            return np.zeros((len(self.experts), term_vecs.shape[0]))
+        return np.maximum.reduceat(self.target_matrix @ term_vecs.T, self.target_offsets, axis=0)
 
 
 def build(experts: list[Expert], raw_csv: bytes | None = None) -> SearchIndex:
@@ -75,8 +114,9 @@ def build(experts: list[Expert], raw_csv: bytes | None = None) -> SearchIndex:
         raise ValueError("Каталог экспертов пуст")
     texts = [expert_text(expert) for expert in experts]
     competencies = list(dict.fromkeys(skill for expert in experts for skill in expert.competencies))
+    positions = list(dict.fromkeys(expert.position for expert in experts))
     payload = json.dumps(
-        [settings.model_path, settings.passage_prefix, texts, competencies], ensure_ascii=False
+        [settings.model_path, settings.passage_prefix, texts, competencies, positions], ensure_ascii=False
     ).encode()
     digest = hashlib.sha256((raw_csv or b"") + payload).hexdigest()
     cache = settings.path(settings.cache_dir)
@@ -88,23 +128,33 @@ def build(experts: list[Expert], raw_csv: bytes | None = None) -> SearchIndex:
             vectors = np.load(path, allow_pickle=False)
             if (
                 vectors.ndim != 2
-                or vectors.shape[0] != len(texts) + len(competencies)
+                or vectors.shape[0] != len(texts) + len(competencies) + len(positions)
                 or not np.isfinite(vectors).all()
             ):
                 vectors = None
         except (ValueError, OSError):
             vectors = None
     if vectors is None:
-        vectors = encode([settings.passage_prefix + text for text in texts + competencies])
+        vectors = encode([settings.passage_prefix + text for text in texts + competencies + positions])
         temporary = path.with_suffix(f".{threading.get_ident()}.tmp")
         with temporary.open("wb") as stream:
             np.save(stream, vectors, allow_pickle=False)
         temporary.replace(path)
     by_competency = {skill: vectors[len(texts) + i] for i, skill in enumerate(competencies)}
+    by_position = {name: vectors[len(texts) + len(competencies) + i] for i, name in enumerate(positions)}
+    competency_vecs = [
+        np.stack([by_competency[skill] for skill in expert.competencies]) for expert in experts
+    ]
+    position_vecs = np.stack([by_position[expert.position] for expert in experts])
+    blocks = [np.vstack([competency_vecs[i], position_vecs[i]]) for i in range(len(experts))]
+    offsets = np.cumsum([0] + [len(block) for block in blocks[:-1]])
     return SearchIndex(
         experts,
         BM25Okapi([lemmas(text) or [""] for text in texts]),
         vectors[: len(texts)],
-        [np.stack([by_competency[skill] for skill in expert.competencies]) for expert in experts],
+        competency_vecs,
         texts,
+        position_vecs=position_vecs,
+        target_matrix=np.vstack(blocks),
+        target_offsets=offsets,
     )

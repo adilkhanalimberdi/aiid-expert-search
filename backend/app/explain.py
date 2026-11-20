@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from .config import RELATED_COS_THRESHOLD
+from .config import POSITION_RELATED_COS, RELATED_COS_THRESHOLD
+from .query_parser import canonical_city
 from .schemas import Expert, Language, ParsedQuery
 from .text import covered_terms
 
@@ -11,6 +12,7 @@ TEXTS = {
         "matched": "Совпала компетенция: {}",
         "related": "Близкая компетенция: {}",
         "position": "Совпала должность: {}",
+        "related_position": "Близкая должность: {}",
         "industry": "Отрасль: {}",
         "city": "Город: {}",
         "experience": "Опыт: {}",
@@ -25,6 +27,7 @@ TEXTS = {
         "matched": "Сәйкес құзыреттілік: {}",
         "related": "Жақын құзыреттілік: {}",
         "position": "Сәйкес лауазым: {}",
+        "related_position": "Жақын лауазым: {}",
         "industry": "Сала: {}",
         "city": "Қала: {}",
         "experience": "Тәжірибе: {}",
@@ -39,6 +42,7 @@ TEXTS = {
         "matched": "Matched skill: {}",
         "related": "Related skill: {}",
         "position": "Matched job title: {}",
+        "related_position": "Related job title: {}",
         "industry": "Industry: {}",
         "city": "City: {}",
         "experience": "Experience: {}",
@@ -69,6 +73,7 @@ def explain(
     query_vec: np.ndarray,
     competency_vecs: np.ndarray,
     lang: Language = "ru",
+    position_vec: np.ndarray | None = None,
 ) -> tuple[list[str], list[str], list[str]]:
     """Возвращает точные совпадения, смысловую близость и фактические причины."""
     texts = TEXTS[lang]
@@ -82,6 +87,8 @@ def explain(
     reasons.extend(texts["related"].format(item) for item in related)
     if not matched and covered_terms(parsed.terms, expert.position):
         reasons.append(texts["position"].format(expert.position))
+    elif not matched and position_vec is not None and float(position_vec @ query_vec) >= POSITION_RELATED_COS:
+        reasons.append(texts["related_position"].format(expert.position))
     reasons.extend(
         [
             texts["industry"].format(expert.industry),
@@ -97,7 +104,7 @@ def constraints(expert: Expert, parsed: ParsedQuery, lang: Language = "ru") -> l
     """Что мешает эксперту подойти: город, отрасль, опыт, доступность."""
     texts = TEXTS[lang]
     result = []
-    if parsed.city and parsed.city != expert.city:
+    if parsed.city and canonical_city(parsed.city) != canonical_city(expert.city):
         result.append(texts["other_city"].format(expert.city, parsed.city))
     if parsed.industry and parsed.industry != expert.industry:
         result.append(texts["other_industry"].format(expert.industry, parsed.industry))
