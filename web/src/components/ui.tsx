@@ -2,12 +2,13 @@ import type { ComponentPropsWithRef, InputHTMLAttributes, ReactNode, SelectHTMLA
 
 // Общие элементы интерфейса: скругление 8 px, фиолетовый для главного действия, тонкие рамки для остального.
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'positive'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'positive' | 'quiet'
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-brand text-white hover:bg-brand-hover active:translate-y-px',
+  primary: 'bg-action text-action-ink hover:bg-action-hover active:translate-y-px',
   secondary: 'border border-line-strong bg-surface text-ink hover:border-ink-3 hover:bg-sunken',
   ghost: 'text-brand-deep hover:bg-brand-tint',
+  quiet: 'text-ink-2 hover:bg-sunken hover:text-ink',
   positive: 'border border-brand bg-surface text-brand-deep hover:bg-brand-tint',
 }
 
@@ -74,7 +75,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 /** Белая панель рабочей области. */
 export function Panel({ className = '', children, ...rest }: ComponentPropsWithRef<'section'>) {
   return (
-    <section className={`rounded-xl border border-line bg-surface shadow-[var(--shadow-panel)] ${className}`} {...rest}>
+    <section className={`rounded-xl border border-line bg-surface ${className}`} {...rest}>
       {children}
     </section>
   )
@@ -99,12 +100,12 @@ interface SegmentedProps<T extends string> {
 /** Переключатель вида: родные радиокнопки, выглядят как сегменты. */
 export function Segmented<T extends string>({ label, value, options, onChange }: SegmentedProps<T>) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg bg-line/70 p-0.5">
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg border border-line bg-surface p-0.5">
       {options.map((option) => (
         <label
           key={option.value}
           className={`rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
-            value === option.value ? 'bg-surface text-ink shadow-[var(--shadow-panel)]' : 'text-ink-2 hover:text-ink'
+            value === option.value ? 'bg-night text-white' : 'text-ink-2 hover:text-ink'
           }`}
         >
           <input

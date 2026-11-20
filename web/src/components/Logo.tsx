@@ -1,11 +1,8 @@
-import { useId } from 'react'
-
 /**
- * Знак Sarap: на голубой плитке два круга по диагонали, запрос и эксперт (золотой); белая линза между ними это совпадение.
- * isDrawing: линза пульсирует, пока идёт поиск.
+ * Знак Sarap: коралловая плитка и буква S из двух полукругов с ровными концами,
+ * две половины, запрос и эксперт, состыкованные в одну линию. isDrawing: линия прорисовывается, пока идёт поиск.
  */
 export function SarapMark({ size = 32, isDrawing = false, label }: { size?: number; isDrawing?: boolean; label?: string }) {
-  const clip = useId()
   return (
     <svg
       width={size}
@@ -14,17 +11,17 @@ export function SarapMark({ size = 32, isDrawing = false, label }: { size?: numb
       role={label ? 'img' : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
-      className={`flex-none ${isDrawing ? 'mark-pulse' : ''}`}
+      className={`flex-none ${isDrawing ? 'mark-draw' : ''}`}
     >
-      <defs>
-        <clipPath id={clip}>
-          <circle cx="13" cy="13" r="7.5" />
-        </clipPath>
-      </defs>
-      <rect width="32" height="32" rx="9" fill="#1a6fe0" />
-      <circle cx="13" cy="13" r="7.5" fill="#ffffff" fillOpacity="0.35" />
-      <circle cx="19" cy="19" r="7.5" fill="#f2b33d" />
-      <circle className="mark-lens" cx="19" cy="19" r="7.5" fill="#ffffff" clipPath={`url(#${clip})`} />
+      <rect width="32" height="32" rx="8" fill="var(--color-action)" />
+      <path
+        d="M21.5 8.5H14.25a3.75 3.75 0 0 0 0 7.5h3.5a3.75 3.75 0 0 1 0 7.5H10.5"
+        fill="none"
+        stroke="var(--color-action-ink)"
+        strokeWidth="3.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -51,7 +48,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
     <div className="flex items-center gap-3 sm:gap-4">
       <div className="flex items-center gap-2.5">
         <SarapMark size={compact ? 28 : 32} label="Sarap" />
-        <span aria-hidden className="text-[19px] font-bold tracking-[-0.025em] text-white sm:text-[21px]">
+        <span aria-hidden className="text-[20px] font-semibold tracking-[-0.02em] text-white sm:text-[22px]">
           Sarap
         </span>
       </div>

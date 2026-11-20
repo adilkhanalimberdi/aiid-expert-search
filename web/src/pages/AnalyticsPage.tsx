@@ -28,7 +28,7 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
         {stats.error && <ErrorBox message={stats.error} />}
         {stats.data && (
           <>
-            <dl className="grid divide-y divide-line rounded-xl border border-line bg-surface shadow-[var(--shadow-panel)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <dl className="grid divide-y divide-line rounded-xl border border-line bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
               <Metric label={t.analytics.queries} value={String(stats.data.total_queries)} />
               <Metric label={t.analytics.avgTime} value={t.took(Math.round(stats.data.avg_took_ms))} />
               <Metric

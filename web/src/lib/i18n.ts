@@ -12,6 +12,7 @@ const en = {
     description: 'Describe a task in plain words and Sarap shows which expert fits and why. Works offline.',
   },
   nav: { skip: 'Skip to content', search: 'Search', data: 'Data', analytics: 'Analytics', sections: 'Sections', language: 'Language' },
+  syntheticTag: 'Demo data',
   synthetic: 'Synthetic data: no real personal information',
   footer: 'Expert matching for the AIID ecosystem. Works offline, with no external services.',
   status: { available: 'Available', partial: 'Partly available', busy: 'Busy' },
@@ -19,6 +20,8 @@ const en = {
   results: (n: number) => `${n} ${n === 1 ? 'result' : 'results'}`,
   took: (ms: number) => `${ms} ms`,
   search: {
+    newSearch: 'New search',
+    clear: 'Clear the query',
     how: [
       { title: 'Write the way you speak', body: 'Russian, Kazakh or English; typos, transliteration and a wrong keyboard layout are understood.' },
       { title: 'Check how the query was read', body: 'Skills, city, industry, experience and exclusions appear as tags above the results.' },
@@ -209,6 +212,7 @@ const ru: Dict = {
     description: 'Опишите задачу обычными словами, и Sarap покажет, какой эксперт подходит и почему. Работает офлайн.',
   },
   nav: { skip: 'Перейти к содержимому', search: 'Поиск', data: 'Данные', analytics: 'Аналитика', sections: 'Разделы', language: 'Язык' },
+  syntheticTag: 'Демо-данные',
   synthetic: 'Данные синтетические: реальных персональных данных нет',
   footer: 'Подбор экспертов для экосистемы AIID. Работает офлайн, без внешних сервисов.',
   status: { available: 'Свободен', partial: 'Частично свободен', busy: 'Занят' },
@@ -219,6 +223,8 @@ const ru: Dict = {
   },
   took: (ms) => `${ms} мс`,
   search: {
+    newSearch: 'Новый поиск',
+    clear: 'Очистить запрос',
     how: [
       { title: 'Пишите как говорите', body: 'По-русски, по-казахски или по-английски; опечатки, транслит и не та раскладка понятны.' },
       { title: 'Проверьте, как понят запрос', body: 'Навыки, город, отрасль, опыт и исключения видны метками над выдачей.' },
@@ -407,6 +413,7 @@ const kk: Dict = {
     description: 'Міндетті қарапайым сөзбен сипаттаңыз, Sarap қандай сарапшы сәйкес келетінін және неге екенін көрсетеді. Офлайн жұмыс істейді.',
   },
   nav: { skip: 'Мазмұнға өту', search: 'Іздеу', data: 'Деректер', analytics: 'Талдау', sections: 'Бөлімдер', language: 'Тіл' },
+  syntheticTag: 'Демо-деректер',
   synthetic: 'Деректер синтетикалық: нақты жеке деректер жоқ',
   footer: 'AIID экожүйесіне арналған сарапшыларды іріктеу. Офлайн, сыртқы сервистерсіз жұмыс істейді.',
   status: { available: 'Бос', partial: 'Ішінара бос', busy: 'Бос емес' },
@@ -414,6 +421,8 @@ const kk: Dict = {
   results: (n) => `${n} нәтиже`,
   took: (ms) => `${ms} мс`,
   search: {
+    newSearch: 'Жаңа іздеу',
+    clear: 'Сұранысты тазалау',
     how: [
       { title: 'Сөйлегендей жазыңыз', body: 'Орысша, қазақша немесе ағылшынша; қате, транслит және басқа пернетақта түсінікті.' },
       { title: 'Сұраныс қалай түсінілгенін тексеріңіз', body: 'Құзырет, қала, сала, тәжірибе және алып тасталғандар нәтиже үстінде белгі болып көрінеді.' },

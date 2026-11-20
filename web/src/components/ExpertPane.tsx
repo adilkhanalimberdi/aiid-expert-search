@@ -4,7 +4,9 @@ import { api, type ParsedQuery, type SearchResult } from '../lib/api'
 import { errorText } from '../lib/errors'
 import type { Dict } from '../lib/i18n'
 import { useI18n } from '../lib/useI18n'
+import { Avatar } from './Avatar'
 import { FeedbackButtons } from './FeedbackButtons'
+import { Icon } from './Icon'
 import { Score } from './Score'
 import { Status } from './Status'
 import { Button, Skeleton } from './ui'
@@ -53,14 +55,14 @@ export function ExpertPane({ expertId, result, label, query, showScore, parsed, 
         <div className={onClose ? 'sticky top-0 z-10 bg-surface' : ''}>
           {onClose && (
             <p className="flex items-center gap-2 bg-night px-4 py-1.5 text-xs text-night-text">
-              <span aria-hidden className="size-1.5 flex-none rounded-full bg-spark" />
-              {t.synthetic}
+              <span className="flex-none rounded-[4px] border border-action/60 px-1.5 py-px text-[11px] font-medium text-action-hover">{t.syntheticTag}</span>
+              <span className="min-w-0">{t.synthetic}</span>
             </p>
           )}
         <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
           {!isRoot ? (
             <Button variant="ghost" size="sm" onClick={() => setTrail((path) => path.slice(0, -1))}>
-              <span aria-hidden>←</span> {t.dialog.back}
+              <Icon name="arrow-left" size={16} /> {t.dialog.back}
             </Button>
           ) : (
             <span />
@@ -116,8 +118,14 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
 
   return (
     <article aria-labelledby={`expert-${expertId}`}>
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-5 border-b border-line px-5 pb-5 pt-5 sm:px-6">
-        <div className="min-w-0">
+      <header className="grid gap-x-5 gap-y-4 border-b border-line px-5 pb-5 pt-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:px-6">
+        <div className="flex min-w-0 gap-4">
+          {name && (
+            <span className="hidden sm:block">
+              <Avatar name={name} size="lg" />
+            </span>
+          )}
+          <div className="min-w-0">
           {name ? (
             <h2 id={`expert-${expertId}`} className="mt-0.5 text-[26px] font-bold leading-[1.12] tracking-[-0.03em] [overflow-wrap:anywhere] sm:text-[30px]">
               {name}
@@ -134,6 +142,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
           <p className="mt-3">
             <span className="inline-flex rounded-full bg-brand-tint px-2.5 py-1 text-xs font-semibold text-brand-deep">{label}</span>
           </p>
+          </div>
         </div>
         {showScore && match && query && <Score percent={match.match_percent} size="hero" />}
       </header>
@@ -315,7 +324,7 @@ function Reason({ reason, match, t }: { reason: string; match: SearchResult; t: 
 
 function Check({ title, items, empty, tone }: { title: string; items: string[]; empty: string; tone: 'ok' | 'miss' | 'note' }) {
   const mark = { ok: 'text-free', miss: 'text-danger', note: 'text-cond' }[tone]
-  const symbol = { ok: '✓', miss: '✕', note: '!' }[tone]
+  const symbol = ({ ok: 'check', miss: 'x', note: 'info' } as const)[tone]
   return (
     <div className="rounded-lg bg-sunken px-3.5 py-2.5">
       <dt className="font-bold text-ink">{title}</dt>
@@ -326,9 +335,7 @@ function Check({ title, items, empty, tone }: { title: string; items: string[]; 
           <ul className="space-y-0.5">
             {items.map((item) => (
               <li key={item} className="flex min-w-0 gap-1.5">
-                <span aria-hidden className={`font-bold ${mark}`}>
-                  {symbol}
-                </span>
+                <Icon name={symbol} size={16} strokeWidth={2.4} className={`mt-0.5 ${mark}`} />
                 <span className="break-words">{item}</span>
               </li>
             ))}

@@ -12,14 +12,24 @@ export function Score({ percent, size = 'row' }: { percent: number; size?: 'row'
   const { t } = useI18n()
   const strength = strengthOf(percent)
   if (size === 'hero') {
+    // шкала с отметками порогов 40 и 70: видно, почему цифра такого цвета
     return (
-      <div className="flex min-w-[116px] flex-col items-end">
-        <p className={`tnum text-[44px] font-semibold leading-none tracking-[-0.035em] ${TEXT[strength]}`} aria-label={t.card.matchAria(percent)}>
-          {percent}
-          <span className="ml-0.5 text-xl font-medium">%</span>
+      <div className="flex w-[148px] flex-col">
+        <p className="flex items-baseline justify-end gap-1.5" aria-label={t.card.matchAria(percent)}>
+          <span className={`tnum text-[44px] font-semibold leading-none tracking-[-0.03em] ${TEXT[strength]}`}>{percent}</span>
+          <span className={`text-lg font-medium ${TEXT[strength]}`}>%</span>
         </p>
-        <Meter percent={percent} strength={strength} className="mt-2.5 w-full" />
-        <p className="mt-1.5 whitespace-nowrap text-right text-xs font-medium text-ink-2">{t.card.strength[strength]}</p>
+        <div aria-hidden className="relative mt-3">
+          <Meter percent={percent} strength={strength} className="w-full" />
+          {[40, 70].map((mark) => (
+            <span key={mark} className="absolute top-[-3px] h-3 w-px bg-ink-3/60" style={{ left: `${mark}%` }} />
+          ))}
+          <span className="tnum mt-1.5 flex text-[10px] text-ink-3">
+            <span className="absolute left-[40%] -translate-x-1/2">40</span>
+            <span className="absolute left-[70%] -translate-x-1/2">70</span>
+          </span>
+        </div>
+        <p className="mt-5 whitespace-nowrap text-right text-xs font-medium text-ink-2">{t.card.strength[strength]}</p>
       </div>
     )
   }

@@ -107,10 +107,10 @@ export function Shell({ tab, onTab, children }: ShellProps) {
         <nav aria-label={t.nav.sections} className="border-t border-night-line md:hidden">
           <ul className="grid h-12 grid-cols-3">{tabs('h-full')}</ul>
         </nav>
-        <p className="border-t border-night-line bg-night-2/60 text-night-text">
-          <span className={`${CONTAINER} flex items-center gap-2 py-1.5 text-xs`}>
-            <span aria-hidden className="size-1.5 flex-none rounded-full bg-spark" />
-            {t.synthetic}
+        <p className="border-t border-night-line bg-night-2 text-night-text">
+          <span className={`${CONTAINER} flex items-center gap-2.5 py-1.5 text-xs`}>
+            <span className="flex-none rounded-[4px] border border-action/60 px-1.5 py-px text-[11px] font-medium text-action-hover">{t.syntheticTag}</span>
+            <span className="min-w-0">{t.synthetic}</span>
           </span>
         </p>
       </header>

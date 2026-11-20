@@ -2,6 +2,7 @@ import { useAsync } from '../hooks/useAsync'
 import { api } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
 import { ErrorBox } from './ErrorBox'
+import { Icon } from './Icon'
 import { Status } from './Status'
 import { Panel, Skeleton } from './ui'
 
@@ -80,10 +81,10 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
                                 role="img"
                                 aria-label={`${term}: ${covers ? t.team.covers : t.team.notCovers}`}
                                 className={`inline-grid size-7 place-items-center rounded-full text-sm font-bold ${
-                                  covers ? 'bg-brand-tint text-brand-deep' : 'text-ink-3'
+                                  covers ? 'bg-brand text-white' : 'bg-sunken text-ink-3'
                                 }`}
                               >
-                                {covers ? '✓' : '–'}
+                                <Icon name={covers ? 'check' : 'x'} size={14} strokeWidth={covers ? 2.6 : 2} />
                               </span>
                             </td>
                           )

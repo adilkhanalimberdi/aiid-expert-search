@@ -3,6 +3,7 @@ import { useAsync } from '../hooks/useAsync'
 import { api } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
 import { ErrorBox } from './ErrorBox'
+import { Icon } from './Icon'
 import { Status } from './Status'
 import { Button, PanelTitle, Panel, Skeleton } from './ui'
 
@@ -77,10 +78,10 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
           </div>
           <div className="flex justify-end gap-2 border-t border-line px-5 py-3 sm:px-6">
             <Button size="sm" disabled={offset === 0} onClick={() => setOffsetState({ key: reloadKey, offset: Math.max(0, offset - PAGE_SIZE) })}>
-              ← {t.data.previous}
+              <Icon name="arrow-left" size={16} /> {t.data.previous}
             </Button>
             <Button size="sm" disabled={offset + PAGE_SIZE >= total} onClick={() => setOffsetState({ key: reloadKey, offset: offset + PAGE_SIZE })}>
-              {t.data.next} →
+              {t.data.next} <Icon name="arrow-right" size={16} />
             </Button>
           </div>
         </>

@@ -5,6 +5,7 @@ import { Formula } from '../components/Formula'
 import { SarapMark } from '../components/Logo'
 import { Readback } from '../components/Readback'
 import { ResultList, ResultListSkeleton } from '../components/ResultList'
+import { Icon, type IconName } from '../components/Icon'
 import { CONTAINER } from '../components/Shell'
 import { TeamView } from '../components/TeamView'
 import { Button, Checkbox, Panel, Segmented, Select } from '../components/ui'
@@ -34,7 +35,7 @@ export function SearchPage() {
   const [emptyHint, setEmptyHint] = useState(false)
   const industries = useAsync(() => api.industries(), [])
   const catalog = useAsync(() => api.health(), [])
-  const { state, run } = useSearch()
+  const { state, run, reset } = useSearch()
   const { recent, remember } = useRecentQueries()
   const previousLang = useRef(lang)
   const input = useRef<HTMLTextAreaElement>(null)
@@ -75,6 +76,15 @@ export function SearchPage() {
 
   const isIdle = state.status === 'idle'
 
+  // «Новый поиск»: пустое поле, стартовый экран и фокус в поле; фильтры остаются, их видно в карточке запроса
+  function startOver() {
+    setQuery('')
+    setSubmitted(null)
+    setEmptyHint(false)
+    reset()
+    input.current?.focus()
+  }
+
   return (
     <div className={CONTAINER}>
       {/* крупный заголовок только до первого поиска: потом место отдаётся выдаче */}
@@ -99,15 +109,12 @@ export function SearchPage() {
       ) : (
         <h1 className="sr-only">{t.search.h1}</h1>
       )}
-      <form onSubmit={submit} role="search" aria-label={t.search.queryLabel} className={`${isIdle ? '' : 'mt-6'} rounded-2xl border border-line bg-surface shadow-[var(--shadow-panel)] focus-within:border-brand-soft focus-within:shadow-[0_0_0_4px_var(--color-brand-tint)]`}>
+      <form onSubmit={submit} role="search" aria-label={t.search.queryLabel} className={`${isIdle ? '' : 'mt-6'} rounded-2xl border border-line bg-surface focus-within:border-brand-soft focus-within:shadow-[0_0_0_4px_var(--color-brand-tint)]`}>
         <div className="flex items-end gap-2 p-2 pl-4 sm:pl-5">
           <label htmlFor="query" className="sr-only">
             {t.search.queryLabel}
           </label>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden className="mb-[15px] hidden flex-none text-ink-3 sm:block">
-            <circle cx="11" cy="11" r="6.5" />
-            <path d="M16 16l4.5 4.5" />
-          </svg>
+          <Icon name="search" size={20} className="mb-[15px] hidden text-ink-3 sm:block" />
           {/* поле растёт по тексту; Enter ищет, Shift+Enter переносит строку */}
           <textarea
             ref={input}
@@ -126,11 +133,23 @@ export function SearchPage() {
             aria-describedby="query-hint"
             className="min-h-12 flex-1 resize-none self-center bg-transparent py-3 text-[17px] leading-snug text-ink outline-none [field-sizing:content] placeholder:text-ink-3 sm:text-lg"
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('')
+                input.current?.focus()
+              }}
+              aria-label={t.search.clear}
+              title={t.search.clear}
+              className="mb-1.5 grid size-9 flex-none place-items-center rounded-lg text-ink-3 hover:bg-sunken hover:text-ink"
+            >
+              <Icon name="x" size={18} />
+            </button>
+          )}
           <Button type="submit" variant="primary" size="lg" className="flex-none !rounded-xl">
             <span className="hidden sm:inline">{t.search.submit}</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
+            <Icon name="arrow-right" strokeWidth={2.4} />
             <span className="sr-only sm:hidden">{t.search.submit}</span>
           </Button>
         </div>
@@ -174,18 +193,21 @@ export function SearchPage() {
         {state.status === 'error' && <ErrorBox message={state.message} onRetry={submitted ? () => start(submitted) : undefined} />}
 
         {state.status === 'done' && submitted && (
-          <Results key={`${submitted.query}|${submitted.industry}|${submitted.hideBusy}`} data={state.data} submitted={submitted} />
+          <Results key={`${submitted.query}|${submitted.industry}|${submitted.hideBusy}`} data={state.data} submitted={submitted} onReset={startOver} />
         )}
       </div>
     </div>
   )
 }
 
-const HOW_ICONS: ReactNode[] = [
-  <path key="a" d="M4 6h16M4 12h10M4 18h7" />,
-  <path key="b" d="M3 12s3.5-6.5 9-6.5S21 12 21 12s-3.5 6.5-9 6.5S3 12 3 12zM12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />,
-  <path key="c" d="M5 12.5l4.5 4.5L19 7.5" />,
-]
+const HOW_ICONS: IconName[] = ['skill', 'search', 'check']
+
+/** Язык примера по буквам: казахские буквы, кириллица или латиница. Показывает, что поиск понимает все три. */
+function languageOf(text: string): string {
+  if (/[әғқңөұүһі]/i.test(text)) return 'KK'
+  if (/[а-яё]/i.test(text)) return 'RU'
+  return 'EN'
+}
 
 /** Пустое состояние: примеры запросов сеткой и три коротких пункта о том, как работает поиск. */
 function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string) => void }) {
@@ -202,12 +224,13 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
               <button
                 type="button"
                 onClick={() => onPick(example)}
-                className="group flex items-center gap-3 rounded-xl border border-line bg-surface py-2.5 pl-4 pr-2.5 text-left shadow-[var(--shadow-panel)] transition-[border-color,transform] hover:-translate-y-px hover:border-brand-soft"
+                className="group flex items-center gap-3 rounded-xl border border-line bg-surface py-2.5 pl-2.5 pr-3 text-left transition-colors hover:border-night hover:bg-night hover:text-white"
               >
-                <span className="text-[15px] font-medium text-ink">{example}</span>
-                <span aria-hidden className="grid size-8 flex-none place-items-center rounded-full bg-sunken text-ink-3 transition-colors group-hover:bg-brand group-hover:text-white">
-                  →
+                <span className="grid h-7 min-w-9 flex-none place-items-center rounded-md bg-sunken px-1.5 text-[11px] font-semibold text-ink-2 group-hover:bg-night-2 group-hover:text-action">
+                  {languageOf(example)}
                 </span>
+                <span className="text-[15px] font-medium">{example}</span>
+                <Icon name="arrow-right" size={16} className="text-ink-3 transition-transform group-hover:translate-x-0.5 group-hover:text-action" />
               </button>
             </li>
           ))}
@@ -232,9 +255,9 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
       <ul className="grid gap-x-8 gap-y-4 border-t border-line pt-6 md:grid-cols-3">
         {t.search.how.map((item, index) => (
           <li key={item.title} className="flex gap-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="mt-0.5 flex-none text-brand">
-              {HOW_ICONS[index]}
-            </svg>
+            <span className="grid size-9 flex-none place-items-center rounded-lg bg-night text-action">
+              <Icon name={HOW_ICONS[index]} size={18} />
+            </span>
             <span className="min-w-0">
               <span className="block text-[15px] font-semibold text-ink">{item.title}</span>
               <span className="mt-1 block text-sm leading-relaxed text-ink-2">{item.body}</span>
@@ -248,7 +271,7 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
   )
 }
 
-function Results({ data, submitted }: { data: SearchResponse; submitted: SubmittedSearch }) {
+function Results({ data, submitted, onReset }: { data: SearchResponse; submitted: SubmittedSearch; onReset: () => void }) {
   const { t } = useI18n()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [view, setView] = useState<View>('candidates')
@@ -290,7 +313,12 @@ function Results({ data, submitted }: { data: SearchResponse; submitted: Submitt
   return (
     <div className="fade-in">
       <div className="mb-3">
-        <Readback parsed={data.parsed} count={results.length} tookMs={data.took_ms} />
+        <Readback parsed={data.parsed} count={results.length} tookMs={data.took_ms}>
+          <Button variant="quiet" size="sm" onClick={onReset}>
+            <Icon name="reset" size={16} />
+            {t.search.newSearch}
+          </Button>
+        </Readback>
       </div>
 
       {data.weak_match && (
