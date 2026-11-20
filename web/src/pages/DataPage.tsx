@@ -2,7 +2,7 @@ import { useRef, useState, type DragEvent } from 'react'
 import { CatalogTable } from '../components/CatalogTable'
 import { ErrorBox } from '../components/ErrorBox'
 import { CONTAINER, PageHeader } from '../components/Shell'
-import { Button, Eyebrow, Panel, Skeleton } from '../components/ui'
+import { Button, PanelTitle, Panel, Skeleton } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
 import { api, type UploadResponse } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
@@ -47,7 +47,7 @@ export function DataPage() {
       <div className="space-y-6 pb-6">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
           <Panel className="p-5 sm:p-6" aria-labelledby="current-title">
-            <Eyebrow id="current-title">{t.data.current}</Eyebrow>
+            <PanelTitle id="current-title">{t.data.current}</PanelTitle>
             {health.isLoading && <Skeleton className="mt-4 h-28 w-full" />}
             {health.error && (
               <div className="mt-4">
@@ -59,11 +59,11 @@ export function DataPage() {
                 <dl className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-lg bg-sunken p-4">
                     <dd className="tnum text-[40px] font-bold leading-none tracking-[-0.04em] text-brand-deep">{health.data.experts}</dd>
-                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.data.experts}</dt>
+                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.expertsWord(health.data.experts)}</dt>
                   </div>
                   <div className="rounded-lg bg-sunken p-4">
                     <dd className="tnum text-[40px] font-bold leading-none tracking-[-0.04em] text-ink">{industries.data?.length ?? '—'}</dd>
-                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.data.industries}</dt>
+                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.industriesWord(industries.data?.length ?? 0)}</dt>
                   </div>
                 </dl>
                 {industries.data && (
@@ -122,7 +122,7 @@ export function DataPage() {
 
         {report && (
           <Panel role="status" className="p-5 sm:p-6" aria-labelledby="report-title">
-            <Eyebrow id="report-title">{t.data.result}</Eyebrow>
+            <PanelTitle id="report-title">{t.data.result}</PanelTitle>
             <p className="tnum mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[15px]">
               <span>
                 {t.data.loaded}: <strong className="text-lg font-bold text-free">{report.loaded}</strong>
@@ -144,16 +144,16 @@ export function DataPage() {
         <CatalogTable reloadKey={reloadKey} />
 
         <Panel className="p-5 sm:p-6" aria-labelledby="format-title">
-          <Eyebrow id="format-title">{t.data.formatTitle}</Eyebrow>
+          <PanelTitle id="format-title">{t.data.formatTitle}</PanelTitle>
           <ul className="mt-3 flex flex-wrap gap-1.5">
             {REQUIRED_COLUMNS.map((column) => (
-              <li key={column} className="rounded-md bg-night px-2.5 py-1 font-mono text-[13px] text-white">
+              <li key={column} className="rounded-md border border-line bg-sunken px-2.5 py-1 font-mono text-[13px] text-ink">
                 {column}
               </li>
             ))}
           </ul>
           <p className="mt-3 max-w-[80ch] text-[15px] leading-relaxed text-ink-2">
-            {t.data.formatBody(REQUIRED_COLUMNS.map((column) => `“${column}”`).join(', '))}
+            {t.data.formatBody(REQUIRED_COLUMNS.join(', '))}
           </p>
         </Panel>
       </div>

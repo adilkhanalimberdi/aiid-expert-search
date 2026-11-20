@@ -4,7 +4,7 @@ import { api } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
 import { ErrorBox } from './ErrorBox'
 import { Status } from './Status'
-import { Button, Eyebrow, Panel, Skeleton } from './ui'
+import { Button, PanelTitle, Panel, Skeleton } from './ui'
 
 const PAGE_SIZE = 10
 
@@ -20,7 +20,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
   return (
     <Panel aria-labelledby="catalog-title" className="overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3 pt-5 sm:px-6">
-        <Eyebrow id="catalog-title">{t.data.catalog}</Eyebrow>
+        <PanelTitle id="catalog-title">{t.data.catalog}</PanelTitle>
         {page.data && <span className="tnum text-sm text-ink-3">{t.data.range(offset + 1, Math.min(offset + PAGE_SIZE, total), total)}</span>}
       </div>
       {page.error && (
@@ -50,9 +50,9 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
           <div className="hidden overflow-x-auto sm:block">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
-                <tr className="border-y border-line bg-sunken text-xs uppercase tracking-[0.06em] text-ink-3">
+                <tr className="border-y border-line bg-sunken text-[13px] text-ink-3">
                   {[c.id, c.name, c.position, c.industry, c.city, c.experience, c.status].map((label) => (
-                    <th key={label} scope="col" className="px-3 py-2.5 font-bold first:pl-6 last:pr-6">
+                    <th key={label} scope="col" className="px-3 py-2.5 font-medium first:pl-6 last:pr-6">
                       {label}
                     </th>
                   ))}

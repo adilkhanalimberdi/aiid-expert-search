@@ -20,10 +20,11 @@ const RECOMMENDED = 3
 export function ResultList({ results, selectedId, onSelect, isWeak, showScore }: ResultListProps) {
   const { t } = useI18n()
   const groups = isWeak
-    ? [{ title: t.card.closest, items: results, offset: 0 }]
+    ? [{ title: t.card.closest, items: [...results].sort((a, b) => b.match_percent - a.match_percent), offset: 0 }]
     : [
         { title: t.card.recommended, items: results.slice(0, RECOMMENDED), offset: 0 },
-        { title: t.card.more, items: results.slice(RECOMMENDED), offset: RECOMMENDED },
+        // остальные по проценту: состав и порядок топ-3 решает движок, ниже числа не должны скакать
+        { title: t.card.more, items: showScore ? [...results.slice(RECOMMENDED)].sort((a, b) => b.match_percent - a.match_percent) : results.slice(RECOMMENDED), offset: RECOMMENDED },
       ].filter((group) => group.items.length > 0)
 
   return (
@@ -31,8 +32,11 @@ export function ResultList({ results, selectedId, onSelect, isWeak, showScore }:
       {groups.map((group, groupIndex) => (
         <div key={group.title}>
           <div className={`flex items-center justify-between px-4 pb-2 pt-3.5 sm:px-5 ${groupIndex > 0 ? 'border-t border-line' : ''}`}>
-            <h2 className="text-xs font-bold uppercase tracking-[0.08em] text-ink-3">{group.title}</h2>
-            {groupIndex === 0 && showScore && <span className="text-xs font-bold uppercase tracking-[0.08em] text-ink-3">{t.card.match}</span>}
+            <h2 className="flex items-baseline gap-2 text-sm font-semibold text-ink">
+              {group.title}
+              <span className="tnum font-medium text-ink-3">{group.items.length}</span>
+            </h2>
+            {groupIndex === 0 && showScore && <span className="text-[13px] text-ink-3">{t.card.match}</span>}
           </div>
           <ol start={group.offset + 1}>
             {group.items.map((expert) => (
@@ -55,7 +59,7 @@ function Row({ expert, isSelected, onSelect, showScore }: { expert: SearchResult
       onClick={() => onSelect(expert.id)}
       aria-current={isSelected ? 'true' : undefined}
       className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] px-4 py-3.5 text-left transition-colors sm:px-5 ${
-        isSelected ? 'bg-brand-tint/60 shadow-[inset_3px_0_0_var(--color-brand)]' : 'hover:bg-sunken'
+        isSelected ? 'bg-brand-tint/70' : 'hover:bg-sunken'
       } ${expert.availability === 'busy' ? 'text-ink-2' : ''}`}
     >
       {showScore ? (

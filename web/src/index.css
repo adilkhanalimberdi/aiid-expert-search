@@ -47,7 +47,7 @@
   --color-danger: #c0362c;
   --color-danger-tint: #fdeceb;
 
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Onest', system-ui, sans-serif;
 
   --shadow-panel: 0 1px 2px rgb(15 23 42 / 0.04), 0 2px 8px -2px rgb(15 23 42 / 0.05);
   --shadow-raised: 0 12px 32px -12px rgb(15 23 42 / 0.22);
@@ -57,9 +57,9 @@ html {
   background: var(--color-ground);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-feature-settings: 'cv11', 'ss03';
   -webkit-font-smoothing: antialiased;
   scrollbar-gutter: stable;
+  scrollbar-color: var(--color-line-strong) transparent;
 }
 
 body {
@@ -93,8 +93,9 @@ textarea {
   }
 }
 
+/* У Onest табличная единица широкая («1 50», «E00 1»): цифры везде пропорциональные, столбцы выравниваются по краю */
 .tnum {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums;
 }
 
 /* Чекбокс системы: квадрат со скруглением 4 px, галочка рисуется фоном */

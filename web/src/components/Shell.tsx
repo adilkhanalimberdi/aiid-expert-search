@@ -72,7 +72,7 @@ export function Shell({ tab, onTab, children }: ShellProps) {
           type="button"
           onClick={() => onTab(id)}
           aria-current={tab === id ? 'page' : undefined}
-          className={`relative flex h-full w-full items-center justify-center gap-2 px-3.5 text-[15px] font-semibold transition-colors ${
+          className={`relative flex h-full w-full items-center justify-center gap-2 px-2 text-[15px] font-medium transition-colors md:px-4 ${
             tab === id ? 'text-white' : 'text-night-dim hover:text-white'
           }`}
         >
@@ -80,7 +80,7 @@ export function Shell({ tab, onTab, children }: ShellProps) {
             <NavIcon tab={id} />
           </span>
           {t.nav[id]}
-          {tab === id && <span aria-hidden className="absolute inset-x-3 bottom-0 h-[3px] rounded-t-full bg-spark" />}
+          {tab === id && <span aria-hidden className="absolute inset-x-4 bottom-0 h-0.5 rounded-t-full bg-spark" />}
         </button>
       </li>
     ))
@@ -107,12 +107,9 @@ export function Shell({ tab, onTab, children }: ShellProps) {
         <nav aria-label={t.nav.sections} className="border-t border-night-line md:hidden">
           <ul className="grid h-12 grid-cols-3">{tabs('h-full')}</ul>
         </nav>
-        <p className="border-t border-spark/30 bg-spark-tint text-spark-text">
-          <span className={`${CONTAINER} flex items-center gap-2 py-1.5 text-xs font-medium`}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className="flex-none">
-              <circle cx="12" cy="12" r="9.5" />
-              <path d="M12 11v5.5M12 7.5v.01" />
-            </svg>
+        <p className="border-t border-night-line bg-night-2/60 text-night-text">
+          <span className={`${CONTAINER} flex items-center gap-2 py-1.5 text-xs`}>
+            <span aria-hidden className="size-1.5 flex-none rounded-full bg-spark" />
             {t.synthetic}
           </span>
         </p>
@@ -134,7 +131,7 @@ export function PageHeader({ title, subtitle, children }: { title: string; subti
   return (
     <header className="flex flex-wrap items-end justify-between gap-4 pb-6 pt-8 lg:pt-10">
       <div className="min-w-0">
-        <h1 className="text-[28px] font-bold leading-tight tracking-[-0.025em] sm:text-[32px]">{title}</h1>
+        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.025em] sm:text-[32px]">{title}</h1>
         {subtitle && <p className="mt-1.5 text-[15px] text-ink-2">{subtitle}</p>}
       </div>
       {children}

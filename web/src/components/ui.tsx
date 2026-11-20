@@ -80,12 +80,12 @@ export function Panel({ className = '', children, ...rest }: ComponentPropsWithR
   )
 }
 
-/** Подпись группы: маленькие прописные. */
-export function Eyebrow({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
+/** Заголовок панели: обычный регистр, вес вместо прописных. */
+export function PanelTitle({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
   return (
-    <p id={id} className={`text-xs font-bold uppercase tracking-[0.08em] text-ink-3 ${className}`}>
+    <h2 id={id} className={`text-base font-semibold tracking-[-0.01em] text-ink ${className}`}>
       {children}
-    </p>
+    </h2>
   )
 }
 
@@ -103,7 +103,7 @@ export function Segmented<T extends string>({ label, value, options, onChange }:
       {options.map((option) => (
         <label
           key={option.value}
-          className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
+          className={`rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
             value === option.value ? 'bg-surface text-ink shadow-[var(--shadow-panel)]' : 'text-ink-2 hover:text-ink'
           }`}
         >

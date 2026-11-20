@@ -1,6 +1,6 @@
 import { ErrorBox } from '../components/ErrorBox'
 import { CONTAINER, PageHeader } from '../components/Shell'
-import { Eyebrow, Panel, Skeleton } from '../components/ui'
+import { PanelTitle, Panel, Skeleton } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
 import { api, type EvalRun } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
@@ -28,8 +28,8 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
         {stats.error && <ErrorBox message={stats.error} />}
         {stats.data && (
           <>
-            <dl className="grid gap-4 sm:grid-cols-3">
-              <Metric label={t.analytics.queries} value={String(stats.data.total_queries)} accent />
+            <dl className="grid divide-y divide-line rounded-xl border border-line bg-surface shadow-[var(--shadow-panel)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <Metric label={t.analytics.queries} value={String(stats.data.total_queries)} />
               <Metric label={t.analytics.avgTime} value={t.took(Math.round(stats.data.avg_took_ms))} />
               <Metric
                 label={t.analytics.fitRate}
@@ -51,7 +51,7 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
             </div>
 
             <Panel className="p-5 sm:p-6" aria-labelledby="eval-title">
-              <Eyebrow id="eval-title">{t.analytics.accuracy}</Eyebrow>
+              <PanelTitle id="eval-title">{t.analytics.accuracy}</PanelTitle>
               <p className="mt-1.5 text-sm text-ink-2">{t.analytics.evalHint}</p>
               {stats.data.evaluations.length === 0 ? <p className="mt-4 text-ink-2">{t.analytics.noEval}</p> : <EvalTable runs={stats.data.evaluations} />}
             </Panel>
@@ -62,13 +62,15 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
   )
 }
 
-function Metric({ label, value, note, accent = false }: { label: string; value: string; note?: string; accent?: boolean }) {
+function Metric({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <Panel className={`p-5 sm:p-6 ${accent ? '!border-night !bg-night text-white' : ''}`}>
-      <dd className={`tnum text-[44px] font-bold leading-none tracking-[-0.045em] ${accent ? 'text-white' : 'text-ink'}`}>{value}</dd>
-      <dt className={`mt-3 text-sm font-semibold ${accent ? 'text-night-text' : 'text-ink-2'}`}>{label}</dt>
-      {note && <p className="mt-0.5 text-sm text-ink-3">{note}</p>}
-    </Panel>
+    <div className="flex flex-col-reverse justify-end gap-1.5 p-5 sm:p-6">
+      <dt className="text-sm text-ink-2">
+        {label}
+        {note && <span className="block text-ink-3">{note}</span>}
+      </dt>
+      <dd className="tnum text-[34px] font-semibold leading-none tracking-[-0.03em] text-ink">{value}</dd>
+    </div>
   )
 }
 
@@ -76,7 +78,7 @@ function Bars({ id, title, hint, items, empty, tone }: { id: string; title: stri
   const max = Math.max(1, ...items.map((item) => item.count))
   return (
     <Panel className="p-5 sm:p-6" aria-labelledby={id}>
-      <Eyebrow id={id}>{title}</Eyebrow>
+      <PanelTitle id={id}>{title}</PanelTitle>
       {hint && <p className="mt-1.5 text-sm text-ink-2">{hint}</p>}
       {items.length === 0 && <p className="mt-4 text-ink-2">{empty}</p>}
       <ol className="mt-3">
@@ -111,18 +113,18 @@ function EvalTable({ runs }: { runs: EvalRun[] }) {
   const find = (dataset: string, mode: string) => runs.find((run) => run.dataset === dataset && run.mode === mode)
   return (
     <div className="mt-4 overflow-x-auto">
-      <table className="w-full min-w-[560px] text-left text-[15px]">
+      <table className="w-full text-left text-[15px] sm:min-w-[560px]">
         <thead>
-          <tr className="border-b border-line-strong text-xs uppercase tracking-[0.06em] text-ink-3">
-            <th scope="col" className="py-2.5 pr-3 font-bold">
+          <tr className="border-b border-line-strong text-[13px] text-ink-3">
+            <th scope="col" className="py-2.5 pr-3 font-medium">
               {t.analytics.dataset}
             </th>
             {MODES.map((mode) => (
-              <th key={mode} scope="col" className={`px-3 py-2.5 font-bold ${mode === 'hybrid' ? 'text-brand-deep' : ''}`}>
+              <th key={mode} scope="col" className={`${mode === 'hybrid' ? '' : 'hidden sm:table-cell'} px-3 py-2.5 font-medium ${mode === 'hybrid' ? 'text-brand-deep' : ''}`}>
                 {t.analytics.modes[mode]}
               </th>
             ))}
-            <th scope="col" className="px-3 py-2.5 text-right font-bold">
+            <th scope="col" className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">
               {t.analytics.p95}
             </th>
           </tr>
@@ -139,7 +141,7 @@ function EvalTable({ runs }: { runs: EvalRun[] }) {
                   const run = find(dataset, mode)
                   const share = run ? run.hits / run.total : 0
                   return (
-                    <td key={mode} className="px-3 py-3.5">
+                    <td key={mode} className={`${mode === 'hybrid' ? '' : 'hidden sm:table-cell'} px-3 py-3.5`}>
                       {run ? (
                         <span className="flex items-center gap-2.5">
                           <span className={`tnum ${mode === 'hybrid' ? 'text-lg font-bold text-brand-deep' : 'text-ink-2'}`}>
@@ -155,7 +157,7 @@ function EvalTable({ runs }: { runs: EvalRun[] }) {
                     </td>
                   )
                 })}
-                <td className="tnum px-3 py-3.5 text-right text-ink-2">{hybrid ? Math.round(hybrid.p95_ms) : '—'}</td>
+                <td className="tnum hidden px-3 py-3.5 text-right text-ink-2 sm:table-cell">{hybrid ? Math.round(hybrid.p95_ms) : '—'}</td>
               </tr>
             )
           })}

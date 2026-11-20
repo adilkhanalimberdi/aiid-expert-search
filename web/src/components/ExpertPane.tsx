@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAsync } from '../hooks/useAsync'
-import { api, type SearchResult } from '../lib/api'
+import { api, type ParsedQuery, type SearchResult } from '../lib/api'
 import { errorText } from '../lib/errors'
 import type { Dict } from '../lib/i18n'
 import { useI18n } from '../lib/useI18n'
 import { FeedbackButtons } from './FeedbackButtons'
 import { Score } from './Score'
 import { Status } from './Status'
-import { Button, Eyebrow, Skeleton } from './ui'
+import { Button, Skeleton } from './ui'
 
 interface ExpertPaneProps {
   /** эксперт из выдачи, с которого начинается цепочка */
@@ -19,6 +19,10 @@ interface ExpertPaneProps {
   query: string
   /** запрос без темы: процента нет */
   showScore: boolean
+  /** разбор запроса: по нему причины про город, отрасль и опыт показываются, только если о них спрашивали */
+  parsed?: ParsedQuery
+  /** слабое совпадение: это не доводы, а то, что совпало с профилем */
+  isWeak?: boolean
   /** на телефоне панель открыта поверх списка и закрывается */
   onClose?: () => void
 }
@@ -27,7 +31,7 @@ interface ExpertPaneProps {
  * Профиль эксперта в правой панели (на телефоне поверх списка): почему подходит, сверка с запросом
  * («Почему не он?»), компетенции, отзыв и похожие эксперты. Переход к похожему идёт по цепочке с «Назад».
  */
-export function ExpertPane({ expertId, result, label, query, showScore, onClose }: ExpertPaneProps) {
+export function ExpertPane({ expertId, result, label, query, showScore, parsed, isWeak = false, onClose }: ExpertPaneProps) {
   const { t } = useI18n()
   const [trail, setTrail] = useState([expertId])
   const currentId = trail[trail.length - 1]
@@ -45,6 +49,14 @@ export function ExpertPane({ expertId, result, label, query, showScore, onClose 
   return (
     <div ref={top} className="scroll-mt-40">
       {(onClose || !isRoot) && (
+        // на телефоне полоса прилипает к верху окна и несёт плашку о данных: окно закрывает шапку
+        <div className={onClose ? 'sticky top-0 z-10 bg-surface' : ''}>
+          {onClose && (
+            <p className="flex items-center gap-2 bg-night px-4 py-1.5 text-xs text-night-text">
+              <span aria-hidden className="size-1.5 flex-none rounded-full bg-spark" />
+              {t.synthetic}
+            </p>
+          )}
         <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
           {!isRoot ? (
             <Button variant="ghost" size="sm" onClick={() => setTrail((path) => path.slice(0, -1))}>
@@ -59,6 +71,7 @@ export function ExpertPane({ expertId, result, label, query, showScore, onClose 
             </Button>
           )}
         </div>
+        </div>
       )}
       <Profile
         key={`${currentId}-${query}`}
@@ -67,6 +80,8 @@ export function ExpertPane({ expertId, result, label, query, showScore, onClose 
         label={isRoot ? label : t.card.similarProfile}
         query={query}
         showScore={showScore}
+        parsed={parsed}
+        isWeak={isRoot && isWeak}
         onOpen={(id) => setTrail((path) => [...path, id])}
       />
     </div>
@@ -79,10 +94,12 @@ interface ProfileProps {
   label: string
   query: string
   showScore: boolean
+  parsed?: ParsedQuery
+  isWeak: boolean
   onOpen: (id: string) => void
 }
 
-function Profile({ expertId, result, label, query, showScore, onOpen }: ProfileProps) {
+function Profile({ expertId, result, label, query, showScore, parsed, isWeak, onOpen }: ProfileProps) {
   const { t, lang } = useI18n()
   const expert = useAsync(() => api.expert(expertId), [expertId])
   const explanation = useAsync(query ? () => api.explain(expertId, query) : null, [expertId, query, lang])
@@ -90,6 +107,8 @@ function Profile({ expertId, result, label, query, showScore, onOpen }: ProfileP
   // у профиля из цепочки строки выдачи нет: процент и причины берём из сверки с запросом
   const match = result ?? explanation.data?.expert
   const profile = expert.data
+  const reading = parsed ?? explanation.data?.parsed
+  const reasons = match ? match.reasons.filter((reason) => isAsked(reasonSource(reason, match, t), reading, t)) : []
 
   const name = profile?.full_name ?? match?.full_name
   const position = profile?.position ?? match?.position
@@ -99,9 +118,8 @@ function Profile({ expertId, result, label, query, showScore, onOpen }: ProfileP
     <article aria-labelledby={`expert-${expertId}`}>
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-5 border-b border-line px-5 pb-5 pt-5 sm:px-6">
         <div className="min-w-0">
-          <Eyebrow className="!text-brand-deep">{label}</Eyebrow>
           {name ? (
-            <h2 id={`expert-${expertId}`} className="mt-1.5 text-[26px] font-bold leading-[1.12] tracking-[-0.03em] [overflow-wrap:anywhere] sm:text-[30px]">
+            <h2 id={`expert-${expertId}`} className="mt-0.5 text-[26px] font-bold leading-[1.12] tracking-[-0.03em] [overflow-wrap:anywhere] sm:text-[30px]">
               {name}
             </h2>
           ) : (
@@ -113,6 +131,9 @@ function Profile({ expertId, result, label, query, showScore, onOpen }: ProfileP
               {organization && ` · ${organization}`}
             </p>
           )}
+          <p className="mt-3">
+            <span className="inline-flex rounded-full bg-brand-tint px-2.5 py-1 text-xs font-semibold text-brand-deep">{label}</span>
+          </p>
         </div>
         {showScore && match && query && <Score percent={match.match_percent} size="hero" />}
       </header>
@@ -139,10 +160,10 @@ function Profile({ expertId, result, label, query, showScore, onOpen }: ProfileP
         </p>
       )}
 
-      {match && match.reasons.length > 0 && (
-        <Section title={t.card.why}>
+      {match && reasons.length > 0 && (
+        <Section title={isWeak ? t.card.whatMatched : t.card.why}>
           <ul>
-            {match.reasons.map((reason) => (
+            {reasons.map((reason) => (
               <Reason key={reason} reason={reason} match={match} t={t} />
             ))}
           </ul>
@@ -153,7 +174,10 @@ function Profile({ expertId, result, label, query, showScore, onOpen }: ProfileP
         <Section title={t.dialog.whyNot}>
           {explanation.isLoading && <Skeleton className="h-16 w-full" />}
           {explanation.error && <p className="text-sm text-danger">{errorText(explanation.error, t)}</p>}
-          {explanation.data && (
+          {explanation.data && explanation.data.parsed.terms.length === 0 && (
+            <p className="text-sm text-ink-2">{t.dialog.noTermsToCheck}</p>
+          )}
+          {explanation.data && explanation.data.parsed.terms.length > 0 && (
             <dl className="grid gap-2 text-sm">
               <Check title={t.dialog.confirmed} items={explanation.data.expert.matched} empty={t.dialog.noSkills} tone="ok" />
               <Check title={t.dialog.missing} items={explanation.data.missing_terms} empty={t.dialog.allConfirmed} tone="miss" />
@@ -239,7 +263,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 function Section({ title, children, last = false }: { title: string; children: ReactNode; last?: boolean }) {
   return (
     <section className={`px-5 py-4 sm:px-6 ${last ? '' : 'border-b border-line'}`}>
-      <h3 className="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-ink-3">{title}</h3>
+      <h3 className="mb-3 text-[15px] font-semibold text-ink">{title}</h3>
       {children}
     </section>
   )
@@ -256,17 +280,31 @@ function reasonSource(reason: string, match: SearchResult, t: Dict): string | nu
   return null
 }
 
+/**
+ * Город, отрасль и опыт считаются доводом, только если о них спрашивали; иначе это просто факты профиля
+ * (они и так видны строкой под именем). Навыки и статус показываются всегда.
+ */
+function isAsked(source: string | null, reading: ParsedQuery | undefined, t: Dict): boolean {
+  if (!reading) return true
+  if (source === t.card.city) return Boolean(reading.city)
+  if (source === t.card.industry) return Boolean(reading.industry)
+  if (source === t.card.experience) return reading.min_experience !== null
+  return true
+}
+
 function Reason({ reason, match, t }: { reason: string; match: SearchResult; t: Dict }) {
   const lower = reason.toLowerCase()
   const isMatched = match.matched.some((skill) => lower.includes(skill.toLowerCase()))
   const isRelated = !isMatched && match.related.some((skill) => lower.includes(skill.toLowerCase()))
   const source = reasonSource(reason, match, t)
+  // занятость и частичная занятость не довод, а ограничение: другая метка
+  const isLimit = source === t.card.status && match.availability !== 'available'
   return (
     <li className="flex items-start justify-between gap-4 border-t border-dashed border-line py-2 text-[15px] first:border-t-0 first:pt-0">
       <span className="flex items-start gap-2.5">
         <span
           aria-hidden
-          className={`mt-[7px] size-2 flex-none rounded-full ${isMatched ? 'bg-brand' : isRelated ? 'border-[1.5px] border-brand' : 'bg-line-strong'}`}
+          className={`mt-[7px] size-2 flex-none rounded-full ${isLimit ? 'bg-danger' : isMatched ? 'bg-brand' : isRelated ? 'border-[1.5px] border-brand' : 'bg-line-strong'}`}
         />
         {reason}
       </span>
@@ -279,9 +317,9 @@ function Check({ title, items, empty, tone }: { title: string; items: string[]; 
   const mark = { ok: 'text-free', miss: 'text-danger', note: 'text-cond' }[tone]
   const symbol = { ok: '✓', miss: '✕', note: '!' }[tone]
   return (
-    <div className="grid gap-x-4 gap-y-1 rounded-lg bg-sunken px-3 py-2.5 sm:grid-cols-[11rem_minmax(0,1fr)]">
+    <div className="rounded-lg bg-sunken px-3.5 py-2.5">
       <dt className="font-bold text-ink">{title}</dt>
-      <dd className="text-ink-2">
+      <dd className="mt-1 text-ink-2">
         {items.length === 0 ? (
           empty
         ) : (

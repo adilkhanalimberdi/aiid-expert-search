@@ -81,8 +81,8 @@ export function SearchPage() {
       {isIdle ? (
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pb-5 pt-7 lg:pt-10">
           <div className="min-w-0">
-            <h1 className="text-[26px] font-bold leading-tight tracking-[-0.025em] sm:text-[32px]">{t.search.h1}</h1>
-            <p className="mt-1.5 max-w-[60ch] text-[15px] text-ink-2">{t.search.sub}</p>
+            <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.03em] sm:text-[36px]">{t.search.h1}</h1>
+            <p className="mt-1.5 max-w-[60ch] text-balance text-[15px] text-ink-2">{t.search.sub}</p>
           </div>
           {catalog.data && industries.data && (
             <p className="tnum flex gap-5 text-sm text-ink-3">
@@ -153,22 +153,6 @@ export function SearchPage() {
         </div>
       </form>
 
-      {!isIdle && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm">
-          <span className="text-ink-3">{t.search.tryLabel}</span>
-          {t.search.examples.slice(0, 3).map((example) => (
-            <button
-              key={example}
-              type="button"
-              onClick={() => applyExample(example)}
-              className="max-w-full truncate rounded-full border border-line bg-surface px-3 py-1 font-medium text-ink-2 transition-colors hover:border-brand-soft hover:text-brand-deep"
-            >
-              {example}
-            </button>
-          ))}
-        </div>
-      )}
-
       <div className="pb-6 pt-6" aria-live="polite" aria-busy={state.status === 'loading'}>
         {isIdle && <Welcome recent={recent} onPick={applyExample} />}
 
@@ -209,16 +193,16 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
   return (
     <div className="fade-in space-y-8">
       <section aria-labelledby="examples-title">
-        <h2 id="examples-title" className="text-sm font-semibold text-ink-2">
+        <h2 id="examples-title" className="text-[15px] font-semibold text-ink">
           {t.search.tryLabel}
         </h2>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-3 flex flex-wrap gap-2.5">
           {t.search.examples.map((example) => (
-            <li key={example}>
+            <li key={example} className="min-w-0 max-w-full">
               <button
                 type="button"
                 onClick={() => onPick(example)}
-                className="group flex h-full w-full items-center justify-between gap-4 rounded-xl border border-line bg-surface px-4 py-3.5 text-left shadow-[var(--shadow-panel)] transition-[border-color,transform] hover:-translate-y-px hover:border-brand-soft"
+                className="group flex items-center gap-3 rounded-xl border border-line bg-surface py-2.5 pl-4 pr-2.5 text-left shadow-[var(--shadow-panel)] transition-[border-color,transform] hover:-translate-y-px hover:border-brand-soft"
               >
                 <span className="text-[15px] font-medium text-ink">{example}</span>
                 <span aria-hidden className="grid size-8 flex-none place-items-center rounded-full bg-sunken text-ink-3 transition-colors group-hover:bg-brand group-hover:text-white">
@@ -245,16 +229,14 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
         )}
       </section>
 
-      <ul className="grid gap-4 md:grid-cols-3">
+      <ul className="grid gap-x-8 gap-y-4 border-t border-line pt-6 md:grid-cols-3">
         {t.search.how.map((item, index) => (
-          <li key={item.title} className="flex gap-4 rounded-xl border border-line bg-surface p-5">
-            <span className="grid size-10 flex-none place-items-center rounded-lg bg-brand-tint text-brand-deep">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                {HOW_ICONS[index]}
-              </svg>
-            </span>
+          <li key={item.title} className="flex gap-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="mt-0.5 flex-none text-brand">
+              {HOW_ICONS[index]}
+            </svg>
             <span className="min-w-0">
-              <span className="block font-semibold text-ink">{item.title}</span>
+              <span className="block text-[15px] font-semibold text-ink">{item.title}</span>
               <span className="mt-1 block text-sm leading-relaxed text-ink-2">{item.body}</span>
             </span>
           </li>
@@ -299,6 +281,8 @@ function Results({ data, submitted }: { data: SearchResponse; submitted: Submitt
       label={labelFor()}
       query={submitted.query}
       showScore={showScore && (selected !== undefined || data.parsed.terms.length > 0)}
+      parsed={data.parsed}
+      isWeak={data.weak_match}
       onClose={isDesktop ? undefined : () => setIsSheetOpen(false)}
     />
   )

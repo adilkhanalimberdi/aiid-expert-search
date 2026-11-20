@@ -74,6 +74,7 @@ const en = {
     legendCondition: 'conditions',
   },
   card: {
+    whatMatched: 'What matches the profile',
     recommended: 'Recommended',
     more: 'More candidates',
     match: 'Match',
@@ -123,6 +124,7 @@ const en = {
     notCovers: 'does not cover',
   },
   dialog: {
+    noTermsToCheck: 'The query has no skills, so there is nothing to compare.',
     label: 'Expert profile',
     close: 'Close',
     back: 'Back',
@@ -272,6 +274,7 @@ const ru: Dict = {
     legendCondition: 'условия',
   },
   card: {
+    whatMatched: 'Что совпало с профилем',
     recommended: 'Рекомендованы',
     more: 'Ещё кандидаты',
     match: 'Совпадение',
@@ -321,6 +324,7 @@ const ru: Dict = {
     notCovers: 'не покрывает',
   },
   dialog: {
+    noTermsToCheck: 'В запросе нет навыков: сравнивать нечего.',
     label: 'Профиль эксперта',
     close: 'Закрыть',
     back: 'Назад',
@@ -465,6 +469,7 @@ const kk: Dict = {
     legendCondition: 'шарттар',
   },
   card: {
+    whatMatched: 'Профильмен не сәйкес келді',
     recommended: 'Ұсынылады',
     more: 'Басқа үміткерлер',
     match: 'Сәйкестік',
@@ -514,6 +519,7 @@ const kk: Dict = {
     notCovers: 'қамтымайды',
   },
   dialog: {
+    noTermsToCheck: 'Сұраныста құзырет жоқ: салыстыратын ештеңе жоқ.',
     label: 'Сарапшы профилі',
     close: 'Жабу',
     back: 'Артқа',
