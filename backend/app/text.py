@@ -2,10 +2,13 @@
 
 import json
 import re
+from collections.abc import Iterable
+from difflib import get_close_matches
 from functools import lru_cache
 
 import pymorphy3
 
+from . import config
 from .config import settings
 
 
@@ -22,8 +25,8 @@ def morphology() -> pymorphy3.MorphAnalyzer:
 @lru_cache(maxsize=50000)
 def lemma(word: str) -> str:
     """Лемма слова; латиницу и короткие аббревиатуры (ИИ, ML) не трогаем."""
-    if word.isascii() or len(word) <= 2:
-        return word
+    if word.isascii() or len(word) <= 2 or not morphology().word_is_known(word):
+        return word  # слова вне словаря («деплой») pymorphy портит, оставляем как есть
     return morphology().parse(word)[0].normal_form
 
 
@@ -63,10 +66,30 @@ def expand_synonyms(terms: list[str]) -> list[str]:
     return list(dict.fromkeys(expanded))
 
 
+def is_prefix_of_any(term: str, words: Iterable[str]) -> bool:
+    """Термин-приставка («кибер») подтверждается словом «кибербезопасность»."""
+    return len(term) >= config.MIN_TERM_LENGTH and any(word.startswith(term) for word in words)
+
+
+def expand_vocabulary(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
+    """Добавляет слова базы, на которые похож неизвестный термин: по приставке или с опечаткой."""
+    known = set(vocabulary)
+    expanded = list(terms)
+    for term in terms:
+        if term in known or len(term) < config.MIN_TERM_LENGTH:
+            continue
+        by_prefix = sorted(word for word in known if word.startswith(term))
+        expanded.extend(
+            by_prefix or get_close_matches(term, sorted(known), n=2, cutoff=config.TERM_TYPO_CUTOFF)
+        )
+    return list(dict.fromkeys(expanded))
+
+
 def covered_terms(terms: list[str], text: str) -> set[str]:
     """Возвращает исходные термины, подтверждённые текстом или фразовым синонимом."""
     words = lemmas(text)
     covered = set(terms) & set(words)
+    covered |= {term for term in terms if is_prefix_of_any(term, words)}
     for group in synonym_groups():
         source = [phrase for phrase in group if contains(terms, phrase)]
         if source and any(contains(words, phrase) for phrase in group):
