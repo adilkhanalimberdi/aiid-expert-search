@@ -285,3 +285,9 @@ def test_filter_only_flag_only_without_topic(client: TestClient) -> None:
     assert all(item["city"] == "Шымкент" for item in city_only["results"])
     with_topic = client.post("/api/search", json={"query": "GMP из Шымкента"}).json()
     assert not with_topic["filter_only"]
+
+
+def test_kazakh_terms_shown_as_typed(client: TestClient) -> None:
+    body = client.post("/api/search", json={"query": "Мұғалім керек"}).json()
+    assert "мұғалім" in body["parsed"]["terms"]
+    assert "мугалим" not in body["parsed"]["terms"]

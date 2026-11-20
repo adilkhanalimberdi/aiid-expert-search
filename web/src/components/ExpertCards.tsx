@@ -6,7 +6,6 @@ import { ScoreBar, ScoreFigure } from './ScoreFigure'
 import { StatusDot } from './StatusDot'
 import { Button } from './ui'
 
-
 interface CardProps {
   expert: SearchResult
   query: string
@@ -104,7 +103,7 @@ export function AlsoFit({ expert, query, onOpen, showScore = true }: CardProps) 
             <StatusDot availability={expert.availability} />
           </span>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
           <button
             type="button"
             onClick={() => onOpen(expert.id)}
@@ -120,11 +119,7 @@ export function AlsoFit({ expert, query, onOpen, showScore = true }: CardProps) 
 }
 
 function FeedbackLinks({ query, expertId }: { query: string; expertId: string }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      <FeedbackButtons query={query} expertId={expertId} compact />
-    </div>
-  )
+  return <FeedbackButtons query={query} expertId={expertId} variant="icons" />
 }
 
 /** Остальные кандидаты: линованная таблица, оценка справа. */
@@ -141,7 +136,7 @@ export function CandidateRow({ expert, query, onOpen, showScore = true }: CardPr
         </button>
         <p className="mt-0.5 text-sm text-muted">{expert.position}</p>
       </div>
-      <p className="flex-[1_1_110px] text-[15px]">{expert.city}</p>
+      <p className="flex-[1_1_110px] text-[15px] text-muted">{expert.city}</p>
       <p className="flex-[1_1_150px] text-[15px]">
         <StatusDot availability={expert.availability} />
       </p>
@@ -151,7 +146,7 @@ export function CandidateRow({ expert, query, onOpen, showScore = true }: CardPr
           <ScoreFigure percent={expert.match_percent} size="row" />
         </div>
       )}
-      <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+      <div className="ml-auto flex flex-none">
         <FeedbackLinks query={query} expertId={expert.id} />
       </div>
     </article>

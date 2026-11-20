@@ -139,6 +139,23 @@ def fix_typing(query: str, vocabulary: Iterable[str] = ()) -> str:
     return fix_translit(fix_keyboard_layout(query, known), known)
 
 
+KAZAKH_LETTERS = set("әғқңөұүһі")
+
+
+def display_forms(query: str) -> dict[str, str]:
+    """Свёрнутая форма казахского слова → как его написал человек: «мугалим» → «мұғалім».
+
+    Движок сравнивает слова без казахских букв (KAZAKH_FOLD), а показывать термин нужно в исходном виде.
+    """
+    forms: dict[str, str] = {}
+    for raw in re.findall(r"[\w-]+", query.lower().replace("ё", "е")):
+        if KAZAKH_LETTERS & set(raw):
+            folded = normalize(raw)
+            forms.setdefault(folded, raw)
+            forms.setdefault(lemma(folded), raw)
+    return forms
+
+
 def model_text(text: str) -> str:
     """Запрос для эмбеддинга: регистр и пробелы не должны менять результат («Мұғалім» = «мұғалім»)."""
     return " ".join(text.lower().replace("ё", "е").split())
