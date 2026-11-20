@@ -1,11 +1,15 @@
-# Запуск всего приложения: docker compose up --build
-# UI: http://localhost:8080   API и Swagger: http://localhost:8000/docs
-# Модель НЕ запекается в образ: монтируется из backend/models (скачать один раз, см. README).
+# Одной командой: ./start.sh (macOS, Linux) или .\start.ps1 (Windows): скачает модель, если её нет, и поднимет всё.
+# Вручную: docker compose --profile setup run --rm model   (один раз, ~2,3 ГБ, нужен интернет)
+#          docker compose up --build -d
+# UI: http://localhost:8080   API и Swagger: http://localhost:8000/docs (порты: WEB_PORT, BACKEND_PORT)
+# Модель НЕ запекается в образ: монтируется из backend/models только для чтения, работа без сети.
 
 services:
   backend:
     build: ./backend
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       CACHE_DIR: state/cache
       FEEDBACK_DB: state/feedback.db
@@ -14,7 +18,7 @@ services:
       - ./backend/models:/app/models:ro
       - backend-state:/app/state
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
       interval: 10s
@@ -26,11 +30,23 @@ services:
   web:
     build: ./web
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
+
+  # Разовая загрузка модели через Docker, без Python на машине: docker compose --profile setup run --rm model
+  model:
+    profiles: ["setup"]
+    image: python:3.12-slim
+    volumes:
+      - ./backend/models:/models
+    entrypoint: ["sh", "-c"]
+    command:
+      - >-
+        pip install --quiet "huggingface_hub==2.4.0" &&
+        hf download BAAI/bge-m3 --local-dir /models/bge-m3 --exclude "onnx/*" --exclude "imgs/*"
 
 volumes:
   backend-state:
