@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import { ErrorBox } from '../components/ErrorBox'
 import { HeroBand, PageTitle } from '../components/HeroBand'
+import { Section } from '../components/Section'
 import { Skeleton } from '../components/Skeleton'
 import { useAsync } from '../hooks/useAsync'
-import { api } from '../lib/api'
+import { api, type EvalRun } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
 
 interface TermCount {
@@ -20,7 +21,7 @@ export function AnalyticsPage({ isActive, nav }: { isActive: boolean; nav: React
       <HeroBand nav={nav}>
         <PageTitle>{t.analytics.title}</PageTitle>
       </HeroBand>
-      <div className="mx-auto max-w-[1120px] space-y-6 px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-[1120px] space-y-[72px] px-4 py-14 sm:px-6">
         {stats.isLoading && !stats.data && (
           <div className="grid gap-px sm:grid-cols-3" role="status" aria-label={t.dialog.loading}>
             <Skeleton className="h-36" />
@@ -41,9 +42,10 @@ export function AnalyticsPage({ isActive, nav }: { isActive: boolean; nav: React
               />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <Bars title={t.analytics.mostRequested} items={stats.data.top_competencies} empty={t.analytics.noQueries} />
+            <div className="grid gap-[72px] md:grid-cols-2 md:gap-12">
+              <Bars id="top-title" title={t.analytics.mostRequested} items={stats.data.top_competencies} empty={t.analytics.noQueries} />
               <Bars
+                id="unmet-title"
                 title={t.analytics.unmet}
                 hint={t.analytics.unmetHint}
                 items={stats.data.unmet_demand}
@@ -51,41 +53,13 @@ export function AnalyticsPage({ isActive, nav }: { isActive: boolean; nav: React
               />
             </div>
 
-            <section className="border-2 border-ink bg-white p-5 sm:p-7" aria-labelledby="eval-title">
-              <h2 id="eval-title" className="font-display text-3xl font-light tracking-[-0.03em]">
-                {t.analytics.accuracy}
-              </h2>
+            <Section id="eval-title" title={t.analytics.accuracy} hint={t.analytics.evalHint}>
               {stats.data.evaluations.length === 0 ? (
-                <p className="mt-3 text-muted">{t.analytics.noEval}</p>
+                <p className="pt-5 text-muted">{t.analytics.noEval}</p>
               ) : (
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full min-w-[480px] text-left text-[15px]">
-                    <thead>
-                      <tr className="border-b-2 border-ink text-muted">
-                        <th className="py-2 pr-3 font-medium">{t.analytics.dataset}</th>
-                        <th className="px-2 py-2 font-medium">{t.analytics.mode}</th>
-                        <th className="px-2 py-2 font-medium">{t.analytics.top(stats.data.evaluations[0].k)}</th>
-                        <th className="px-2 py-2 font-medium">{t.analytics.average}</th>
-                        <th className="px-2 py-2 font-medium">{t.analytics.p95}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stats.data.evaluations.map((run) => (
-                        <tr key={`${run.dataset}-${run.mode}-${run.k}`} className="border-b border-rule last:border-0">
-                          <td className="py-2.5 pr-3">{run.dataset}</td>
-                          <td className="px-2 py-2.5">{t.analytics.modes[run.mode] ?? run.mode}</td>
-                          <td className="tnum px-2 py-2.5 font-semibold text-cobalt-deep">
-                            {run.hits}/{run.total}
-                          </td>
-                          <td className="tnum px-2 py-2.5">{run.avg_ms}</td>
-                          <td className="tnum px-2 py-2.5">{run.p95_ms}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <EvalTable runs={stats.data.evaluations} />
               )}
-            </section>
+            </Section>
           </>
         )}
       </div>
@@ -105,26 +79,70 @@ function Metric({ label, value, note }: { label: string; value: string; note?: s
   )
 }
 
-function Bars({ title, hint, items, empty }: { title: string; hint?: string; items: TermCount[]; empty: string }) {
+function Bars({ id, title, hint, items, empty }: { id: string; title: string; hint?: string; items: TermCount[]; empty: string }) {
   const max = Math.max(1, ...items.map((item) => item.count))
   return (
-    <section className="border-2 border-ink bg-white p-5 sm:p-7">
-      <h2 className="font-display text-3xl font-light tracking-[-0.03em]">{title}</h2>
-      {hint && <p className="mt-1 text-sm text-muted">{hint}</p>}
-      {items.length === 0 && <p className="mt-3 text-muted">{empty}</p>}
-      <ul className="mt-5 space-y-4">
+    <Section id={id} title={title} hint={hint}>
+      {items.length === 0 && <p className="pt-5 text-muted">{empty}</p>}
+      <ul>
         {items.map((item) => (
-          <li key={item.term}>
-            <div className="flex justify-between text-[15px]">
+          <li key={item.term} className="border-b border-rule py-3.5">
+            <div className="flex items-baseline justify-between gap-4 text-[17px]">
               <span>{item.term}</span>
-              <span className="tnum text-muted">{item.count}</span>
+              <span className="tnum font-display text-2xl font-light text-cobalt-deep">{item.count}</span>
             </div>
-            <div className="mt-1.5 h-0.5 bg-rule">
-              <div className="-mt-0.5 h-1.5 bg-cobalt" style={{ width: `${(item.count / max) * 100}%` }} />
+            <div className="mt-2 h-1.5 bg-ink/[0.06]">
+              <div className="h-full bg-cobalt" style={{ width: `${(item.count / max) * 100}%` }} />
             </div>
           </li>
         ))}
       </ul>
-    </section>
+    </Section>
+  )
+}
+
+const MODES = ['hybrid', 'bm25', 'vector'] as const
+
+/** Наборы строками, режимы столбцами: гибрид рядом с одиночными методами, видно, что он даёт. */
+function EvalTable({ runs }: { runs: EvalRun[] }) {
+  const { t } = useI18n()
+  const datasets = [...new Set(runs.map((run) => run.dataset))]
+  const find = (dataset: string, mode: string) => runs.find((run) => run.dataset === dataset && run.mode === mode)
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[560px] text-left text-[15px]">
+        <thead>
+          <tr className="border-b border-ink text-sm text-muted">
+            <th className="py-3 pr-3 font-medium">{t.analytics.dataset}</th>
+            {MODES.map((mode) => (
+              <th key={mode} className={`px-3 py-3 font-medium ${mode === 'hybrid' ? 'bg-lime text-ink' : ''}`}>
+                {t.analytics.modes[mode]}
+              </th>
+            ))}
+            <th className="px-3 py-3 text-right font-medium">{t.analytics.p95}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {datasets.map((dataset) => {
+            const hybrid = find(dataset, 'hybrid')
+            return (
+              <tr key={dataset} className="border-b border-rule">
+                <td className="py-4 pr-3">{t.analytics.datasets[dataset] ?? dataset}</td>
+                {MODES.map((mode) => {
+                  const run = find(dataset, mode)
+                  const isHybrid = mode === 'hybrid'
+                  return (
+                    <td key={mode} className={`tnum px-3 py-4 ${isHybrid ? 'bg-lime/40 font-display text-2xl font-light text-ink' : 'text-muted'}`}>
+                      {run ? `${run.hits}/${run.total}` : '—'}
+                    </td>
+                  )
+                })}
+                <td className="tnum px-3 py-4 text-right text-muted">{hybrid ? Math.round(hybrid.p95_ms) : '—'}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
   )
 }
