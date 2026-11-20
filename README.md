@@ -20,22 +20,22 @@
 
 ## Точность
 
-Локальная bge-m3, CPU, 4 потока, прогретая модель, без отзывов.
+Локальная bge-m3, CPU (Apple M-серии), 4 потока, прогретая модель, без отзывов. На Windows-ноутбуке команды запрос занимал 150–250 мс.
 
 | Набор | Режим | hit@3 | Среднее, мс | p95, мс |
 | --- | --- | --- | --- | --- |
-| eval_queries.json | hybrid | 7/7 | 161.9 | 185.6 |
-| eval_queries.json | bm25 | 6/7 | 180.9 | 194.7 |
-| eval_queries.json | vector | 7/7 | 211.4 | 224.5 |
-| eval_holdout.json | hybrid | 10/10 | 203.2 | 246.2 |
-| eval_holdout.json | bm25 | 10/10 | 188.2 | 222.3 |
-| eval_holdout.json | vector | 10/10 | 200.9 | 233.9 |
-| eval_jury.json | hybrid | 14/15 | 173.2 | 197.1 |
-| eval_jury.json | bm25 | 7/15 | 189.7 | 233.2 |
-| eval_jury.json | vector | 15/15 | 173.0 | 193.7 |
-| eval_english.json | hybrid | 12/12 | 161.8 | 189.2 |
-| eval_english.json | bm25 | 11/12 | 158.1 | 178.2 |
-| eval_english.json | vector | 11/12 | 165.0 | 178.2 |
+| eval_queries.json | hybrid | 7/7 | 79.9 | 105.0 |
+| eval_queries.json | bm25 | 7/7 | 65.9 | 72.8 |
+| eval_queries.json | vector | 7/7 | 66.4 | 73.7 |
+| eval_holdout.json | hybrid | 10/10 | 61.9 | 67.5 |
+| eval_holdout.json | bm25 | 10/10 | 61.4 | 68.1 |
+| eval_holdout.json | vector | 10/10 | 62.8 | 71.8 |
+| eval_jury.json | hybrid | 14/15 | 73.9 | 88.0 |
+| eval_jury.json | bm25 | 7/15 | 65.9 | 90.0 |
+| eval_jury.json | vector | 15/15 | 68.5 | 78.7 |
+| eval_english.json | hybrid | 12/12 | 57.2 | 60.5 |
+| eval_english.json | bm25 | 11/12 | 55.6 | 63.8 |
+| eval_english.json | vector | 11/12 | 61.9 | 70.1 |
 
 Наборы: `eval_queries` (7 запросов с ловушками), `eval_holdout` (10 запросов, написаны вместе с данными: даже BM25 даёт 10/10, поэтому он слабый показатель), `eval_english` (12 запросов на английском), `eval_jury` (15 запросов другими словами; релевантность считается правилом по компетенциям, а не по id). Единственный промах гибрида на `eval_jury` — «проектирование электрических сетей для завода»: нужный эксперт стоит первым в обоих списках, но занят (×0,7).
 
