@@ -123,6 +123,7 @@ class StatsResponse(BaseModel):
     avg_took_ms: float
     fit_rate: float | None
     top_competencies: list[dict]
+    unmet_demand: list[dict] = Field(default_factory=list)
     evaluations: list[dict] = Field(default_factory=list)
 
 

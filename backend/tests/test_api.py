@@ -165,3 +165,12 @@ def test_csv_aliases_duplicates_and_quotes() -> None:
     assert experts[0].availability == "available"
     with pytest.raises(ValueError, match="Некорректный CSV"):
         load_csv(raw + b'"broken')
+
+
+def test_unmet_demand_counts_only_weak_queries(client: TestClient) -> None:
+    client.post("/api/search", json={"query": "нужен юрист по налогам"})
+    client.post("/api/search", json={"query": "нужен специалист по GMP"})
+    summary = client.get("/api/stats").json()
+    unmet = {item["term"] for item in summary["unmet_demand"]}
+    assert {"юрист", "налог"} <= unmet
+    assert "gmp" not in unmet

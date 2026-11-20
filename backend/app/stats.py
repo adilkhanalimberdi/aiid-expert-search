@@ -24,7 +24,9 @@ def summary() -> dict:
             "SELECT AVG(CASE verdict WHEN 'fit' THEN 1.0 ELSE 0.0 END) FROM feedback"
         ).fetchone()[0]
         rows = db.execute("SELECT terms FROM queries").fetchall()
+        weak_rows = db.execute("SELECT terms FROM queries WHERE weak_match = 1").fetchall()
     terms = Counter(term for row in rows for term in json.loads(row[0]))
+    unmet = Counter(term for row in weak_rows for term in json.loads(row[0]))
     evaluation = settings.path("data/eval_results.json")
     evaluations = json.loads(evaluation.read_text(encoding="utf-8")) if evaluation.exists() else {}
     return {
@@ -34,6 +36,7 @@ def summary() -> dict:
         "top_competencies": [
             {"term": term, "count": count} for term, count in terms.most_common(STATS_TOP_N)
         ],
+        "unmet_demand": [{"term": term, "count": count} for term, count in unmet.most_common(STATS_TOP_N)],
         "evaluations": [
             {key: value for key, value in run.items() if key != "queries"} for run in evaluations.values()
         ],

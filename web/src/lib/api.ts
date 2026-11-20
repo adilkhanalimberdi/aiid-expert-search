@@ -93,6 +93,7 @@ export interface StatsResponse {
   avg_took_ms: number
   fit_rate: number | null
   top_competencies: { term: string; count: number }[]
+  unmet_demand: { term: string; count: number }[]
   evaluations: Record<string, unknown>[]
 }
 
