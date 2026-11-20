@@ -21,8 +21,10 @@ EXPERIENCE_PATTERN = (
 )
 # Просьба о доступности («свободный сейчас», «available now», «қазір бос»): занятых не показываем.
 AVAILABILITY_WORDS = frozenset(
-    {"свободный", "свободен", "свободна", "доступный", "доступен", "available", "free", "бос"}
+    {"свободный", "свободен", "свободна", "доступный", "доступен", "available", "free", "бос", "қолжетімді"}
 )
+# Слова о занятости: это не тема поиска и не просьба скрыть кого-то, поэтому просто отбрасываются.
+BUSY_WORDS = frozenset({"busy", "occupied", "занят", "занятый", "занята"})
 
 
 @lru_cache(maxsize=4)
@@ -106,7 +108,7 @@ def parse(
     normalized = normalize(query)
     words = normalized.split()
     available_only = any(word in AVAILABILITY_WORDS for word in words)
-    words = [word for word in words if word not in AVAILABILITY_WORDS]
+    words = [word for word in words if word not in AVAILABILITY_WORDS and word not in BUSY_WORDS]
     city = None
     city_dictionary = city_aliases(cities)
     for canonical, aliases in city_dictionary.items():

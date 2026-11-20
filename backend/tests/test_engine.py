@@ -342,3 +342,17 @@ def test_ordinary_words_are_not_cities(query: str) -> None:
 )
 def test_city_typos_and_kazakh_cases_still_work(query: str, city: str) -> None:
     assert parse(query).city == city
+
+
+@pytest.mark.parametrize(
+    ("query", "terms", "available_only"),
+    [
+        ("busy expert in clinical trials", ["clinical", "trials"], False),
+        ("available expert in clinical trials", ["clinical", "trials"], True),
+        ("қолжетімді GMP маманы", ["gmp"], True),
+    ],
+)
+def test_availability_words_are_not_terms(query: str, terms: list[str], available_only: bool) -> None:
+    parsed = parse(query)
+    assert parsed.available_only is available_only
+    assert parsed.terms == terms

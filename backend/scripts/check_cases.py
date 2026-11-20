@@ -292,7 +292,7 @@ def k02() -> tuple[bool, str]:
     return "gmp" not in data["parsed"]["terms"], f"terms={data['parsed']['terms']}"
 
 
-@case("K03", "английские слова доступности не становятся терминами: busy, available", known=True)
+@case("K03", "английские слова доступности не становятся терминами: busy, available")
 def k03() -> tuple[bool, str]:
     terms = search("busy expert in clinical trials")["parsed"]["terms"]
     return "busy" not in terms, f"terms={terms}"
