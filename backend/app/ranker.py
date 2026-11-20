@@ -10,7 +10,14 @@ from .explain import explain
 from .index import SearchIndex, encode_queries, encode_query, encode_terms
 from .query_parser import canonical_city, parse, split_negation
 from .schemas import Expert, Language, ParsedQuery, SearchRequest, SearchResponse, SearchResult
-from .text import covered_terms, expand_synonyms, expand_vocabulary, fix_keyboard_layout, synonym_hints
+from .text import (
+    contains_stem,
+    covered_terms,
+    expand_synonyms,
+    expand_vocabulary,
+    fix_keyboard_layout,
+    synonym_hints,
+)
 
 
 def rrf(rankings: list[list[int]]) -> dict[int, float]:
@@ -232,6 +239,23 @@ def filter_only_response(
     )
 
 
+def phrase_holders(index: SearchIndex, terms: list[str], eligible: list[int]) -> list[int]:
+    """Эксперты, у которых в профиле целиком есть компетенция, названная в запросе (с синонимами и языками).
+
+    BM25 видит слова поодиночке: «контроль дефектов на производстве» проигрывал «инженерам производства»,
+    а единственный владелец редкой компетенции терялся. Длинная фраза весит больше короткой.
+    """
+    if not terms:
+        return []
+    expanded = expand_synonyms(terms)
+    asked = [phrase for phrase in index.competency_industries if contains_stem(expanded, phrase)]
+    if not asked:
+        return []
+    weight = {i: sum(len(p) for p in asked if p in index.competency_phrases[i]) for i in eligible}
+    holders = [i for i in eligible if weight[i]]
+    return sorted(holders, key=lambda i: (-weight[i], i))[: config.TOP_N_PER_RETRIEVER]
+
+
 def search(
     index: SearchIndex,
     req: SearchRequest,
@@ -270,6 +294,12 @@ def search(
     ]
     vector = sorted(eligible, key=lambda i: (-cosines[i], i))[: config.TOP_N_PER_RETRIEVER]
     rankings = [bm25, vector] if mode == "hybrid" else [bm25 if mode == "bm25" else vector]
+    if (
+        mode == "hybrid"
+        and config.PHRASE_RANKING
+        and (holders := phrase_holders(index, parsed.terms, eligible))
+    ):
+        rankings.append(holders)
     scores = rrf(rankings)
     for i in scores:
         expert = index.experts[i]

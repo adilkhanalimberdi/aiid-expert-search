@@ -98,6 +98,14 @@ class SearchIndex:
     target_offsets: np.ndarray | None = None
 
     @cached_property
+    def competency_phrases(self) -> list[frozenset[tuple[str, ...]]]:
+        """Компетенции каждого эксперта в леммах: для совпадения целой фразы, а не отдельных слов."""
+        return [
+            frozenset(phrase for phrase in (tuple(lemmas(c)) for c in expert.competencies) if phrase)
+            for expert in self.experts
+        ]
+
+    @cached_property
     def competency_industries(self) -> dict[tuple[str, ...], Counter]:
         """В каких отраслях встречается каждая компетенция каталога (по леммам): отрасль запроса по данным."""
         result: dict[tuple[str, ...], Counter] = {}

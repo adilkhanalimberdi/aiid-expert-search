@@ -425,3 +425,22 @@ def test_typos_are_corrected_against_dictionary_words_and_stopwords() -> None:
         "логистика"
     ]  # опечатка в стоп-слове «маманы»
     assert correct_terms(["юрист"], vocabulary) == ["юрист"]  # слово вне базы не превращается в другое
+
+
+def test_phrase_holders_prefer_whole_competency() -> None:
+    from app.ranker import phrase_holders
+
+    def expert(i: str, competencies: list[str]) -> Expert:
+        return Expert(
+            id=i, full_name="Т", position="Инженер производства", industry="X", competencies=competencies,
+            city="Астана", experience_years=5, availability="available",
+        )  # fmt: skip
+
+    experts = [
+        expert("words", ["контроль качества", "производство"]),
+        expert("phrase", ["контроль дефектов на производстве"]),
+    ]
+    index = SearchIndex(experts, BM25Okapi([["а"], ["б"]]), np.zeros((2, 2)), [], ["", ""])
+    terms = lemmas("контроль дефектов на производстве")
+    # «производство» тоже компетенция каталога, но целая фраза из четырёх слов весит больше
+    assert phrase_holders(index, terms, [0, 1]) == [1, 0]
