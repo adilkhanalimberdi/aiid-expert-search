@@ -226,12 +226,16 @@ def main() -> None:
     parser.add_argument("--csv", type=Path, default=settings.path(settings.experts_csv))
     parser.add_argument("--show-failures", type=int, default=0)
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument("--sample", type=int, default=0, help="взять столько случайных компетенций (0 = все)")
     args = parser.parse_args()
     raw = args.csv.read_bytes()
     experts, _ = load_csv(raw)
     index = build(experts, raw)
     encode_query("прогрев")
     cases = build_cases(experts, random.Random(args.seed))
+    if args.sample:
+        chosen = set(random.Random(args.seed).sample(sorted({c["competency"] for c in cases}), args.sample))
+        cases = [case for case in cases if case["competency"] in chosen]
     stats: dict[tuple[str, str], list[int]] = defaultdict(lambda: [0, 0])
     rarity: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     failures = []
