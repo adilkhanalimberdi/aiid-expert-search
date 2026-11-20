@@ -25,18 +25,18 @@
 
 | Набор | Режим | hit@3 | Среднее, мс | p95, мс |
 | --- | --- | --- | --- | --- |
-| eval_queries.json | hybrid | 7/7 | 79.9 | 105.0 |
-| eval_queries.json | bm25 | 7/7 | 65.9 | 72.8 |
-| eval_queries.json | vector | 7/7 | 66.4 | 73.7 |
-| eval_holdout.json | hybrid | 10/10 | 61.9 | 67.5 |
-| eval_holdout.json | bm25 | 10/10 | 61.4 | 68.1 |
-| eval_holdout.json | vector | 10/10 | 62.8 | 71.8 |
-| eval_jury.json | hybrid | 14/15 | 73.9 | 88.0 |
-| eval_jury.json | bm25 | 7/15 | 65.9 | 90.0 |
-| eval_jury.json | vector | 15/15 | 68.5 | 78.7 |
-| eval_english.json | hybrid | 12/12 | 57.2 | 60.5 |
-| eval_english.json | bm25 | 11/12 | 55.6 | 63.8 |
-| eval_english.json | vector | 11/12 | 61.9 | 70.1 |
+| eval_queries.json | hybrid | 7/7 | 117.1 | 155.3 |
+| eval_queries.json | bm25 | 7/7 | 55.6 | 65.0 |
+| eval_queries.json | vector | 6/7 | 55.0 | 63.4 |
+| eval_holdout.json | hybrid | 10/10 | 109.8 | 143.6 |
+| eval_holdout.json | bm25 | 10/10 | 55.3 | 63.5 |
+| eval_holdout.json | vector | 10/10 | 55.0 | 62.5 |
+| eval_jury.json | hybrid | 14/15 | 104.9 | 149.4 |
+| eval_jury.json | bm25 | 8/15 | 52.8 | 63.3 |
+| eval_jury.json | vector | 15/15 | 52.9 | 63.6 |
+| eval_english.json | hybrid | 12/12 | 94.3 | 127.0 |
+| eval_english.json | bm25 | 12/12 | 53.7 | 66.2 |
+| eval_english.json | vector | 12/12 | 52.2 | 62.9 |
 
 Наборы: `eval_queries` (7 запросов с ловушками), `eval_holdout` (10 запросов, написаны вместе с данными: даже BM25 даёт 10/10, поэтому он слабый показатель), `eval_english` (12 запросов на английском), `eval_jury` (15 запросов другими словами; релевантность считается правилом по компетенциям, а не по id). Единственный промах гибрида на `eval_jury` — «проектирование электрических сетей для завода»: нужный эксперт стоит первым в обоих списках, но занят (×0,7).
 
