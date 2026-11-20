@@ -105,15 +105,15 @@ ui(web): карточка лучшего кандидата по макету
 
 ```text
 web/src/
-  components/   переиспользуемые куски: ExpertCard, MatchRing, StatusPill
+  components/   переиспользуемые куски: ExpertCards, ScoreFigure, StatusDot
   pages/        экраны: SearchPage, DataPage, AnalyticsPage
   hooks/        useSearch, useStats
-  lib/          api.ts, format.ts
+  lib/          api.ts, i18n.ts, format.ts
 ```
 
 - Стили только классами Tailwind и токенами из `src/index.css`. HEX-цвета в JSX запрещены: нужен цвет, добавь токен.
 - Поля из API остаются в `snake_case` как пришли (`match_percent`). Не переименовываем, чтобы типы совпадали со `schemas.py`.
-- Тексты интерфейса на английском: обычный регистр, кнопки начинаются с глагола («Find experts», «Upload CSV»).
+- Тексты интерфейса только через словари `src/lib/i18n.ts` (EN, RU, KK), строк в JSX нет. Обычный регистр, кнопки начинаются с глагола («Find experts», «Найти экспертов»).
 
 ## API и данные
 
