@@ -40,6 +40,8 @@ const en = {
     emptyQuery: 'Type a query: what kind of expert do you need?',
     idle: 'Type a query or pick an example and the experts will appear here.',
     weak: 'No exact matches, here are the closest ones. Try rephrasing the query or removing constraints.',
+    filterOnly: (place: string) =>
+      `The query has no topic, so all experts matching “${place}” are listed, available and experienced first. Add a skill to rank them by match.`,
     nobody: 'Nobody found. Remove the industry filter or “Hide busy experts”.',
     experts: (n: number) => `${n} experts`,
     industriesCount: (n: number) => `${n} industries`,
@@ -197,6 +199,8 @@ const ru: Dict = {
     emptyQuery: 'Введите запрос: какой эксперт нужен?',
     idle: 'Введите запрос или выберите пример, и здесь появятся эксперты.',
     weak: 'Точных совпадений нет, вот ближайшие. Попробуйте переформулировать запрос или убрать ограничения.',
+    filterOnly: (place) =>
+      `В запросе нет темы, поэтому показаны все эксперты по фильтру «${place}»: сначала свободные и опытные. Добавьте навык, чтобы упорядочить по совпадению.`,
     nobody: 'Никого не нашли. Уберите фильтр отрасли или «Скрыть занятых».',
     experts: (n) => `${n} экспертов`,
     industriesCount: (n) => `${n} отраслей`,
@@ -349,6 +353,8 @@ const kk: Dict = {
     emptyQuery: 'Сұраныс енгізіңіз: қандай сарапшы керек?',
     idle: 'Сұраныс енгізіңіз немесе мысал таңдаңыз, сарапшылар осы жерде пайда болады.',
     weak: 'Нақты сәйкестік жоқ, ең жақындары мынау. Сұранысты қайта тұжырымдап немесе шектеулерді алып тастап көріңіз.',
+    filterOnly: (place) =>
+      `Сұраныста тақырып жоқ, сондықтан «${place}» сүзгісі бойынша барлық сарапшылар көрсетілді: алдымен бос және тәжірибелілері. Сәйкестік бойынша реттеу үшін құзыреттілікті қосыңыз.`,
     nobody: 'Ешкім табылмады. Сала сүзгісін немесе «Бос емес сарапшыларды жасыру» опциясын алып тастаңыз.',
     experts: (n) => `${n} сарапшы`,
     industriesCount: (n) => `${n} сала`,
