@@ -7,6 +7,13 @@ from .schemas import Expert, ParsedQuery
 from .text import covered_terms
 
 
+def years_label(years: int) -> str:
+    """Число с правильной формой слова «год»."""
+    if years % 100 in range(11, 15):
+        return f"{years} лет"
+    return f"{years} " + {1: "год", 2: "года", 3: "года", 4: "года"}.get(years % 10, "лет")
+
+
 def explain(
     expert: Expert, parsed: ParsedQuery, query_vec: np.ndarray, competency_vecs: np.ndarray
 ) -> tuple[list[str], list[str], list[str]]:
@@ -19,11 +26,13 @@ def explain(
             related.append(competency)
     reasons = [f"Совпала компетенция: {item}" for item in matched]
     reasons.extend(f"Близкая компетенция: {item}" for item in related)
+    if not matched and covered_terms(parsed.terms, expert.position):
+        reasons.append(f"Совпала должность: {expert.position}")
     reasons.extend(
         [
             f"Отрасль: {expert.industry}",
             f"Город: {expert.city}",
-            f"Опыт: {expert.experience_years} лет",
+            f"Опыт: {years_label(expert.experience_years)}",
             {"available": "Свободен", "partial": "Частично доступен", "busy": "Занят"}[expert.availability],
         ]
     )

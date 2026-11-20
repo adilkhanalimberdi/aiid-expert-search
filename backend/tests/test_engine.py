@@ -89,3 +89,17 @@ def test_abbreviations_and_kazakh_filler_are_not_terms():
     assert "ии" in lemmas("специалист по ИИ")
     assert "ml" in lemmas("ML инженер")
     assert lemmas("маманы керек") == []
+
+
+def test_years_label_declension():
+    from app.explain import years_label
+
+    assert [years_label(n) for n in (1, 2, 5, 11, 21, 22, 15)] == [
+        "1 год",
+        "2 года",
+        "5 лет",
+        "11 лет",
+        "21 год",
+        "22 года",
+        "15 лет",
+    ]
