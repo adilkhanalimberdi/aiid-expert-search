@@ -7,7 +7,7 @@ import numpy as np
 from . import config
 from . import feedback as feedback_store
 from .explain import explain
-from .index import SearchIndex, encode_query, encode_terms
+from .index import SearchIndex, encode_queries, encode_query, encode_terms
 from .query_parser import canonical_city, parse
 from .schemas import Expert, Language, ParsedQuery, SearchRequest, SearchResponse, SearchResult
 from .text import covered_terms, expand_synonyms, expand_vocabulary, synonym_hints
@@ -37,8 +37,13 @@ def query_vector(query: str, parsed: ParsedQuery) -> np.ndarray:
 
     Единое место для поиска, подбора команды и объяснения, чтобы проценты в них совпадали.
     """
+    return encode_query(embedding_text(query, parsed), parsed.terms)
+
+
+def embedding_text(query: str, parsed: ParsedQuery) -> str:
+    """Текст запроса для модели: сам запрос и до EMBED_HINTS_MAX синонимов его терминов."""
     hints = synonym_hints(parsed.terms, config.EMBED_HINTS_MAX)
-    return encode_query(f"{query} {' '.join(hints)}" if hints else query, parsed.terms)
+    return f"{query} {' '.join(hints)}" if hints else query
 
 
 def term_credits(index: SearchIndex, parsed: ParsedQuery) -> np.ndarray:
@@ -101,24 +106,39 @@ def result_for(
     )
 
 
-_vote_vectors: dict[tuple[int, str], np.ndarray] = {}
+# Векторы запросов из отзывов: считаются батчем заранее (старт, новый голос, новый каталог), а не в поиске
+_vote_cache: dict[str, object] = {"index": None, "vectors": {}}
+
+
+def warm_feedback(index: SearchIndex, queries: list[str]) -> None:
+    """Кодирует одним вызовом модели все ещё не известные запросы из отзывов для этого индекса.
+
+    Раньше каждый прошлый запрос кодировался отдельно внутри первого поиска после старта:
+    с двумя запросами в отзывах первый поиск шёл 300 мс вместо 60, и рос бы с каждым голосом.
+    """
+    if _vote_cache["index"] != id(index):
+        _vote_cache["index"], _vote_cache["vectors"] = id(index), {}
+    vectors: dict[str, np.ndarray] = _vote_cache["vectors"]  # type: ignore[assignment]
+    missing = [text for text in dict.fromkeys(queries) if text not in vectors]
+    if not missing:
+        return
+    texts = [
+        embedding_text(text, parse(text, index.bm25.idf, index.industry_names, index.city_names))
+        for text in missing
+    ]
+    for text, vector in zip(missing, encode_queries(texts), strict=True):
+        vectors[text] = vector
 
 
 def feedback_for(
     index: SearchIndex, query: str, query_vec: np.ndarray, votes: list[tuple[str, str, int]] | None
 ) -> dict[str, float]:
-    """Множители отзывов для этого запроса; векторы прошлых запросов считаются один раз и кэшируются."""
+    """Множители отзывов для этого запроса; векторы прошлых запросов берутся из кэша (см. warm_feedback)."""
     if not votes:
         return {}
-
-    def vector_of(text: str) -> np.ndarray:
-        key = (id(index), text)
-        if key not in _vote_vectors:
-            parsed = parse(text, index.bm25.idf, index.industry_names, index.city_names)
-            _vote_vectors[key] = query_vector(text, parsed)
-        return _vote_vectors[key]
-
-    return feedback_store.multipliers(votes, query, query_vec, vector_of)
+    warm_feedback(index, [row[0] for row in votes])
+    vectors: dict[str, np.ndarray] = _vote_cache["vectors"]  # type: ignore[assignment]
+    return feedback_store.multipliers(votes, query, query_vec, vectors.__getitem__)
 
 
 def order_by_percent(

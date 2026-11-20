@@ -62,6 +62,11 @@ def encode_query(text: str, terms: tuple[str, ...] | list[str] = ()) -> np.ndarr
     return vectors[0]
 
 
+def encode_queries(texts: list[str]) -> np.ndarray:
+    """Несколько запросов одним вызовом модели, с той же нормализацией, что и encode_query."""
+    return encode([settings.query_prefix + model_text(text) for text in texts])
+
+
 def encode_terms(terms: list[str]) -> np.ndarray:
     """Векторы отдельных терминов запроса; повторные термины берутся из кэша."""
     missing = [term for term in dict.fromkeys(terms) if term not in _term_cache]
