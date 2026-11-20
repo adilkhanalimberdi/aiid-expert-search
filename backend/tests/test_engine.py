@@ -374,3 +374,9 @@ def test_negation_moves_terms_to_excluded(query: str, terms: list[str], excluded
     assert parsed.excluded_terms == excluded
     if "10 лет" in query:
         assert parsed.min_experience == 10
+
+
+def test_kazakh_without_special_letters_matches() -> None:
+    assert normalize("Қауіпсіздік Өндіріс") == normalize("кауипсиздик ондирис") == "кауипсиздик ондирис"
+    assert covered_terms(lemmas("онеркасиптик кауипсиздик"), "промышленная безопасность")
+    assert parse("колжетимди GMP маманы").available_only

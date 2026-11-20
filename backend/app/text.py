@@ -12,10 +12,16 @@ import pymorphy3
 from . import config
 from .config import settings
 
+# Казахские буквы сводятся к русским: многие пишут без казахской раскладки («кауипсиздик», «ондирис»).
+# Свёртка одинакова для запроса, словарей и профилей, поэтому «қауіпсіздік» и «кауипсиздик» совпадают.
+# Модель (эмбеддинги) видит исходный текст: свёртка только для слов, BM25 и словарей.
+KAZAKH_FOLD = str.maketrans("әғқңөұүһі", "агкноуухи")
+
 
 def normalize(text: str) -> str:
-    """Приводит текст к нижнему регистру и удаляет пунктуацию кроме дефиса."""
-    return " ".join(re.sub(r"[^\w\s-]", " ", text.lower().replace("ё", "е"), flags=re.UNICODE).split())
+    """Нижний регистр, ё → е, казахские буквы → русские, без пунктуации кроме дефиса."""
+    folded = text.lower().replace("ё", "е").translate(KAZAKH_FOLD)
+    return " ".join(re.sub(r"[^\w\s-]", " ", folded, flags=re.UNICODE).split())
 
 
 def model_text(text: str) -> str:
@@ -47,7 +53,12 @@ def stopwords() -> frozenset[str]:
     lines = (
         (settings.path(settings.dictionaries_dir) / "stopwords.txt").read_text(encoding="utf-8").splitlines()
     )
-    return frozenset(lemma(line.strip()) for line in lines if line.strip() and not line.startswith("#"))
+    return frozenset(
+        lemma(word)
+        for line in lines
+        if line.strip() and not line.startswith("#")
+        for word in normalize(line).split()
+    )
 
 
 def lemmas(text: str, drop_stopwords: bool = True) -> list[str]:
