@@ -1,0 +1,563 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-20T22:03:50.805600+00:00",
+  "title": "Design System: Sarap",
+  "extensions": {
+    "colorMeta": {
+      "smalt": {
+        "role": "primary",
+        "displayName": "Smalt Ultramarine",
+        "canonical": "#23308a",
+        "tonalRamp": [
+          "#181c34",
+          "#262d61",
+          "#2f3b92",
+          "#3346c8",
+          "#6673cf",
+          "#98a0d8",
+          "#c5c9e5",
+          "#eeeff6"
+        ]
+      },
+      "smalt-deep": {
+        "role": "primary",
+        "displayName": "Deep Smalt",
+        "canonical": "#18215f",
+        "tonalRamp": [
+          "#181c34",
+          "#262d61",
+          "#2f3b92",
+          "#3346c8",
+          "#6673d0",
+          "#98a0d8",
+          "#c5c9e5",
+          "#eeeff6"
+        ]
+      },
+      "smalt-soft": {
+        "role": "primary",
+        "displayName": "Soft Smalt",
+        "canonical": "#34429f",
+        "tonalRamp": [
+          "#1a1d32",
+          "#2a315d",
+          "#36418b",
+          "#3e4fbd",
+          "#6e7ac8",
+          "#9da4d3",
+          "#c8cbe3",
+          "#eff0f6"
+        ]
+      },
+      "turquoise": {
+        "role": "secondary",
+        "displayName": "Smalt Turquoise",
+        "canonical": "#0e8a84",
+        "tonalRamp": [
+          "#133938",
+          "#1b6c68",
+          "#1ca59e",
+          "#18e3da",
+          "#53e3dc",
+          "#8ce4e0",
+          "#c0ebe9",
+          "#edf8f7"
+        ]
+      },
+      "turquoise-deep": {
+        "role": "secondary",
+        "displayName": "Deep Turquoise",
+        "canonical": "#0a6b66",
+        "tonalRamp": [
+          "#133a38",
+          "#1a6d69",
+          "#1ba69f",
+          "#16e5da",
+          "#52e4dd",
+          "#8be5e0",
+          "#bfebe9",
+          "#edf8f7"
+        ]
+      },
+      "turquoise-glow": {
+        "role": "secondary",
+        "displayName": "Turquoise Glow",
+        "canonical": "#5fd6cb",
+        "tonalRamp": [
+          "#183432",
+          "#26615b",
+          "#2f9289",
+          "#34c8ba",
+          "#67cfc5",
+          "#98d8d2",
+          "#c5e5e2",
+          "#eef6f5"
+        ]
+      },
+      "ochre": {
+        "role": "tertiary",
+        "displayName": "Mosaic Ochre",
+        "canonical": "#e3a333",
+        "tonalRamp": [
+          "#382b14",
+          "#694e1e",
+          "#a07221",
+          "#dc971f",
+          "#dead58",
+          "#e1c38f",
+          "#e9dbc1",
+          "#f7f4ed"
+        ]
+      },
+      "ochre-soft": {
+        "role": "tertiary",
+        "displayName": "Soft Ochre",
+        "canonical": "#f0c46a",
+        "tonalRamp": [
+          "#392d13",
+          "#6c511b",
+          "#a5781c",
+          "#e4a118",
+          "#e3b453",
+          "#e4c78c",
+          "#ebddc0",
+          "#f8f4ed"
+        ]
+      },
+      "ochre-deep": {
+        "role": "tertiary",
+        "displayName": "Deep Ochre",
+        "canonical": "#8a5a06",
+        "tonalRamp": [
+          "#3c2c11",
+          "#715016",
+          "#ad7514",
+          "#f09d0b",
+          "#ecb14a",
+          "#e9c587",
+          "#eddcbd",
+          "#f8f4ec"
+        ]
+      },
+      "terracotta": {
+        "role": "tertiary",
+        "displayName": "Fired Terracotta",
+        "canonical": "#b8462e",
+        "tonalRamp": [
+          "#341d18",
+          "#613025",
+          "#93402e",
+          "#c84d33",
+          "#d07866",
+          "#d8a398",
+          "#e5cbc5",
+          "#f6f0ee"
+        ]
+      },
+      "terracotta-soft": {
+        "role": "tertiary",
+        "displayName": "Terracotta Wash",
+        "canonical": "#f2d4cb",
+        "tonalRamp": [
+          "#341f18",
+          "#613325",
+          "#93462e",
+          "#c85533",
+          "#d07e66",
+          "#d8a798",
+          "#e5cdc5",
+          "#f6f0ee"
+        ]
+      },
+      "concrete": {
+        "role": "neutral",
+        "displayName": "Concrete",
+        "canonical": "#e7e5de",
+        "tonalRamp": [
+          "#2a2823",
+          "#4b483c",
+          "#6e6853",
+          "#91896a",
+          "#a9a38d",
+          "#c0bdaf",
+          "#d9d7d1",
+          "#f3f3f1"
+        ]
+      },
+      "plaster": {
+        "role": "neutral",
+        "displayName": "Plaster",
+        "canonical": "#f8f7f3",
+        "tonalRamp": [
+          "#2c2a20",
+          "#514b36",
+          "#776e4b",
+          "#9e915d",
+          "#b2a984",
+          "#c6c0aa",
+          "#dcd9ce",
+          "#f4f3f1"
+        ]
+      },
+      "grout": {
+        "role": "neutral",
+        "displayName": "Grout",
+        "canonical": "#14161b",
+        "tonalRamp": [
+          "#23252a",
+          "#3c404b",
+          "#545b6d",
+          "#6b7690",
+          "#8e95a8",
+          "#b0b5c0",
+          "#d1d3d9",
+          "#f1f2f3"
+        ]
+      },
+      "seam": {
+        "role": "neutral",
+        "displayName": "Seam",
+        "canonical": "#cbc8be",
+        "tonalRamp": [
+          "#292824",
+          "#49463e",
+          "#6a6657",
+          "#8c8570",
+          "#a5a091",
+          "#bebbb2",
+          "#d8d7d2",
+          "#f3f3f2"
+        ]
+      },
+      "slate": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "#424754",
+        "tonalRamp": [
+          "#232529",
+          "#3d4149",
+          "#565c6b",
+          "#6f778d",
+          "#9096a5",
+          "#b2b5be",
+          "#d2d4d8",
+          "#f1f2f3"
+        ]
+      },
+      "pebble": {
+        "role": "neutral",
+        "displayName": "Pebble",
+        "canonical": "#5d6270",
+        "tonalRamp": [
+          "#242528",
+          "#3f4148",
+          "#595d68",
+          "#727889",
+          "#9397a3",
+          "#b3b6bd",
+          "#d3d4d8",
+          "#f2f2f3"
+        ]
+      },
+      "stone": {
+        "role": "neutral",
+        "displayName": "Stone",
+        "canonical": "#6f7480",
+        "tonalRamp": [
+          "#252628",
+          "#404247",
+          "#5b5e66",
+          "#757a87",
+          "#9598a1",
+          "#b4b6bc",
+          "#d3d4d7",
+          "#f2f2f3"
+        ]
+      },
+      "mist": {
+        "role": "neutral",
+        "displayName": "Mist",
+        "canonical": "#aab3db",
+        "tonalRamp": [
+          "#1d2030",
+          "#2f3758",
+          "#3f4b82",
+          "#4b5eb0",
+          "#7784bf",
+          "#a2aace",
+          "#cacee0",
+          "#f0f1f5"
+        ]
+      },
+      "free": {
+        "role": "status",
+        "displayName": "Available",
+        "canonical": "#0a6b66",
+        "tonalRamp": [
+          "#133a38",
+          "#1a6d69",
+          "#1ba69f",
+          "#16e5da",
+          "#52e4dd",
+          "#8be5e0",
+          "#bfebe9",
+          "#edf8f7"
+        ]
+      },
+      "partial": {
+        "role": "status",
+        "displayName": "Partially Available",
+        "canonical": "#c98a12",
+        "tonalRamp": [
+          "#3a2c13",
+          "#6d501a",
+          "#a6761b",
+          "#e69e15",
+          "#e5b251",
+          "#e5c68b",
+          "#ebdcbf",
+          "#f8f4ed"
+        ]
+      },
+      "busy": {
+        "role": "status",
+        "displayName": "Busy",
+        "canonical": "#8b8f99",
+        "tonalRamp": [
+          "#252628",
+          "#404247",
+          "#5b5e66",
+          "#767a86",
+          "#9598a0",
+          "#b5b6bb",
+          "#d3d4d7",
+          "#f2f2f3"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Search page title."
+      },
+      "score": {
+        "displayName": "Score",
+        "purpose": "Best-candidate score numeral beside the mosaic."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Best candidate's name."
+      },
+      "readback": {
+        "displayName": "Readback",
+        "purpose": "Query read back as a sentence of tiles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section titles."
+      },
+      "name": {
+        "displayName": "Name",
+        "purpose": "Expert names in cards and rows."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Positions, reasons, facts."
+      },
+      "body-large": {
+        "displayName": "Body Large",
+        "purpose": "Hero subline and long lead text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Legends, meta, status words."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Button labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "query-slab",
+        "value": "0 22px 44px -18px rgb(8 12 40 / 0.7)",
+        "purpose": "Only under the search input in the header."
+      },
+      {
+        "name": "dialog",
+        "value": "0 30px 70px -20px rgb(5 8 30 / 0.6)",
+        "purpose": "Expert dialog over the page."
+      },
+      {
+        "name": "tessera-bevel",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 -1px 0 rgb(0 0 0 / 0.12)",
+        "purpose": "Light bevel on coloured tiles and the primary button."
+      }
+    ],
+    "motion": [
+      {
+        "name": "set-tile",
+        "value": "0.42s cubic-bezier(0.16, 1, 0.3, 1), 7ms stagger per tile",
+        "purpose": "Best-candidate score tiles set one by one."
+      },
+      {
+        "name": "lay",
+        "value": "1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite, 140ms stagger",
+        "purpose": "Mark and skeleton tiles laying in during loading."
+      },
+      {
+        "name": "breathe",
+        "value": "1.6s ease-in-out infinite, opacity 1 to 0.55",
+        "purpose": "Skeleton blocks."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Button and tab background, colour, border and press."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "All tile and skeleton animation off, tiles shown at once."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "container",
+        "value": "1120px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ochre tessera for the one main action (search).",
+      "html": "<button class=\"ds-btn-primary\">Find experts <svg width=\"22\" height=\"14\" viewBox=\"0 0 22 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"square\"><path d=\"M1 7h19M14 1l6 6-6 6\"/></svg></button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:12px;min-height:64px;padding:0 48px;background:var(--color-ochre,#e3a333);color:var(--color-grout,#14161b);font:600 18px 'Golos Text',system-ui,sans-serif;border:0;border-radius:0;cursor:pointer;box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 -1px 0 rgb(0 0 0 / 0.12);transition:transform .15s,background .15s}.ds-btn-primary:hover{background:var(--color-ochre-soft,#f0c46a)}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:3px solid var(--color-turquoise,#0e8a84);outline-offset:3px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action on concrete; inverts to grout on hover.",
+      "html": "<button class=\"ds-btn-outline\">Build a team</button>",
+      "css": ".ds-btn-outline{min-height:48px;padding:0 24px;background:var(--color-plaster,#f8f7f3);color:var(--color-grout,#14161b);border:2px solid var(--color-grout,#14161b);border-radius:0;font:600 15px 'Golos Text',system-ui,sans-serif;cursor:pointer;transition:background .15s,color .15s}.ds-btn-outline:hover{background:var(--color-grout,#14161b);color:#fff}.ds-btn-outline:focus-visible{outline:3px solid var(--color-turquoise,#0e8a84);outline-offset:3px}"
+    },
+    {
+      "name": "Query Slab",
+      "kind": "input",
+      "refersTo": "input-query",
+      "description": "The single raised object: plaster input with an ochre edge.",
+      "html": "<input class=\"ds-query\" placeholder=\"GMP specialist from Almaty\">",
+      "css": ".ds-query{width:100%;height:88px;padding:0 32px;background:var(--color-plaster,#f8f7f3);color:var(--color-grout,#14161b);border:0;border-bottom:6px solid var(--color-ochre,#e3a333);border-radius:0;font:400 24px 'Golos Text',system-ui,sans-serif;outline:none;caret-color:var(--color-turquoise,#0e8a84);box-shadow:0 22px 44px -18px rgb(8 12 40 / .7)}.ds-query::placeholder{font-family:Unbounded,sans-serif;font-weight:300;letter-spacing:-.02em;color:var(--color-stone,#6f7480)}.ds-query:focus{border-bottom-color:var(--color-turquoise,#0e8a84)}"
+    },
+    {
+      "name": "Section Tabs",
+      "kind": "nav",
+      "refersTo": "nav-tab",
+      "description": "Joined square tiles on the smalt shell; active tab is plaster.",
+      "html": "<nav class=\"ds-nav\"><button class=\"ds-tab\" aria-current=\"page\">Search</button><button class=\"ds-tab\">Data</button><button class=\"ds-tab\">Analytics</button></nav>",
+      "css": ".ds-nav{display:flex;gap:2px;padding:16px;background:var(--color-smalt,#23308a)}.ds-tab{min-height:44px;padding:0 20px;border:0;border-radius:0;background:rgb(24 33 95 / .55);color:#fff;font:500 15px 'Golos Text',system-ui,sans-serif;cursor:pointer;transition:background .15s}.ds-tab:hover{background:var(--color-smalt-deep,#18215f)}.ds-tab[aria-current]{background:var(--color-plaster,#f8f7f3);color:var(--color-smalt,#23308a)}.ds-tab:focus-visible{outline:3px solid var(--color-ochre,#e3a333);outline-offset:3px}"
+    },
+    {
+      "name": "Readback Tesserae",
+      "kind": "chip",
+      "refersTo": "tile-skill",
+      "description": "Query read back with skill, place, condition and excluded tiles.",
+      "html": "<p class=\"ds-readback\">Looking for <span class=\"ds-t ds-skill\">gmp</span> in <span class=\"ds-t ds-place\">Almaty</span>, <span class=\"ds-t ds-cond\">from 10 years</span>, not <span class=\"ds-t ds-ex\">BIM</span></p>",
+      "css": ".ds-readback{font:300 34px/1.55 Unbounded,sans-serif;letter-spacing:-.02em;color:var(--color-grout,#14161b);background:var(--color-concrete,#e7e5de);padding:16px;margin:0}.ds-t{padding:.06em .32em;-webkit-box-decoration-break:clone;box-decoration-break:clone}.ds-skill{background:var(--color-turquoise,#0e8a84);color:#fff;box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 -1px 0 rgb(0 0 0 / 0.12);}.ds-place{background:var(--color-ochre,#e3a333);color:var(--color-grout,#14161b);box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 -1px 0 rgb(0 0 0 / 0.12);}.ds-cond{background:var(--color-smalt,#23308a);color:#fff;box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 -1px 0 rgb(0 0 0 / 0.12);}.ds-ex{background:var(--color-terracotta-soft,#f2d4cb);color:var(--color-terracotta,#b8462e);text-decoration:line-through;text-decoration-thickness:2px}"
+    },
+    {
+      "name": "Score Mosaic",
+      "kind": "custom",
+      "refersTo": "panel-best",
+      "description": "10x10 tile field, one tile per percent, filled bottom-up, with numeral.",
+      "html": "<div class=\"ds-score\"><div class=\"ds-grid\"><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i></div><span class=\"ds-num\">72<small>%</small></span></div>",
+      "css": ".ds-score{display:flex;align-items:flex-end;gap:16px;padding:24px;background:var(--color-plaster,#f8f7f3);color:var(--color-turquoise-deep,#0a6b66)}.ds-grid{display:grid;grid-template-columns:repeat(10,7px);gap:1.5px}.ds-grid i{width:7px;height:7px;background:#d8d5cb}.ds-grid i.on{background:var(--color-turquoise,#0e8a84)}.ds-grid i.on:nth-child(3n){background:#0b7a75}.ds-grid i.on:nth-child(5n){background:#149a92}.ds-num{font:300 56px/.8 Unbounded,sans-serif;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.ds-num small{font-size:18px}"
+    },
+    {
+      "name": "Availability Tile",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "Square status tile always paired with the word.",
+      "html": "<span class=\"ds-status\"><i style=\"background:var(--color-free,#0a6b66)\"></i>Available</span> <span class=\"ds-status\"><i style=\"background:var(--color-partial,#c98a12)\"></i>Partially</span> <span class=\"ds-status\"><i style=\"background:var(--color-busy,#8b8f99)\"></i>Busy</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:8px;margin-right:16px;font:500 15px 'Golos Text',system-ui,sans-serif;color:var(--color-grout,#14161b)}.ds-status i{width:10px;height:10px;display:inline-block}"
+    },
+    {
+      "name": "Sarap Mark",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Five tiles forming an S: ochre query, white meeting tile, turquoise expert.",
+      "html": "<div class=\"ds-mark\"><svg width=\"48\" height=\"48\" viewBox=\"0 0 34 34\"><rect x=\"12\" y=\"0\" width=\"10\" height=\"10\" fill=\"#e3a333\"/><rect x=\"24\" y=\"0\" width=\"10\" height=\"10\" fill=\"#f0c46a\"/><rect x=\"12\" y=\"12\" width=\"10\" height=\"10\" fill=\"#fff\"/><rect x=\"0\" y=\"24\" width=\"10\" height=\"10\" fill=\"#5fd6cb\"/><rect x=\"12\" y=\"24\" width=\"10\" height=\"10\" fill=\"#0e8a84\"/></svg><span>Sarap</span></div>",
+      "css": ".ds-mark{display:inline-flex;align-items:center;gap:12px;padding:16px 20px;background:var(--color-smalt,#23308a);color:#fff;font:500 22px Unbounded,sans-serif;letter-spacing:-.02em}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Smalta",
+    "overview": "Sarap is laid out like an Almaty modernist mosaic panel: a smalt-ultramarine shell over a concrete ground, with turquoise, ochre and terracotta tesserae set in near-black grout. Everything the engine understood becomes a tile. The query is read back as a sentence of coloured tesserae, each expert's score is a 10×10 field filled one tile per percent, availability is a square tile beside a word, and the brand mark itself is five tiles forming an S.\n\nThe system is flat, square and dense in the way a mosaic is dense: small gaps (1–2 px grout) between solid fields, never soft cards on white. Display type is a wide modernist face set light and tight; UI text is a calm humanist sans. Colour carries meaning, not decoration: turquoise is a confirmed skill or a strong score, ochre is place or the primary action or a medium score, smalt is a condition or the shell, terracotta is what was excluded, grey is weak.\n\nIt refuses the category default of a white SaaS list with a blue pill and a progress bar. A weak result is drawn grey and listed plainly; it never gets the blue panel.",
+    "keyCharacteristics": [
+      "Square everything: zero radius on buttons, inputs, selects, checkboxes, panels, tiles.",
+      "Mosaic grammar: solid tiles separated by thin grout gaps (1–2 px), dark 2 px grout rules under section titles.",
+      "Meaning by tile colour, always paired with a word or a number.",
+      "Light, wide Unbounded numerals at very large sizes; tabular figures for every score and count.",
+      "Smalt shell top and best-candidate panel; concrete page; plaster for raised light surfaces; grout footer."
+    ],
+    "rules": [
+      {
+        "name": "The One Meaning Per Tile Rule",
+        "body": "Turquoise means skill or strong; ochre means place, action or medium; smalt means condition; terracotta means excluded; grey means weak or busy. Never reuse a tile colour for a different meaning on the same screen.",
+        "section": "colors"
+      },
+      {
+        "name": "The Weak Looks Weak Rule",
+        "body": "Score colour comes only from thresholds (≥70 strong, ≥40 medium, below weak). A weak match gets grey tiles and no smalt best-candidate panel.",
+        "section": "colors"
+      },
+      {
+        "name": "The Light Display Rule",
+        "body": "Unbounded is set at 300 for everything large; 400 only for expert names. Nothing in the system goes heavier than 600.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every score, count, year and timing uses tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Only Slab Rule",
+        "body": "No card or panel casts a shadow. The query is the one raised object on the page.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep every corner square (0px) and separate solid fields with 1–2px grout or seam gaps.",
+      "Do encode meaning with one tile colour per role: turquoise skill/strong, ochre place/action/medium, smalt condition, terracotta excluded, grey weak.",
+      "Do pair every colour signal with a word or number (status tile plus word, score mosaic plus numeral).",
+      "Do set large type in Unbounded 300 with negative tracking and tabular figures for numbers.",
+      "Do use the score thresholds 40 and 70 from the shared `strengthOf` for any new score display.",
+      "Do keep the synthetic-data strip visible on every screen."
+    ],
+    "donts": [
+      "Don't add border radius, pills or circles; status markers and legends are squares.",
+      "Don't add shadows to cards or panels; only the query slab and the dialog are raised.",
+      "Don't show a weak result in the smalt best-candidate panel or in strong colours.",
+      "Don't use type heavier than 600.",
+      "Don't draw score as a progress bar or ring; use the 10×10 mosaic.",
+      "Don't alter the AIID logo in the lock-up."
+    ]
+  }
+}

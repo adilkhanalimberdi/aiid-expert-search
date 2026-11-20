@@ -8,15 +8,15 @@ interface SectionProps {
   className?: string
 }
 
-/** Открытый раздел без рамки: крупный лёгкий заголовок и чёрная линейка, как «Другие кандидаты» на поиске. */
+/** Открытый раздел: заголовок, тёмный шов под ним и содержимое на бетоне. */
 export function Section({ id, title, hint, children, className = '' }: SectionProps) {
   return (
     <section aria-labelledby={id} className={className}>
-      <h2 id={id} className="font-display text-[32px] font-light leading-[1.1] tracking-[-0.035em] text-balance sm:text-[40px]">
+      <h2 id={id} className="font-display text-[26px] font-light leading-[1.15] tracking-[-0.025em] text-balance sm:text-[32px]">
         {title}
       </h2>
-      {hint && <p className="mt-2 max-w-[65ch] text-[15px] text-muted">{hint}</p>}
-      <div className="mt-5 border-t-2 border-ink">{children}</div>
+      {hint && <p className="mt-2 max-w-[65ch] text-[15px] text-slate">{hint}</p>}
+      <div className="mt-5 border-t-2 border-grout">{children}</div>
     </section>
   )
 }

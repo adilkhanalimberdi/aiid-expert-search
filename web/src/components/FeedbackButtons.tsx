@@ -39,7 +39,7 @@ export function FeedbackButtons({ query, expertId, onDark = false, variant = 'bu
 
   const thanks = verdict === 'fit' ? t.card.thanksFit : t.card.thanksNotFit
   const errorNote = error && (
-    <span role="alert" className={`self-center text-sm ${onDark ? 'text-amber' : 'text-danger'}`}>
+    <span role="alert" className={`self-center text-sm ${onDark ? 'text-ochre-soft' : 'text-terracotta'}`}>
       {errorText(error, t)}
     </span>
   )
@@ -47,7 +47,7 @@ export function FeedbackButtons({ query, expertId, onDark = false, variant = 'bu
   if (variant === 'icons') {
     if (verdict) {
       return (
-        <p role="status" title={thanks} className="flex min-h-11 items-center gap-2 text-sm font-semibold text-cobalt-deep">
+        <p role="status" title={thanks} className="flex min-h-11 items-center gap-2 text-sm font-semibold text-turquoise-deep">
           <VerdictIcon verdict={verdict} />
           {t.card.noted}
           <span className="sr-only">{thanks}</span>
@@ -55,10 +55,10 @@ export function FeedbackButtons({ query, expertId, onDark = false, variant = 'bu
       )
     }
     const base =
-      'grid size-11 cursor-pointer place-items-center border-2 border-ink/25 bg-transparent text-ink transition-colors duration-150'
+      'grid size-11 cursor-pointer place-items-center border-2 border-grout/20 bg-plaster text-grout transition-colors duration-150'
     return (
       <div className="flex gap-1.5">
-        <button type="button" aria-label={t.card.fit} title={t.card.fit} onClick={() => send('fit')} className={`${base} hover:border-ink hover:bg-lime`}>
+        <button type="button" aria-label={t.card.fit} title={t.card.fit} onClick={() => send('fit')} className={`${base} hover:border-turquoise hover:bg-turquoise hover:text-white`}>
           <VerdictIcon verdict="fit" />
         </button>
         <button
@@ -66,7 +66,7 @@ export function FeedbackButtons({ query, expertId, onDark = false, variant = 'bu
           aria-label={t.card.notFit}
           title={t.card.notFit}
           onClick={() => send('not_fit')}
-          className={`${base} hover:border-ink hover:bg-ink hover:text-white`}
+          className={`${base} hover:border-terracotta hover:bg-terracotta hover:text-white`}
         >
           <VerdictIcon verdict="not_fit" />
         </button>
@@ -77,14 +77,14 @@ export function FeedbackButtons({ query, expertId, onDark = false, variant = 'bu
 
   if (verdict) {
     return (
-      <p role="status" className={`min-h-11 content-center text-[15px] font-medium ${onDark ? 'text-lime' : 'text-cobalt-deep'}`}>
+      <p role="status" className={`min-h-11 content-center text-[15px] font-medium ${onDark ? 'text-turquoise-glow' : 'text-turquoise-deep'}`}>
         {thanks}
       </p>
     )
   }
   return (
     <>
-      <Button variant={onDark ? 'lime' : 'ink'} onClick={() => send('fit')}>
+      <Button variant={onDark ? 'primary' : 'dark'} onClick={() => send('fit')}>
         {t.card.fit}
       </Button>
       <Button variant={onDark ? 'outline-dark' : 'outline'} onClick={() => send('not_fit')}>

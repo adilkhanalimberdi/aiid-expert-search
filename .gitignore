@@ -29,3 +29,9 @@ Thumbs.db
 
 # Артефакты Playwright
 .playwright-mcp/
+
+# impeccable: рабочие снимки и живой режим
+.impeccable/review/
+.impeccable/live/
+.impeccable/mocks/
+.impeccable/config.local.json

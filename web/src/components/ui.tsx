@@ -1,16 +1,15 @@
 import type { ComponentPropsWithRef, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 
-// Общие элементы интерфейса Sarap: острые углы, рамка 2 px, лайм для главного действия.
+// Общие элементы интерфейса Sarap: квадратные плитки, шов 2 px, охра для главного действия.
 
-type Variant = 'lime' | 'ink' | 'cobalt' | 'outline' | 'outline-dark' | 'quiet'
+type Variant = 'primary' | 'dark' | 'outline' | 'outline-dark' | 'quiet'
 
 const VARIANTS: Record<Variant, string> = {
-  lime: 'bg-lime text-ink hover:-translate-y-0.5 hover:bg-lime-soft',
-  ink: 'bg-ink text-white hover:bg-cobalt-deep',
-  cobalt: 'bg-cobalt text-white hover:bg-cobalt-deep',
-  outline: 'border-2 border-ink bg-white text-ink hover:bg-lime',
-  'outline-dark': 'border-2 border-white/55 bg-transparent text-white hover:border-lime hover:bg-lime hover:text-ink',
-  quiet: 'bg-transparent text-cobalt-deep hover:bg-ink/5',
+  primary: 'tile bg-ochre text-grout hover:bg-ochre-soft active:translate-y-px',
+  dark: 'bg-grout text-white hover:bg-smalt',
+  outline: 'border-2 border-grout bg-plaster text-grout hover:bg-grout hover:text-white',
+  'outline-dark': 'border-2 border-white/55 bg-transparent text-white hover:border-ochre hover:bg-ochre hover:text-grout',
+  quiet: 'bg-transparent text-turquoise-deep hover:bg-grout/5',
 }
 
 interface ButtonProps extends ComponentPropsWithRef<'button'> {
@@ -18,8 +17,8 @@ interface ButtonProps extends ComponentPropsWithRef<'button'> {
   size?: 'sm' | 'md' | 'lg'
 }
 
-export function Button({ variant = 'ink', size = 'md', className = '', type = 'button', ...rest }: ButtonProps) {
-  const sizing = { sm: 'min-h-11 px-4 text-sm', md: 'min-h-12 px-6 text-[15px]', lg: 'min-h-16 px-14 text-[19px]' }[size]
+export function Button({ variant = 'dark', size = 'md', className = '', type = 'button', ...rest }: ButtonProps) {
+  const sizing = { sm: 'min-h-11 px-4 text-sm', md: 'min-h-12 px-6 text-[15px]', lg: 'min-h-16 px-12 text-lg' }[size]
   return (
     <button
       type={type}
@@ -61,9 +60,9 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 
 /** Список с нарисованной стрелкой: родное поведение select, внешний вид системы. */
 export function Select({ tone = 'light', className = '', children, ...rest }: SelectProps) {
-  const palette = tone === 'dark' ? 'bg-ink text-white' : 'border-2 border-ink bg-white text-ink'
+  const palette = tone === 'dark' ? 'bg-smalt-deep text-white hover:bg-smalt-deep/80' : 'border-2 border-grout bg-plaster text-grout'
   return (
-    <span className={`relative inline-block ${tone === 'dark' ? 'text-white' : 'text-ink'}`}>
+    <span className={`relative inline-block ${tone === 'dark' ? 'text-white' : 'text-grout'}`}>
       <select
         className={`h-12 min-w-52 cursor-pointer appearance-none rounded-none py-0 pl-4 pr-12 text-[15px] font-medium ${palette} ${className}`}
         {...rest}

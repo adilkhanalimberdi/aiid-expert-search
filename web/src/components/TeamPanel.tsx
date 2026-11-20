@@ -18,8 +18,8 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
   const terms = Object.keys(coverage[0]?.terms ?? {})
 
   return (
-    <section className="border-2 border-ink bg-white p-6 sm:p-8" aria-labelledby="team-title">
-      <h3 id="team-title" className="font-display text-3xl font-light tracking-[-0.03em]">
+    <section className="bg-plaster p-6 text-left sm:p-8" aria-labelledby="team-title">
+      <h3 id="team-title" className="font-display text-2xl font-light tracking-[-0.02em]">
         {t.team.title}
       </h3>
       {team.isLoading && <Skeleton className="mt-5 h-28 w-full" />}
@@ -30,7 +30,7 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
       )}
       {team.data && (
         <>
-          <p className="mt-3 text-[15px] text-muted">
+          <p className="mt-3 text-[15px] text-slate">
             {team.data.members.length === 0
               ? t.team.none
               : team.data.complete
@@ -41,7 +41,7 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
             <div className="mt-5 overflow-x-auto">
               <table className="w-full min-w-[420px] text-left text-[15px]">
                 <thead>
-                  <tr className="border-b-2 border-ink text-muted">
+                  <tr className="border-b-2 border-grout text-slate">
                     <th className="py-2 pr-3 font-medium">{t.team.expert}</th>
                     {terms.map((term) => (
                       <th key={term} className="px-2 py-2 font-medium">
@@ -54,29 +54,25 @@ export function TeamPanel({ query, industry, hideBusy, onOpen }: TeamPanelProps)
                   {team.data.members.map((member) => {
                     const row = coverage.find((item) => item.expert_id === member.id)
                     return (
-                      <tr key={member.id} className="border-b border-rule last:border-0">
+                      <tr key={member.id} className="border-b border-seam last:border-0">
                         <td className="py-3 pr-3">
                           <button
                             type="button"
                             onClick={() => onOpen(member.id)}
-                            className="min-h-11 cursor-pointer text-left font-semibold text-cobalt-deep underline decoration-[1.5px] underline-offset-4 hover:decoration-lime"
+                            className="min-h-11 cursor-pointer text-left font-semibold text-turquoise-deep underline decoration-[1.5px] underline-offset-4 hover:decoration-ochre"
                           >
                             {member.full_name}
                           </button>
-                          <span className="block text-sm text-muted">
+                          <span className="block text-sm text-slate">
                             {member.position}, {member.city}
                           </span>
                         </td>
                         {terms.map((term) => (
                           <td key={term} className="px-2 py-3 font-semibold">
                             {row?.terms[term] ? (
-                              <span aria-label={t.team.covers} className="text-cobalt">
-                                ✓
-                              </span>
+                              <span role="img" aria-label={t.team.covers} className="tile inline-block size-4 bg-turquoise" />
                             ) : (
-                              <span aria-label={t.team.notCovers} className="text-ash-deep">
-                                —
-                              </span>
+                              <span role="img" aria-label={t.team.notCovers} className="inline-block size-4 bg-seam" />
                             )}
                           </td>
                         ))}
