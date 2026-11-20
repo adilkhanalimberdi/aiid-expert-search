@@ -1,0 +1,10 @@
+@AGENTS.md
+
+Все правила проекта в AGENTS.md (его же читает Codex). Здесь только то, что касается Claude Code.
+
+- Машина Windows, PowerShell. Python только через `.venv\Scripts\python.exe`, глобальный pip сломан.
+- Перед правкой движка перечитай раздел «Как работает поиск» в AGENTS.md.
+- После правки в `backend/app/` или словарях запускай `.venv\Scripts\python.exe backend\scripts\eval.py` и показывай итог.
+- UI: скилл impeccable и раздел «Фронтенд» в AGENTS.md (токены и структура макета). Проверяй экраны через Playwright MCP (подключён в `.mcp.json`).
+- Не знаешь, есть ли готовый скилл под задачу: скилл find-skills.
+- Принял важное решение: допиши строку в таблицу «Решения» в AGENTS.md.

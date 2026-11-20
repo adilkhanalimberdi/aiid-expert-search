@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Модель и кэши (скачиваются локально)
+backend/models/
+*.npy
+backend/data/cache/
+backend/data/feedback.db
+
+# Секреты и локальные настройки
+.env
+.claude/settings.local.json
+
+# Фронт
+node_modules/
+web/dist/
+
+# Система и редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

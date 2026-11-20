@@ -1,0 +1,34 @@
+@import 'tailwindcss';
+
+/* Токены из макета (AGENTS.md, раздел «Фронтенд») */
+@theme {
+  --color-ink: #10221e;
+  --color-ink-soft: #233a34;
+  --color-ground: #eef1ec;
+  --color-line: #d6dcd4;
+  --color-sky: #7fd6e4;
+  --color-teal: #0b6e63;
+  --color-teal-tint: #e2eeea;
+  --color-muted: #5b6b64;
+
+  --color-free-bg: #ddf1e2;
+  --color-free-fg: #17602f;
+  --color-partial-bg: #fbefcf;
+  --color-partial-fg: #6e4700;
+  --color-busy-bg: #e3e7e4;
+  --color-busy-fg: #3b4842;
+
+  --font-sans: 'Onest', system-ui, sans-serif;
+  --font-display: 'Unbounded', 'Onest', sans-serif;
+}
+
+html {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-sky);
+  outline-offset: 2px;
+}

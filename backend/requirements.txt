@@ -1,0 +1,12 @@
+# torch ставится отдельно, версия для CPU:
+#   .venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic-settings
+sentence-transformers
+rank_bm25
+pymorphy3
+pymorphy3-dicts-ru
+numpy
+pandas
