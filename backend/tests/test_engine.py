@@ -6,8 +6,8 @@ from rank_bm25 import BM25Okapi
 
 from app.index import SearchIndex
 from app.query_parser import parse
-from app.ranker import rrf, search
-from app.schemas import Expert, SearchRequest
+from app.ranker import order_by_percent, rrf, search
+from app.schemas import Expert, SearchRequest, SearchResult
 from app.text import correct_terms, covered_terms, expand_synonyms, lemmas, normalize, same_stem
 
 
@@ -182,3 +182,21 @@ def test_typo_is_corrected_only_against_the_base() -> None:
     vocabulary = ["кибербезопасность", "промбезопасность", "аудит"]
     assert correct_terms(["кибербезопастность"], vocabulary) == ["кибербезопасность"]
     assert correct_terms(["аудитор", "зерттеулер"], vocabulary) == ["аудитор", "зерттеулер"]
+
+
+def test_order_inside_top_follows_percent_and_availability() -> None:
+    def card(i: str, percent: int, availability: str) -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city="", industry="", experience_years=1,
+            availability=availability, match_percent=percent, matched=[], related=[], reasons=[],
+        )  # fmt: skip
+
+    ordered = order_by_percent(
+        [
+            card("a", 22, "available"),
+            card("b", 53, "available"),
+            card("c", 60, "busy"),
+            card("d", 90, "available"),
+        ]
+    )
+    assert [r.id for r in ordered] == ["b", "c", "a", "d"]  # 53 > 0.7*60 > 22; d остаётся вне топ-3

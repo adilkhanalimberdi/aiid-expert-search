@@ -64,6 +64,20 @@ def result_for(
     )
 
 
+def order_by_percent(results: list[SearchResult]) -> list[SearchResult]:
+    """Упорядочивает по проценту с учётом доступности внутри топа и внутри остальных.
+
+    Кто попал в первую группу, решает RRF (это то, что меряет eval), а порядок внутри группы
+    совпадает с процентом на карточке: 60% не стоит выше 80% только из-за города.
+    """
+    head = config.ORDER_GROUP_SIZE
+
+    def key(result: SearchResult) -> float:
+        return -result.match_percent * config.BOOST_AVAILABILITY[result.availability]
+
+    return sorted(results[:head], key=key) + sorted(results[head:], key=key)
+
+
 def is_without_evidence(
     index: SearchIndex, best: list[int], parsed: ParsedQuery, query_vec: np.ndarray
 ) -> bool:
@@ -112,6 +126,8 @@ def search(
     results = [
         result_for(index, i, parsed, query_vec, bm_ranks.get(i), vec_ranks.get(i), req.lang) for i in best
     ]
+    if mode == "hybrid":
+        results = order_by_percent(results)
     is_weak = not eligible or float(max(cosines[i] for i in eligible)) < config.WEAK_MATCH_COS
     if not is_weak and results:
         is_weak = is_without_evidence(index, best, parsed, query_vec)
