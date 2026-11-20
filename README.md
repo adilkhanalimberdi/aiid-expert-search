@@ -49,7 +49,29 @@
 
 ## Запуск
 
-Нужны Python 3.11+ (у нас 3.12), Node 20+. База данных не нужна. Windows (PowerShell), из корня репозитория:
+### Одной командой (Docker)
+
+Нужен только Docker (Docker Desktop на Windows и macOS или colima). Python и Node не нужны.
+
+```bash
+./start.sh        # macOS, Linux
+.\start.ps1       # Windows PowerShell
+```
+
+Скрипт при первом запуске скачивает модель через Docker (один раз, ~2,3 ГБ, нужен интернет), собирает и поднимает бэкенд и фронт, ждёт готовности и печатает адреса: интерфейс `http://localhost:8080`, Swagger `http://localhost:8080/docs`. Дальше всё работает без сети (проверено запуском бэкенда в контейнере без сетевого интерфейса). Если порт занят: `WEB_PORT=8090 BACKEND_PORT=8010 ./start.sh`. Остановить: `docker compose down`. С других устройств в той же сети: `http://<IP компьютера>:8080`.
+
+То же вручную:
+
+```bash
+docker compose --profile setup run --rm model   # один раз: модель в backend/models/bge-m3
+docker compose up --build -d
+```
+
+Если на Windows `docker compose` пишет `dial tcp 127.0.0.1:2375: connectex: ... refused`, в окружении задана `DOCKER_HOST=tcp://127.0.0.1:2375`, а Docker Desktop не слушает этот порт. Запустите Docker Desktop и дождитесь «Engine running», затем `Remove-Item Env:DOCKER_HOST` (PowerShell).
+
+### Для разработки (venv и Vite)
+
+Нужны Python 3.11+ (у нас 3.12), Node 20+. Windows (PowerShell), из корня репозитория:
 
 ```powershell
 python -m venv .venv
@@ -63,17 +85,9 @@ cd backend; ..\.venv\Scripts\python.exe -m uvicorn app.main:app   # API: http://
 cd web; npm install; npm run dev                                   # UI:  http://localhost:5173
 ```
 
-Или всё в Docker (модель всё равно скачать заранее командой выше):
-
-```powershell
-docker compose up --build   # UI: http://localhost:8080, API: http://localhost:8000/docs
-```
-
-Если `docker compose` пишет `dial tcp 127.0.0.1:2375: connectex: ... refused`, в окружении задана `DOCKER_HOST=tcp://127.0.0.1:2375`, а Docker Desktop не слушает этот порт. Запустите Docker Desktop и дождитесь «Engine running», затем уберите переменную в текущей сессии: `Remove-Item Env:DOCKER_HOST` (PowerShell). Либо включите в настройках Docker Desktop «Expose daemon on tcp://localhost:2375 without TLS».
+macOS / Linux: те же шаги, `source .venv/bin/activate`, затем `pip`, `hf`, `uvicorn` без путей (на macOS `brew install python@3.12`, torch ставится обычным `pip install torch`).
 
 Деплой на сервер и требования к памяти: [docs/deploy.md](docs/deploy.md).
-
-macOS / Linux: те же шаги, `source .venv/bin/activate`, затем `pip`, `hf`, `uvicorn` без путей.
 
 ## Как это работает
 
