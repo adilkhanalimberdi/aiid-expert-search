@@ -1,4 +1,5 @@
 import { useRef, useState, type DragEvent } from 'react'
+import { CatalogTable } from '../components/CatalogTable'
 import { ErrorBox } from '../components/ErrorBox'
 import { Skeleton } from '../components/Skeleton'
 import { useAsync } from '../hooks/useAsync'
@@ -113,6 +114,8 @@ export function DataPage() {
           )}
         </section>
       )}
+
+      <CatalogTable reloadKey={reloadKey} />
 
       <section className="rounded-2xl border border-line bg-white p-5" aria-label="Формат файла">
         <h2 className="font-semibold">Формат файла</h2>
