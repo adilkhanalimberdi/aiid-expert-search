@@ -58,8 +58,11 @@ BOOST_CITY_MISMATCH = 0.8  # город указан, но другой: не и
 BOOST_INDUSTRY_MATCH = 1.2
 BOOST_EXPERIENCE_BELOW = 0.85
 BOOST_AVAILABILITY = {"available": 1.0, "partial": 0.85, "busy": 0.7}
-FEEDBACK_STEP = 0.05  # x(1 + step * (лайки - дизлайки))
-FEEDBACK_MIN, FEEDBACK_MAX = 0.8, 1.2
+FEEDBACK_STEP = 0.1  # x(1 + step * сумма голосов с весом похожести запросов)
+FEEDBACK_MIN, FEEDBACK_MAX = 0.7, 1.3
+FEEDBACK_SIM_FLOOR = (
+    0.7  # голос из другого запроса действует от этого косинуса запросов; тот же запрос весит 1
+)
 
 # Процент соответствия: 100 * (W_SEMANTIC * смысл + W_COVERAGE * покрытие)
 W_SEMANTIC = 0.6

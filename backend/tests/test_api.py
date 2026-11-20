@@ -45,7 +45,7 @@ def test_endpoints(client: TestClient) -> None:
     assert summary["top_competencies"]
     assert len(summary["evaluations"]) >= 6
     assert "/api/search" in client.get("/openapi.json").json()["paths"]
-    assert feedback.multiplier(expert_id) == pytest.approx(1.05)
+    assert feedback.votes() == [("GMP", expert_id, 1)]
 
 
 @pytest.mark.parametrize("query", ["", "   ", "x" * 501])
@@ -72,12 +72,9 @@ def test_filters_and_feedback_validation(client: TestClient) -> None:
         ).status_code
         == 422
     )
-    for _ in range(10):
-        feedback.save("q", "E001", "fit")
-    assert feedback.multiplier("E001") == 1.2
-    for _ in range(30):
-        feedback.save("q", "E001", "not_fit")
-    assert feedback.multiplier("E001") == 0.8
+    feedback.save("q", "E001", "fit")
+    feedback.save("q", "E001", "not_fit")
+    assert feedback.votes() == [("q", "E001", 1), ("q", "E001", -1)]
 
 
 def test_upload_atomicity_and_restart(client: TestClient) -> None:
@@ -237,9 +234,24 @@ def test_feedback_changes_ranking(client: TestClient) -> None:
     assert pairs
     first, second = pairs[-1]
     for _ in range(6):  # множитель отзывов ограничен: от 0,8 до 1,2
-        client.post("/api/feedback", json={"query": "GMP", "expert_id": first["id"], "verdict": "not_fit"})
-        client.post("/api/feedback", json={"query": "GMP", "expert_id": second["id"], "verdict": "fit"})
+        client.post(
+            "/api/feedback", json={"query": "GMP Алматы", "expert_id": first["id"], "verdict": "not_fit"}
+        )
+        client.post(
+            "/api/feedback", json={"query": "GMP Алматы", "expert_id": second["id"], "verdict": "fit"}
+        )
     after = [item["id"] for item in client.post("/api/search", json=query).json()["results"]]
     # демотированный эксперт либо стоит ниже соседа, либо выпал из выдачи совсем
     assert first["id"] not in after or after.index(second["id"]) < after.index(first["id"])
     assert second["id"] in after
+
+
+def test_feedback_from_another_topic_does_not_change_ranking(client: TestClient) -> None:
+    query = {"query": "GMP Алматы", "top_k": 8}
+    before = [item["id"] for item in client.post("/api/search", json=query).json()["results"]]
+    for _ in range(8):
+        client.post(
+            "/api/feedback", json={"query": "кибербезопасность", "expert_id": before[0], "verdict": "not_fit"}
+        )
+    after = [item["id"] for item in client.post("/api/search", json=query).json()["results"]]
+    assert after == before

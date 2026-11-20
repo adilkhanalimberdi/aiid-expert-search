@@ -284,3 +284,17 @@ def test_feedback_moves_expert_inside_top_group() -> None:
         r.id for r in order_by_percent(results, {"a": 0.8})
     ] == ["b", "a", "c"]
     assert order_by_percent(results, {"a": 0.8})[0].id == "b"
+
+
+def test_feedback_is_weighted_by_query_similarity() -> None:
+    from app.feedback import multipliers
+
+    vectors = {"gmp алматы": np.array([1.0, 0.0]), "кибербезопасность": np.array([0.0, 1.0])}
+    rows = [("gmp алматы", "E1", -1), ("gmp алматы", "E1", -1), ("кибербезопасность", "E2", 1)]
+    same = multipliers(rows, "GMP Алматы", np.array([1.0, 0.0]), lambda text: vectors[text])
+    assert same["E1"] == pytest.approx(0.8)  # тот же запрос: два голоса по 0,1
+    assert "E2" not in same  # голос из другой темы ничего не весит
+    close = multipliers(rows[:1], "другая формулировка", np.array([0.85, 0.5268]), lambda text: vectors[text])
+    assert close["E1"] == pytest.approx(0.95)  # косинус 0,85: вес 0,5
+    many = multipliers([("q", "E1", 1)] * 20, "q", np.array([1.0, 0.0]), lambda text: vectors["gmp алматы"])
+    assert many["E1"] == pytest.approx(1.3)  # верхний предел

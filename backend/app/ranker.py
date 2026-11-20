@@ -5,6 +5,7 @@ from time import perf_counter
 import numpy as np
 
 from . import config
+from . import feedback as feedback_store
 from .explain import explain
 from .index import SearchIndex, encode_query, encode_terms
 from .query_parser import canonical_city, parse
@@ -100,6 +101,26 @@ def result_for(
     )
 
 
+_vote_vectors: dict[tuple[int, str], np.ndarray] = {}
+
+
+def feedback_for(
+    index: SearchIndex, query: str, query_vec: np.ndarray, votes: list[tuple[str, str, int]] | None
+) -> dict[str, float]:
+    """Множители отзывов для этого запроса; векторы прошлых запросов считаются один раз и кэшируются."""
+    if not votes:
+        return {}
+
+    def vector_of(text: str) -> np.ndarray:
+        key = (id(index), text)
+        if key not in _vote_vectors:
+            parsed = parse(text, index.bm25.idf, index.industry_names, index.city_names)
+            _vote_vectors[key] = query_vector(text, parsed)
+        return _vote_vectors[key]
+
+    return feedback_store.multipliers(votes, query, query_vec, vector_of)
+
+
 def order_by_percent(
     results: list[SearchResult], feedback_scores: dict[str, float] | None = None
 ) -> list[SearchResult]:
@@ -134,7 +155,7 @@ def search(
     index: SearchIndex,
     req: SearchRequest,
     mode: str = "hybrid",
-    feedback_scores: dict[str, float] | None = None,
+    feedback_votes: list[tuple[str, str, int]] | None = None,
 ) -> SearchResponse:
     """Возвращает отфильтрованный топ с детерминированным порядком при равных оценках."""
     if mode not in {"hybrid", "bm25", "vector"}:
@@ -144,6 +165,7 @@ def search(
     query_vec = query_vector(req.query, parsed)
     cosines = index.expert_vecs @ query_vec
     credits = term_credits(index, parsed)
+    feedback_scores = feedback_for(index, req.query, query_vec, feedback_votes)
     base_terms = expand_vocabulary(parsed.terms, index.bm25.idf)
     synonyms = [word for word in expand_synonyms(base_terms) if word not in base_terms]
     lexical = index.bm25.get_scores(base_terms)

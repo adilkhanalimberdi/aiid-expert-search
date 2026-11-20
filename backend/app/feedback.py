@@ -1,10 +1,13 @@
 """Отзывы в SQLite; один запрос агрегации на весь поиск."""
 
 import sqlite3
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 
-from .config import FEEDBACK_MAX, FEEDBACK_MIN, FEEDBACK_STEP, settings
+import numpy as np
+
+from .config import FEEDBACK_MAX, FEEDBACK_MIN, FEEDBACK_SIM_FLOOR, FEEDBACK_STEP, settings
+from .text import model_text
 
 
 @contextmanager
@@ -38,18 +41,37 @@ def save(query: str, expert_id: str, verdict: str) -> None:
         )
 
 
-def multipliers() -> dict[str, float]:
-    """Вычисляет ограниченные множители для всех экспертов одним запросом."""
+def votes() -> list[tuple[str, str, int]]:
+    """Все голоса: (запрос, эксперт, +1 «подошёл» или -1 «не подошёл»)."""
     with connection() as db:
-        rows = db.execute(
-            "SELECT expert_id, SUM(CASE verdict WHEN 'fit' THEN 1 ELSE -1 END) "
-            "FROM feedback GROUP BY expert_id"
-        ).fetchall()
+        rows = db.execute("SELECT query, expert_id, verdict FROM feedback").fetchall()
+    return [(query, expert_id, 1 if verdict == "fit" else -1) for query, expert_id, verdict in rows]
+
+
+def multipliers(
+    rows: list[tuple[str, str, int]],
+    query: str,
+    query_vec: np.ndarray,
+    vector_of: Callable[[str], np.ndarray],
+) -> dict[str, float]:
+    """Множитель эксперта для этого запроса: голоса по похожим запросам, чем ближе тема, тем сильнее.
+
+    Голос «не подошёл» по теме GMP не должен понижать эксперта в запросе про кибербезопасность.
+    Тот же запрос весит 1, запрос другой темы (косинус ниже FEEDBACK_SIM_FLOOR) не весит ничего.
+    """
+    same = model_text(query)
+    weights: dict[str, float] = {}
+    for text in {row[0] for row in rows}:
+        if model_text(text) == same:
+            weights[text] = 1.0
+            continue
+        similarity = float(vector_of(text) @ query_vec)
+        weights[text] = max(0.0, (similarity - FEEDBACK_SIM_FLOOR) / (1 - FEEDBACK_SIM_FLOOR))
+    delta: dict[str, float] = {}
+    for text, expert_id, sign in rows:
+        delta[expert_id] = delta.get(expert_id, 0.0) + sign * weights[text]
     return {
-        expert_id: max(FEEDBACK_MIN, min(FEEDBACK_MAX, 1 + FEEDBACK_STEP * delta))
-        for expert_id, delta in rows
+        expert_id: max(FEEDBACK_MIN, min(FEEDBACK_MAX, 1 + FEEDBACK_STEP * total))
+        for expert_id, total in delta.items()
+        if total
     }
-
-
-def multiplier(expert_id: str) -> float:
-    return multipliers().get(expert_id, 1.0)

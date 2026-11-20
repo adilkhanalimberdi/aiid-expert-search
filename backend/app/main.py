@@ -72,7 +72,7 @@ def health() -> HealthResponse:
 @app.post("/api/search", response_model=SearchResponse)
 def search(req: SearchRequest) -> SearchResponse:
     snapshot = app.state.index
-    response = ranker.search(snapshot, req, feedback_scores=feedback_store.multipliers())
+    response = ranker.search(snapshot, req, feedback_votes=feedback_store.votes())
     stats_store.log_query(response.parsed.terms, response.took_ms, response.weak_match)
     return response
 
