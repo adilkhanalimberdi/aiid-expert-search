@@ -1,47 +1,146 @@
 @import 'tailwindcss';
 
-/* Токены из макета (AGENTS.md, раздел «Фронтенд») */
+/* Токены Sarap (AGENTS.md, раздел «Фронтенд»): чернильный, кобальт, лайм, бумага */
 @theme {
-  --color-ink: #10221e;
-  --color-ink-soft: #233a34;
-  --color-ground: #eef1ec;
-  --color-line: #d6dcd4;
-  --color-sky: #7fd6e4;
-  --color-teal: #0b6e63;
-  --color-teal-tint: #e2eeea;
-  --color-muted: #5b6b64;
-  --color-amber-note: #e9cf8f;
-  --color-danger: #a33a2c;
+  --color-ink: #0f1218;
+  --color-cobalt: #3350ff;
+  --color-cobalt-deep: #1f36cc;
+  --color-lime: #d6ff57;
+  --color-lime-soft: #eeffa8;
+  --color-paper: #f3f3ee;
+  --color-rule: #c9cbc1;
+  --color-muted: #3a414b;
+  --color-quiet: #5b6070;
+  --color-amber: #f2c14e;
+  --color-amber-deep: #9a6a00;
+  --color-ash: #b8bdc8;
+  --color-ash-deep: #6b7280;
+  --color-danger: #b3261e;
 
-  --color-free-bg: #ddf1e2;
-  --color-free-fg: #17602f;
-  --color-partial-bg: #fbefcf;
-  --color-partial-fg: #6e4700;
-  --color-busy-bg: #e3e7e4;
-  --color-busy-fg: #3b4842;
+  --color-free: #2e9e55;
+  --color-partial: #d9a21b;
+  --color-busy: #8c93a1;
 
   --font-sans: 'Onest', system-ui, sans-serif;
-  --font-display: 'Unbounded', 'Onest', sans-serif;
+  --font-display: 'Geologica', 'Onest', system-ui, sans-serif;
 }
 
 html {
-  background: var(--color-ground);
+  background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  scrollbar-color: var(--color-ink) var(--color-paper);
+  /* место под полосу прокрутки занято всегда: при открытии окна страница не сдвигается */
+  scrollbar-gutter: stable;
+}
+
+::selection {
+  background: var(--color-lime);
+  color: var(--color-ink);
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-sky);
-  outline-offset: 2px;
+  outline: 3px solid var(--color-cobalt);
+  outline-offset: 3px;
 }
 
-/* Фон шапки: мягкое свечение и сетка «компасных» линий; цвета только из токенов */
-.hero-surface {
-  background-color: var(--color-ink);
-  background-image:
-    radial-gradient(60rem 28rem at 85% -10%, color-mix(in srgb, var(--color-sky) 22%, transparent), transparent 60%),
-    radial-gradient(40rem 20rem at 0% 110%, color-mix(in srgb, var(--color-teal) 35%, transparent), transparent 60%),
-    linear-gradient(color-mix(in srgb, var(--color-ground) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--color-ground) 5%, transparent) 1px, transparent 1px);
-  background-size: auto, auto, 44px 44px, 44px 44px;
+.on-dark :focus-visible {
+  outline-color: var(--color-lime);
+}
+
+/* Цифры в таблицах и оценках одной ширины */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Заглушки загрузки: лаймовый блик пробегает слева направо */
+@keyframes sweep {
+  from {
+    background-position: -520px 0;
+  }
+  to {
+    background-position: 520px 0;
+  }
+}
+
+.sk {
+  background: #e1e2da linear-gradient(100deg, transparent 30%, rgb(214 255 87 / 0.85) 50%, transparent 70%) no-repeat;
+  background-size: 520px 100%;
+  animation: sweep 1.5s ease-in-out infinite;
+}
+
+.sk-dark {
+  background: #1e232c linear-gradient(100deg, transparent 30%, rgb(214 255 87 / 0.35) 50%, transparent 70%) no-repeat;
+  background-size: 520px 100%;
+  animation: sweep 1.5s ease-in-out infinite;
+}
+
+/* Завитушки логотипа дорисовываются, пока идёт запрос; длина пути завитушки около 76 */
+@keyframes draw {
+  0% {
+    stroke-dashoffset: 76;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.horn-draw {
+  stroke-dasharray: 76;
+  stroke-dashoffset: 76;
+  animation: draw 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk,
+  .sk-dark {
+    animation: none;
+  }
+  .horn-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Чекбокс и радио в системе: острые углы, 2 px рамка */
+.check {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border: 2px solid var(--color-ink);
+  background: #fff;
+  cursor: pointer;
+  flex: none;
+}
+
+.check:checked {
+  background: var(--color-cobalt);
+  border-color: var(--color-cobalt);
+}
+
+.check:checked::after {
+  content: '';
+  width: 5px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.check-on-dark {
+  border-color: #fff;
+  background: transparent;
+}
+
+.check-on-dark:checked {
+  background: var(--color-lime);
+  border-color: var(--color-lime);
+}
+
+.check-on-dark:checked::after {
+  border-color: var(--color-ink);
 }

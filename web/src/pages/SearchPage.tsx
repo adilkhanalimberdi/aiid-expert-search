@@ -1,16 +1,18 @@
-import { useState, type FormEvent } from 'react'
-import { CompassRose } from '../components/CompassRose'
-import { Constellation } from '../components/Constellation'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { ErrorBox } from '../components/ErrorBox'
-import { ExpertCard } from '../components/ExpertCard'
+import { AlsoFit, BestMatch, CandidateRow } from '../components/ExpertCards'
 import { ExpertDialog } from '../components/ExpertDialog'
-import { ExpertCardSkeleton } from '../components/Skeleton'
+import { Formula } from '../components/Formula'
+import { HeroBand } from '../components/HeroBand'
+import { Readback } from '../components/Readback'
+import { ResultsSkeleton } from '../components/Skeleton'
 import { TeamPanel } from '../components/TeamPanel'
+import { ArrowRight, Button, Checkbox, Select } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
 import { useRecentQueries } from '../hooks/useRecentQueries'
 import { useSearch } from '../hooks/useSearch'
-import { api, type ParsedQuery, type SearchResponse } from '../lib/api'
-import { EXAMPLE_QUERIES, yearsLabel } from '../lib/format'
+import { api, type SearchResponse } from '../lib/api'
+import { useI18n } from '../lib/useI18n'
 
 const TOP_K = 8
 
@@ -20,7 +22,8 @@ interface SubmittedSearch {
   hideBusy: boolean
 }
 
-export function SearchPage() {
+export function SearchPage({ nav }: { nav: ReactNode }) {
+  const { t, lang } = useI18n()
   const [query, setQuery] = useState('')
   const [industry, setIndustry] = useState('')
   const [hideBusy, setHideBusy] = useState(false)
@@ -32,6 +35,7 @@ export function SearchPage() {
   const catalog = useAsync(() => api.health(), [])
   const { state, run } = useSearch()
   const { recent, remember } = useRecentQueries()
+  const previousLang = useRef(lang)
 
   function start(next: SubmittedSearch) {
     setSubmitted(next)
@@ -39,6 +43,14 @@ export function SearchPage() {
     setIsTeamOpen(false)
     run({ query: next.query, industry: next.industry, hide_busy: next.hideBusy, top_k: TOP_K })
   }
+
+  // Обоснования приходят с сервера на языке интерфейса: при смене языка перезапрашиваем текущий поиск
+  useEffect(() => {
+    if (previousLang.current === lang) return
+    previousLang.current = lang
+    if (submitted) run({ query: submitted.query, industry: submitted.industry, hide_busy: submitted.hideBusy, top_k: TOP_K })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang])
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -61,122 +73,98 @@ export function SearchPage() {
 
   return (
     <>
-      <section className="hero-surface relative overflow-hidden text-ground">
-        <Constellation
-          dotColorVar="--color-sky"
-          lineColorVar="--color-sky"
-          density={9}
-          intensity={0.75}
-          className="absolute inset-0 size-full"
-        />
-        <CompassRose />
-        <div className="relative mx-auto max-w-[1160px] px-4 pb-10 pt-6 sm:px-6">
-          <h1 className="max-w-2xl font-display text-2xl font-bold leading-tight text-white sm:text-4xl">
-            Lodestar finds the expert <span className="text-sky">for your task</span>
+      <HeroBand nav={nav}>
+        <div className="pt-14 text-center sm:pt-[72px]">
+          <h1 className="font-display text-[46px] font-light leading-none tracking-[-0.04em] text-balance sm:text-[96px]">
+            {t.search.h1}
           </h1>
-          <p className="mt-3 max-w-2xl text-ground/80">
-            Describe the task in your own words: the skill, the city, the experience you need. Lodestar shows who fits and why. Queries work in English, Russian and Kazakh.
-          </p>
-          <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ground/70">
-            {catalog.data && <span>{catalog.data.experts} experts in the database</span>}
-            {industries.data && <span>{industries.data.length} industries</span>}
-            <span>answers in a fraction of a second</span>
-            <span>no internet or external services</span>
-          </p>
+          <p className="mx-auto mt-6 max-w-[560px] text-lg leading-relaxed text-white/90">{t.search.sub}</p>
+          {catalog.data && industries.data && (
+            <p className="mt-3 text-sm text-white/80">
+              {t.search.experts(catalog.data.experts)} · {t.search.industriesCount(industries.data.length)}
+            </p>
+          )}
+        </div>
 
-          <form onSubmit={submit} className="mt-6 flex flex-col gap-3 sm:flex-row" role="search">
+        <form onSubmit={submit} role="search" className="mx-auto mt-11 flex max-w-[920px] flex-col items-center gap-7">
+          <div className="w-full shadow-[6px_6px_0_var(--color-ink)] sm:shadow-[10px_10px_0_var(--color-ink)]">
             <label htmlFor="query" className="sr-only">
-              Query
+              {t.search.queryLabel}
             </label>
             <input
               id="query"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               maxLength={500}
-              placeholder="For example: GMP specialist from Almaty"
-              className="min-h-12 flex-1 rounded-xl bg-white px-4 text-ink placeholder:text-muted"
+              placeholder={t.search.placeholder}
+              className="h-[68px] w-full rounded-none bg-paper px-4 font-display text-lg font-light tracking-[-0.02em] text-ink outline-none placeholder:text-ash-deep focus:shadow-[inset_0_-6px_0_var(--color-lime)] sm:h-[88px] sm:px-8 sm:text-[30px]"
             />
-            <button type="submit" className="min-h-12 rounded-xl bg-sky px-6 font-semibold text-ink hover:brightness-95">
-              Find experts
-            </button>
-          </form>
-          <p className="mt-2 min-h-5 text-sm text-amber-note" aria-live="polite">
-            {emptyHint && 'Type a query: what kind of expert do you need?'}
+          </div>
+          <Button type="submit" variant="lime" size="lg" className="w-full sm:w-auto">
+            {t.search.submit}
+            <ArrowRight />
+          </Button>
+          <p className="-mt-3 min-h-5 text-sm text-lime" aria-live="polite">
+            {emptyHint && t.search.emptyQuery}
           </p>
+        </form>
 
-          <div className="mt-2 flex flex-wrap gap-2" aria-label="Example queries">
-            {EXAMPLE_QUERIES.map((example) => (
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-7 gap-y-1">
+          <span className="text-sm text-white/80">{t.search.tryLabel}</span>
+          {t.search.examples.map((example) => (
+            <button
+              key={example}
+              type="button"
+              onClick={() => applyExample(example)}
+              className="min-h-11 cursor-pointer text-[15px] font-medium text-white underline decoration-[1.5px] underline-offset-[5px] hover:decoration-lime"
+            >
+              {example}
+            </button>
+          ))}
+        </div>
+
+        {recent.length > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1" aria-label={t.search.recent}>
+            <span className="text-sm text-white/80">{t.search.recent}</span>
+            {recent.map((item) => (
               <button
-                key={example}
+                key={item}
                 type="button"
-                onClick={() => applyExample(example)}
-                className="rounded-full bg-white/10 px-3 py-1.5 text-left text-sm text-ground hover:bg-white/20"
+                onClick={() => applyExample(item)}
+                className="min-h-11 cursor-pointer text-sm text-white/90 underline decoration-white/40 decoration-1 underline-offset-[5px] hover:decoration-lime"
               >
-                {example}
+                {item}
               </button>
             ))}
           </div>
+        )}
 
-          {recent.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-2" aria-label="Recent queries">
-              <span className="text-sm text-ground/70">Recent:</span>
-              {recent.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => applyExample(item)}
-                  className="rounded-full border border-ground/25 px-3 py-1 text-sm text-ground hover:bg-white/10"
-                >
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 pb-14">
+          <label className="flex items-center gap-3.5 text-[15px] font-medium">
+            {t.search.industry}
+            <Select tone="dark" value={industry} onChange={(event) => changeFilters(event.target.value, hideBusy)}>
+              <option value="">{t.search.anyIndustry}</option>
+              {industries.data?.map((item) => (
+                <option key={item} value={item}>
                   {item}
-                </button>
+                </option>
               ))}
-            </div>
-          )}
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <label className="flex items-center gap-2 text-sm">
-              Industry
-              <select
-                value={industry}
-                onChange={(event) => changeFilters(event.target.value, hideBusy)}
-                className="rounded-lg bg-white px-3 py-2 text-ink"
-              >
-                <option value="">Any</option>
-                {industries.data?.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={hideBusy}
-                onChange={(event) => changeFilters(industry, event.target.checked)}
-                className="size-4 accent-sky"
-              />
-              Hide busy experts
-            </label>
-          </div>
+            </Select>
+          </label>
+          <Checkbox
+            tone="dark"
+            checked={hideBusy}
+            onChange={(event) => changeFilters(industry, event.target.checked)}
+            label={t.search.hideBusy}
+          />
         </div>
-      </section>
+      </HeroBand>
 
-      <section className="mx-auto max-w-[1160px] px-4 py-8 sm:px-6" aria-live="polite">
+      <section className="mx-auto max-w-[1120px] px-4 pb-6 pt-16 sm:px-6" aria-live="polite">
         {state.status === 'idle' && (
-          <p className="rounded-2xl border border-dashed border-line p-8 text-center text-muted">
-            Type a query or pick an example and the experts will appear here.
-          </p>
+          <p className="border-2 border-dashed border-rule p-10 text-center text-muted">{t.search.idle}</p>
         )}
-        {state.status === 'loading' && (
-          <div className="space-y-4">
-            <ExpertCardSkeleton isLarge />
-            <div className="grid gap-4 md:grid-cols-2">
-              <ExpertCardSkeleton />
-              <ExpertCardSkeleton />
-            </div>
-          </div>
-        )}
+        {state.status === 'loading' && <ResultsSkeleton />}
         {state.status === 'error' && (
           <ErrorBox message={state.message} onRetry={submitted ? () => start(submitted) : undefined} />
         )}
@@ -189,15 +177,11 @@ export function SearchPage() {
             onOpen={setOpenExpertId}
           />
         )}
+        <Formula />
       </section>
 
       {openExpertId && (
-        <ExpertDialog
-          expertId={openExpertId}
-          query={submitted?.query ?? ''}
-          onOpen={setOpenExpertId}
-          onClose={() => setOpenExpertId(null)}
-        />
+        <ExpertDialog expertId={openExpertId} query={submitted?.query ?? ''} onClose={() => setOpenExpertId(null)} />
       )}
     </>
   )
@@ -211,64 +195,64 @@ interface ResultsProps {
   onOpen: (expertId: string) => void
 }
 
+function SectionTitle({ children }: { children: ReactNode }) {
+  return <h2 className="mb-5 mt-[72px] font-display text-4xl font-light leading-[1.1] tracking-[-0.035em] sm:text-[40px]">{children}</h2>
+}
+
 function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsProps) {
+  const { t } = useI18n()
   const [best, ...rest] = data.results
   const alsoFit = rest.slice(0, 2)
   const others = rest.slice(2)
 
   return (
-    <div className="space-y-6">
-      <ParsedLine parsed={data.parsed} tookMs={data.took_ms} />
+    <div>
+      <Readback parsed={data.parsed} tookMs={data.took_ms} count={data.results.length} />
 
       {data.weak_match && (
-        <p role="status" className="rounded-2xl border border-partial-fg/30 bg-partial-bg p-4 text-partial-fg">
-          No exact matches, here are the closest ones. Try rephrasing the query or removing constraints.
+        <p role="status" className="mt-8 border-2 border-ink bg-amber p-4 font-medium">
+          {t.search.weak}
         </p>
       )}
 
-      {!best && (
-        <p className="rounded-2xl border border-line bg-white p-8 text-center text-muted">
-          Nobody found. Remove the industry filter or “Hide busy experts”.
-        </p>
-      )}
+      {!best && <p className="mt-8 border-2 border-ink bg-white p-10 text-center text-muted">{t.search.nobody}</p>}
 
       {best && (
         <>
-          <ExpertCard expert={best} query={submitted.query} variant="featured" onOpen={onOpen} />
+          <div className="mt-12">
+            <BestMatch expert={best} query={submitted.query} onOpen={onOpen} />
+          </div>
 
           {alsoFit.length > 0 && (
-            <div>
-              <h2 className="mb-3 font-display text-lg font-bold">Also a good fit</h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                {alsoFit.map((expert) => (
-                  <ExpertCard key={expert.id} expert={expert} query={submitted.query} variant="compact" onOpen={onOpen} />
+            <>
+              <SectionTitle>{t.card.also}</SectionTitle>
+              <div className="grid border-2 border-ink bg-white md:grid-cols-2">
+                {alsoFit.map((expert, index) => (
+                  <div key={expert.id} className={index > 0 ? 'border-t-2 border-ink md:border-l-2 md:border-t-0' : ''}>
+                    <AlsoFit expert={expert} query={submitted.query} onOpen={onOpen} />
+                  </div>
                 ))}
               </div>
-            </div>
+            </>
           )}
 
           {others.length > 0 && (
-            <div>
-              <h2 className="mb-3 font-display text-lg font-bold">Other candidates</h2>
-              <div className="space-y-3">
+            <>
+              <SectionTitle>{t.card.others}</SectionTitle>
+              <div className="border-t-2 border-ink">
                 {others.map((expert) => (
-                  <ExpertCard key={expert.id} expert={expert} query={submitted.query} variant="row" onOpen={onOpen} />
+                  <CandidateRow key={expert.id} expert={expert} query={submitted.query} onOpen={onOpen} />
                 ))}
               </div>
-            </div>
+            </>
           )}
 
-          <div>
-            <button
-              type="button"
-              onClick={onToggleTeam}
-              aria-expanded={isTeamOpen}
-              className="rounded-xl bg-ink px-5 py-3 font-semibold text-white hover:bg-ink-soft"
-            >
-              {isTeamOpen ? 'Hide the team' : 'Build a team for this query'}
-            </button>
+          <div className="mt-14 flex flex-col items-center">
+            <Button variant="outline" onClick={onToggleTeam} aria-expanded={isTeamOpen}>
+              {isTeamOpen ? t.card.hideTeam : t.card.buildTeam}
+            </Button>
             {isTeamOpen && (
-              <div className="mt-4">
+              <div className="mt-6 w-full">
                 <TeamPanel
                   query={submitted.query}
                   industry={submitted.industry}
@@ -280,46 +264,6 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
           </div>
         </>
       )}
-
-      <MatchExplainer />
     </div>
-  )
-}
-
-function ParsedLine({ parsed, tookMs }: { parsed: ParsedQuery; tookMs: number }) {
-  const chips = [
-    parsed.city && `City: ${parsed.city}`,
-    parsed.industry && `Industry: ${parsed.industry}`,
-    parsed.min_experience !== null && `Experience from ${yearsLabel(parsed.min_experience)}`,
-    ...parsed.terms.map((term) => `«${term}»`),
-  ].filter(Boolean) as string[]
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-muted">How the query was understood:</span>
-      {chips.length === 0 && <span className="text-muted">no key terms found</span>}
-      {chips.map((chip) => (
-        <span key={chip} className="rounded-full bg-white px-3 py-1 ring-1 ring-line">
-          {chip}
-        </span>
-      ))}
-      <span className="ml-auto text-muted">{tookMs} ms</span>
-    </div>
-  )
-}
-
-function MatchExplainer() {
-  return (
-    <details className="rounded-2xl border border-line bg-white p-5">
-      <summary className="cursor-pointer font-semibold">How the match is calculated</summary>
-      <div className="mt-3 space-y-2 text-sm text-ink-soft">
-        <p>The percentage has two parts: 60% semantic closeness of the query to the profile, 40% share of query terms found.</p>
-        <p>
-          The order comes from two searches, by exact words and by meaning. Then city (same: higher, different: lower), industry,
-          experience and availability are applied: busy experts move down but never disappear.
-        </p>
-        <p>Reasons on a card are built from real profile fields; no text is generated.</p>
-      </div>
-    </details>
   )
 }

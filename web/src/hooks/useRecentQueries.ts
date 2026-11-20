@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-const STORAGE_KEY = 'lodestar.recent-queries'
+const STORAGE_KEY = 'sarap.recent-queries'
 const MAX_RECENT = 5
 
 function read(): string[] {

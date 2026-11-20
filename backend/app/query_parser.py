@@ -2,32 +2,66 @@
 
 import json
 import re
+from collections.abc import Iterable
 from difflib import get_close_matches
 from functools import lru_cache
 
 from . import config
 from .config import settings
 from .schemas import ParsedQuery
-from .text import contains, lemmas, normalize
+from .text import contains_stem, correct_terms, lemmas, normalize, related_phrases
 
 MIN_FUZZY_LENGTH = 5
-# «от 10 лет», «не менее 5 лет» и английские «5+ years», «at least 10 years»
+# «от 10 лет», «20+ лет», «более 5 лет», «опыт 7 лет», «10 жыл», «5+ years», «at least 10 years».
+# Плюс уже убран нормализацией, поэтому «20+ лет» приходит как «20 лет».
 EXPERIENCE_PATTERN = (
-    r"(?:от|не менее|минимум)\s*(\d+)\s*(?:лет|год\w*)"
-    r"|(?:at least|minimum|over|more than)?\s*(\d+)\s*\+?\s*(?:years?|yrs?)"
+    r"\b(?:(?:от|не менее|минимум|более|больше|свыше|опыт\w*|стаж\w*)\s*)?(\d{1,2})\s*(?:лет|год\w*)"
+    r"|\b(?:(?:at least|minimum|over|more than)\s*)?(\d{1,2})\s*(?:years?|yrs?)"
+    r"|\b(\d{1,2})\s*жыл\w*(?:\s*астам)?"
+)
+# Просьба о доступности («свободный сейчас», «available now», «қазір бос»): занятых не показываем.
+AVAILABILITY_WORDS = frozenset(
+    {"свободный", "свободен", "свободна", "доступный", "доступен", "available", "free", "бос"}
 )
 
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=4)
 def dictionary(name: str) -> dict:
-    return json.loads((settings.path(settings.dictionaries_dir) / f"{name}.json").read_text(encoding="utf-8"))
+    """Словарь из data/dictionaries. Города: cities.json (города демо-каталога, по ним генерируются данные)
+    плюс cities_extra.json (остальные города и написания только для разбора запросов)."""
+    folder = settings.path(settings.dictionaries_dir)
+    data = json.loads((folder / f"{name}.json").read_text(encoding="utf-8"))
+    extra = folder / f"{name}_extra.json"
+    if extra.exists():
+        data = {**data, **json.loads(extra.read_text(encoding="utf-8"))}
+    return data
 
 
-def fuzzy_city(words: list[str]) -> tuple[str, str] | None:
+@lru_cache(maxsize=4096)
+def canonical_city(name: str) -> str:
+    """Каноническое имя города: «Almaty» и «Алматы» это один город; незнакомое остаётся как есть."""
+    key = tuple(lemmas(name, False))
+    for canonical, aliases in dictionary("cities").items():
+        if key in {tuple(lemmas(spelling, False)) for spelling in [canonical, *aliases]}:
+            return canonical
+    return name
+
+
+def city_aliases(cities: tuple[str, ...] | None) -> dict[str, list[str]]:
+    """Словарь городов плюс города загруженного каталога, которых в словаре нет («Москва», «Brest»)."""
+    result = dict(dictionary("cities"))
+    for name in cities or ():
+        canonical = canonical_city(name)
+        if canonical not in result:
+            result[canonical] = [canonical]
+    return result
+
+
+def fuzzy_city(words: list[str], cities: dict[str, list[str]] | None = None) -> tuple[str, str] | None:
     """Город с опечаткой («алмты»): ближайшее написание из словаря; короткие слова не трогаем."""
     spellings = {
         normalize(spelling): canonical
-        for canonical, aliases in dictionary("cities").items()
+        for canonical, aliases in (cities or dictionary("cities")).items()
         for spelling in [canonical, *aliases]
         if len(spelling) >= MIN_FUZZY_LENGTH
     }
@@ -40,12 +74,41 @@ def fuzzy_city(words: list[str]) -> tuple[str, str] | None:
     return None
 
 
-def parse(query: str) -> ParsedQuery:
-    """Извлекает ограничения, сохраняя предметные компетенции в терминах."""
+def industry_aliases(industries: tuple[str, ...] | None) -> dict[str, tuple[tuple[str, ...], ...]]:
+    """Слова, по которым узнаём отрасль: словарь, само название и синонимы из общего словаря.
+
+    Отрасли берутся из загруженных данных: для чужого CSV («Банкинг», «Agriculture») работает название
+    отрасли и её синонимы, словарь industries.json добавляет слова для демо-каталога.
+    """
+    static = dictionary("industries")
+    names = industries if industries is not None else tuple(static)
+    result = {}
+    for name in names:
+        words = [*static.get(name, []), name]
+        phrases = {tuple(lemmas(word)) for word in words if lemmas(word)}
+        expanded = {related for phrase in phrases for related in related_phrases(phrase)}
+        result[name] = tuple(sorted(expanded))
+    return result
+
+
+def parse(
+    query: str,
+    vocabulary: Iterable[str] | None = None,
+    industries: tuple[str, ...] | None = None,
+    cities: tuple[str, ...] | None = None,
+) -> ParsedQuery:
+    """Извлекает ограничения, сохраняя предметные компетенции в терминах.
+
+    С `vocabulary` (леммы базы) термины с опечатками заменяются словами базы; с `industries` (отрасли
+    загруженного каталога) отрасль ищется только среди них; с `cities` города каталога узнаются в запросе.
+    """
     normalized = normalize(query)
     words = normalized.split()
+    available_only = any(word in AVAILABILITY_WORDS for word in words)
+    words = [word for word in words if word not in AVAILABILITY_WORDS]
     city = None
-    for canonical, aliases in dictionary("cities").items():
+    city_dictionary = city_aliases(cities)
+    for canonical, aliases in city_dictionary.items():
         alias_lemmas = [lemmas(alias, False) for alias in aliases]
         matched = [
             word
@@ -57,18 +120,26 @@ def parse(query: str) -> ParsedQuery:
             city = canonical
             words = [word for word in words if word not in matched]
             break
-    if city is None and (typo := fuzzy_city(words)):
+    if city is None and (typo := fuzzy_city(words, city_dictionary)):
         city, matched_word = typo
         words = [word for word in words if word != matched_word]
     remaining = " ".join(words)
     experience = re.search(EXPERIENCE_PATTERN, remaining)
-    min_experience = int(experience[1] or experience[2]) if experience else None
+    min_experience = int(next(g for g in experience.groups() if g)) if experience else None
     if experience:
         remaining = remaining[: experience.start()] + remaining[experience.end() :]
     terms = lemmas(remaining)
+    if vocabulary is not None:
+        terms = correct_terms(terms, vocabulary)
     scores = {
-        name: sum(contains(terms, lemmas(alias)) for alias in aliases)
-        for name, aliases in dictionary("industries").items()
+        name: sum(contains_stem(terms, phrase) for phrase in phrases)
+        for name, phrases in industry_aliases(industries).items()
     }
     industry = max(scores, key=scores.get) if any(scores.values()) else None
-    return ParsedQuery(city=city, industry=industry, min_experience=min_experience, terms=terms)
+    return ParsedQuery(
+        city=city,
+        industry=industry,
+        min_experience=min_experience,
+        terms=terms,
+        available_only=available_only,
+    )

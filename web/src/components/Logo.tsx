@@ -1,42 +1,71 @@
-const GEAR_TEETH = 10
-const GEAR_OUTER_RADIUS = 15
-const GEAR_INNER_RADIUS = 12.2
-const GEAR_HOLE_RADIUS = 8.6
+// Знак Sarap: двойной рог «қошқар мүйіз», мотив казахского орнамента. Две завитушки (запрос и эксперт)
+// почти встречаются. Каждая завитушка это четыре дуги циркулем с радиусами 1,5; 4,5; 7,5; 10,5 и центрами,
+// чередующимися по оси; правая зеркальна левой.
 
-/** Контур шестерни из зубцов по кругу: отсылка к знаку AIID. */
-function gearPath(): string {
-  const step = (Math.PI * 2) / GEAR_TEETH
-  const point = (radius: number, angle: number) =>
-    `${(16 + radius * Math.sin(angle)).toFixed(2)} ${(16 - radius * Math.cos(angle)).toFixed(2)}`
-  const outer = Array.from({ length: GEAR_TEETH }, (_, index) => {
-    const angle = index * step
-    return [
-      point(GEAR_INNER_RADIUS, angle - step * 0.3),
-      point(GEAR_OUTER_RADIUS, angle - step * 0.17),
-      point(GEAR_OUTER_RADIUS, angle + step * 0.17),
-      point(GEAR_INNER_RADIUS, angle + step * 0.3),
-    ].join(' L')
-  })
-  const hole = `M16 ${16 - GEAR_HOLE_RADIUS} a${GEAR_HOLE_RADIUS} ${GEAR_HOLE_RADIUS} 0 1 0 0 ${GEAR_HOLE_RADIUS * 2} a${GEAR_HOLE_RADIUS} ${GEAR_HOLE_RADIUS} 0 1 0 0 -${GEAR_HOLE_RADIUS * 2}Z`
-  return `M${outer.join(' L')}Z ${hole}`
+const HORN = 'M32 32A1.5 1.5 0 0 0 29 32A4.5 4.5 0 0 0 38 32A7.5 7.5 0 0 0 23 32A10.5 10.5 0 0 0 44 32'
+const VIEW_BOX = '11 22 50 23'
+const ASPECT = 50 / 23
+
+interface VolutesProps {
+  width?: number
+  left?: string
+  right?: string
+  strokeWidth?: number
+  /** Дорисовка завитушек во время ожидания */
+  isDrawing?: boolean
+  label?: string
 }
 
-const GEAR = gearPath()
-
-interface MarkProps {
-  size?: number
-}
-
-/** Знак Lodestar: шестерня (индустрия, как у AIID) и стрелка-компас, указывающая на лучшего эксперта. */
-export function Logo({ size = 36 }: MarkProps) {
+export function Volutes({
+  width = 58,
+  left = 'var(--color-white)',
+  right = 'var(--color-lime)',
+  strokeWidth = 2,
+  isDrawing = false,
+  label,
+}: VolutesProps) {
+  const className = isDrawing ? 'horn-draw' : undefined
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden>
-      <path d={GEAR} fillRule="evenodd" className="fill-ground" />
-      <g transform="rotate(45 16 16)">
-        <path d="M16 8.2 L18.4 16 L13.6 16Z" className="fill-sky" />
-        <path d="M16 23.8 L18.4 16 L13.6 16Z" className="fill-ground/80" />
+    <svg
+      width={width}
+      height={width / ASPECT}
+      viewBox={VIEW_BOX}
+      fill="none"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      role={label ? 'img' : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
+      <g transform="translate(-10 0)" stroke={left}>
+        <path className={className} d={HORN} />
       </g>
-      <circle cx="16" cy="16" r="1.5" className="fill-ink" />
+      <g transform="translate(82 0) scale(-1 1)" stroke={right}>
+        <path className={className} d={HORN} />
+      </g>
+    </svg>
+  )
+}
+
+/** Огромные тонкие завитушки на фоне шапки: фирменный узор, не иллюстрация. */
+export function HornBackdrop() {
+  return (
+    <svg
+      aria-hidden
+      viewBox={VIEW_BOX}
+      preserveAspectRatio="xMidYMid slice"
+      className="pointer-events-none absolute left-1/2 top-[55%] h-[874px] w-[1900px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.16]"
+      fill="none"
+      stroke="var(--color-white)"
+      strokeWidth={0.32}
+      strokeLinecap="round"
+    >
+      <g transform="translate(-10 0)">
+        <path d={HORN} />
+      </g>
+      <g transform="translate(82 0) scale(-1 1)">
+        <path d={HORN} />
+      </g>
     </svg>
   )
 }
@@ -56,19 +85,14 @@ export function AiidLogo({ height = 44 }: { height?: number }) {
   )
 }
 
-/** Лого-лок «AIID | Lodestar»: логотип альянса и сервис как часть его экосистемы. */
+/** Лого-лок «Sarap | AIID»: сервис как часть экосистемы альянса. */
 export function Brand() {
   return (
     <div className="flex items-center gap-3 sm:gap-4">
-      <AiidLogo height={42} />
-      <span aria-hidden className="h-9 w-px bg-ground/25" />
-      <div className="flex items-center gap-2.5">
-        <Logo size={34} />
-        <div className="leading-tight">
-          <p className="font-display text-lg font-bold text-white">Lodestar</p>
-          <p className="text-xs text-ground/70">expert matching</p>
-        </div>
-      </div>
+      <Volutes width={56} label="Sarap" />
+      <span className="font-display text-[26px] font-normal tracking-[-0.03em] text-white">Sarap</span>
+      <span aria-hidden className="h-6 w-px bg-white/40" />
+      <AiidLogo height={30} />
     </div>
   )
 }
