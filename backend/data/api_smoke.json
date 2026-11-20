@@ -1,0 +1,13 @@
+{
+  "url": "http://127.0.0.1:8001",
+  "search_http": 200,
+  "search_ms": 226.5,
+  "top_id": "E001",
+  "upload": {
+    "loaded": 1,
+    "skipped": 0,
+    "errors": []
+  },
+  "invalid_csv_http": 400,
+  "restored": 150
+}
