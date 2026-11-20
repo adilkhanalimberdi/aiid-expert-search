@@ -25,9 +25,16 @@ AVAILABILITY_WORDS = frozenset(
 )
 
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=4)
 def dictionary(name: str) -> dict:
-    return json.loads((settings.path(settings.dictionaries_dir) / f"{name}.json").read_text(encoding="utf-8"))
+    """Словарь из data/dictionaries. Города: cities.json (города демо-каталога, по ним генерируются данные)
+    плюс cities_extra.json (остальные города и написания только для разбора запросов)."""
+    folder = settings.path(settings.dictionaries_dir)
+    data = json.loads((folder / f"{name}.json").read_text(encoding="utf-8"))
+    extra = folder / f"{name}_extra.json"
+    if extra.exists():
+        data = {**data, **json.loads(extra.read_text(encoding="utf-8"))}
+    return data
 
 
 @lru_cache(maxsize=4096)

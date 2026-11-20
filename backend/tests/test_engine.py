@@ -298,3 +298,16 @@ def test_feedback_is_weighted_by_query_similarity() -> None:
     assert close["E1"] == pytest.approx(0.95)  # косинус 0,85: вес 0,5
     many = multipliers([("q", "E1", 1)] * 20, "q", np.array([1.0, 0.0]), lambda text: vectors["gmp алматы"])
     assert many["E1"] == pytest.approx(1.3)  # верхний предел
+
+
+@pytest.mark.parametrize(
+    ("query", "city"),
+    [
+        ("юрист из Москвы", "Москва"),
+        ("в Семее", "Семей"),
+        ("Қостанайдан", "Костанай"),
+        ("welder Almaty", "Алматы"),
+    ],
+)
+def test_extra_cities_are_found(query: str, city: str) -> None:
+    assert parse(query).city == city
