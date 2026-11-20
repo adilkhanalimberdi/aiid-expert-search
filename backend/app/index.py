@@ -98,6 +98,21 @@ class SearchIndex:
     target_offsets: np.ndarray | None = None
 
     @cached_property
+    def unique_competencies(self) -> tuple[list[tuple[str, ...]], np.ndarray]:
+        """Уникальные компетенции каталога (в леммах) и их векторы: распознавание компетенции по смыслу."""
+        phrases: list[tuple[str, ...]] = []
+        vectors = []
+        seen: set[tuple[str, ...]] = set()
+        for expert, block in zip(self.experts, self.competency_vecs, strict=False):
+            for competency, vector in zip(expert.competencies, block, strict=False):
+                phrase = tuple(lemmas(competency))
+                if phrase and phrase not in seen:
+                    seen.add(phrase)
+                    phrases.append(phrase)
+                    vectors.append(vector)
+        return phrases, np.stack(vectors) if vectors else np.zeros((0, 1))
+
+    @cached_property
     def competency_phrases(self) -> list[frozenset[tuple[str, ...]]]:
         """Компетенции каждого эксперта в леммах: для совпадения целой фразы, а не отдельных слов."""
         return [
