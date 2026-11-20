@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 Availability = Literal["available", "partial", "busy"]
 
@@ -27,6 +27,13 @@ class SearchRequest(BaseModel):
     industry: str | None = None
     top_k: int = Field(default=5, ge=3, le=20)
     hide_busy: bool = False
+
+    @field_validator("query")
+    @classmethod
+    def nonblank_query(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Введите непустой поисковый запрос")
+        return value.strip()
 
 
 class ParsedQuery(BaseModel):
@@ -66,7 +73,7 @@ class UploadResponse(BaseModel):
 
 
 class FeedbackRequest(BaseModel):
-    query: str
+    query: str = Field(min_length=1, max_length=500)
     expert_id: str
     verdict: Literal["fit", "not_fit"]
 
@@ -76,6 +83,7 @@ class StatsResponse(BaseModel):
     avg_took_ms: float
     fit_rate: float | None
     top_competencies: list[dict]
+    evaluations: list[dict] = Field(default_factory=list)
 
 
 class HealthResponse(BaseModel):

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     passage_prefix: str = ""
 
     experts_csv: str = "data/experts.csv"
+    uploaded_csv: str = "data/uploaded.csv"
     eval_queries: str = "data/eval_queries.json"
     dictionaries_dir: str = "data/dictionaries"
     cache_dir: str = "data/cache"

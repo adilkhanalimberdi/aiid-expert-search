@@ -9,6 +9,8 @@ backend/models/
 *.npy
 backend/data/cache/
 backend/data/feedback.db
+backend/data/uploaded.csv
+backend/data/uploaded.tmp
 
 # Секреты и локальные настройки
 .env

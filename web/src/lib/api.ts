@@ -39,6 +39,41 @@ export interface SearchRequest {
   hide_busy?: boolean
 }
 
+export interface Expert {
+  id: string
+  full_name: string
+  position: string
+  industry: string
+  competencies: string[]
+  city: string
+  experience_years: number
+  availability: Availability
+  organization: string | null
+  bio: string | null
+  languages: string[]
+  email: string | null
+}
+
+export interface UploadResponse {
+  loaded: number
+  skipped: number
+  errors: string[]
+}
+
+export interface StatsResponse {
+  total_queries: number
+  avg_took_ms: number
+  fit_rate: number | null
+  top_competencies: { term: string; count: number }[]
+  evaluations: Record<string, unknown>[]
+}
+
+export interface FeedbackRequest {
+  query: string
+  expert_id: string
+  verdict: 'fit' | 'not_fit'
+}
+
 // В dev запросы идут через прокси Vite (/api → :8000). VITE_API_URL нужен для сборки без прокси.
 const BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? '')
 
