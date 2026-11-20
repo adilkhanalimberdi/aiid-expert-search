@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Brand } from './components/Logo'
 import { SyntheticNotice } from './components/SyntheticNotice'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { DataPage } from './pages/DataPage'
@@ -19,7 +20,7 @@ export default function App() {
     <div className="min-h-screen">
       <header className="bg-ink">
         <nav className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-6" aria-label="Разделы">
-          <span className="font-display text-lg font-bold text-sky">AIID · Эксперты</span>
+          <Brand />
           <ul className="flex gap-1">
             {TABS.map((item) => (
               <li key={item.id}>
@@ -52,6 +53,9 @@ export default function App() {
           <AnalyticsPage isActive={tab === 'analytics'} />
         </div>
       </main>
+      <footer className="border-t border-line px-4 py-6 text-center text-sm text-muted">
+        Компас · подбор экспертов AIID · работает офлайн, без внешних сервисов
+      </footer>
     </div>
   )
 }

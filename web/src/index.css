@@ -34,3 +34,26 @@ html {
   outline: 3px solid var(--color-sky);
   outline-offset: 2px;
 }
+
+/* Фон шапки: мягкое свечение и сетка «компасных» линий; цвета только из токенов */
+.hero-surface {
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(60rem 28rem at 85% -10%, color-mix(in srgb, var(--color-sky) 22%, transparent), transparent 60%),
+    radial-gradient(40rem 20rem at 0% 110%, color-mix(in srgb, var(--color-teal) 35%, transparent), transparent 60%),
+    linear-gradient(color-mix(in srgb, var(--color-ground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-ground) 5%, transparent) 1px, transparent 1px);
+  background-size: auto, auto, 44px 44px, 44px 44px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .needle-sweep {
+    animation: needle-sweep 14s ease-in-out infinite;
+    transform-origin: 50% 50%;
+  }
+}
+
+@keyframes needle-sweep {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(24deg); }
+}
