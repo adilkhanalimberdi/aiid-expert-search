@@ -57,6 +57,7 @@ def evaluate(index: SearchIndex, path: Path, mode: str, k: int) -> dict:
 
 
 def main() -> None:
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", default="hybrid", choices=["hybrid", "bm25", "vector"])
     parser.add_argument("--file", type=Path, default=settings.path(settings.eval_queries))
