@@ -134,3 +134,6 @@ middle
 experienced
 kazakhstan
 now
+а
+но
+but

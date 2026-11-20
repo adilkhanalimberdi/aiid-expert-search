@@ -57,6 +57,9 @@ BOOST_CITY_MATCH = 1.3
 BOOST_CITY_MISMATCH = 0.8  # город указан, но другой: не исключаем
 BOOST_INDUSTRY_MATCH = 1.2
 BOOST_EXPERIENCE_BELOW = 0.85
+BOOST_EXCLUDED_TERM = (
+    0.3  # у эксперта есть то, что в запросе исключили («не нужен GMP»): опускаем, но не убираем
+)
 BOOST_AVAILABILITY = {"available": 1.0, "partial": 0.85, "busy": 0.7}
 FEEDBACK_STEP = 0.1  # x(1 + step * сумма голосов с весом похожести запросов)
 FEEDBACK_MIN, FEEDBACK_MAX = 0.7, 1.3
@@ -80,6 +83,9 @@ POSITION_RELATED_COS = 0.7  # должность «близка по смысл�
 # Обоснование
 RELATED_COS_THRESHOLD = 0.6  # компетенция «близка по смыслу»
 WEAK_MATCH_COS = 0.35  # ниже: weak_match = true
+FILTER_ONLY_PERCENT = (
+    70  # запрос без терминов, только город или отрасль: все подходящие по фильтру получают это значение
+)
 WEAK_COMPETENCY_COS = 0.6  # нет ни одного подтверждённого термина и лучшая компетенция ниже: weak_match
 
 # Параметры вычислений и ограничений ресурсов (не веса релевантности).

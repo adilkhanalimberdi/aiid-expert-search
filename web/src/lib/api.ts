@@ -11,6 +11,7 @@ export interface ParsedQuery {
   terms: string[]
   /** в запросе просили свободных («свободный сейчас»): занятые не попадают в выдачу */
   available_only: boolean
+  excluded_terms: string[]
 }
 
 export interface SearchResult {

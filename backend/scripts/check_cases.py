@@ -277,7 +277,7 @@ def a02() -> tuple[bool, str]:
     ) == 5 and too_big == 422, f"total={body['total']}, 500 → {too_big}"
 
 
-@case("K01", "запрос только с городом показывает экспертов этого города", known=True)
+@case("K01", "запрос только с городом показывает экспертов этого города")
 def k01() -> tuple[bool, str]:
     data = search("специалист из Шымкента", top_k=5)
     cities = [item["city"] for item in data["results"]]
@@ -286,13 +286,13 @@ def k01() -> tuple[bool, str]:
     ), f"weak={data['weak_match']} {cities}"
 
 
-@case("K02", "отрицание: «не нужен GMP, нужен BIM» не ищет GMP", known=True)
+@case("K02", "отрицание: «не нужен GMP, нужен BIM» не ищет GMP")
 def k02() -> tuple[bool, str]:
     data = search("не нужен GMP, нужен BIM")
     return "gmp" not in data["parsed"]["terms"], f"terms={data['parsed']['terms']}"
 
 
-@case("K03", "английские слова доступности не становятся терминами: busy, available", known=True)
+@case("K03", "английские слова доступности не становятся терминами: busy, available")
 def k03() -> tuple[bool, str]:
     terms = search("busy expert in clinical trials")["parsed"]["terms"]
     return "busy" not in terms, f"terms={terms}"
