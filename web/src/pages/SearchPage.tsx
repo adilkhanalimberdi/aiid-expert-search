@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { CompassRose } from '../components/CompassRose'
 import { ErrorBox } from '../components/ErrorBox'
 import { ExpertCard } from '../components/ExpertCard'
 import { ExpertDialog } from '../components/ExpertDialog'
@@ -26,6 +27,7 @@ export function SearchPage() {
   const [isTeamOpen, setIsTeamOpen] = useState(false)
   const [openExpertId, setOpenExpertId] = useState<string | null>(null)
   const industries = useAsync(() => api.industries(), [])
+  const catalog = useAsync(() => api.health(), [])
   const { state, run } = useSearch()
 
   function start(next: SubmittedSearch) {
@@ -55,13 +57,20 @@ export function SearchPage() {
 
   return (
     <>
-      <section className="bg-ink text-ground">
-        <div className="mx-auto max-w-[1160px] px-4 pb-10 pt-4 sm:px-6">
-          <h1 className="font-display text-2xl font-bold leading-tight text-white sm:text-4xl">
-            Найдём эксперта по вашему запросу
+      <section className="hero-surface relative overflow-hidden text-ground">
+        <CompassRose />
+        <div className="relative mx-auto max-w-[1160px] px-4 pb-10 pt-6 sm:px-6">
+          <h1 className="max-w-2xl font-display text-2xl font-bold leading-tight text-white sm:text-4xl">
+            Компас найдёт эксперта <span className="text-sky">под вашу задачу</span>
           </h1>
           <p className="mt-3 max-w-2xl text-ground/80">
-            Опишите задачу своими словами: компетенцию, город, нужный опыт. Сервис покажет, кто подходит и почему.
+            Опишите задачу своими словами: компетенцию, город, нужный опыт. Компас покажет, кто подходит и почему.
+          </p>
+          <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ground/70">
+            {catalog.data && <span>{catalog.data.experts} экспертов в базе</span>}
+            {industries.data && <span>{industries.data.length} отраслей</span>}
+            <span>ответ за доли секунды</span>
+            <span>без интернета и внешних сервисов</span>
           </p>
 
           <form onSubmit={submit} className="mt-6 flex flex-col gap-3 sm:flex-row" role="search">

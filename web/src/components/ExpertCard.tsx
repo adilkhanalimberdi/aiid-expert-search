@@ -19,7 +19,12 @@ export function ExpertCard({ expert, query, variant, onOpen }: ExpertCardProps) 
   const reasons = isFeatured ? expert.reasons : expert.reasons.slice(0, 3)
 
   return (
-    <article className={`rounded-2xl border bg-white ${isFeatured ? 'border-teal p-6 sm:p-8' : 'border-line p-5'}`}>
+    <article className={`rounded-2xl border bg-white transition-shadow hover:shadow-md ${isFeatured ? 'border-teal p-6 sm:p-8' : 'border-line p-5'}`}>
+      {isFeatured && (
+        <p className="mb-4 inline-block rounded-full bg-ink px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky">
+          Лучшее совпадение
+        </p>
+      )}
       <div className="flex items-start gap-4">
         <div
           aria-hidden
