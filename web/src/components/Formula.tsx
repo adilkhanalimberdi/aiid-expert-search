@@ -1,5 +1,5 @@
 import { useI18n } from '../lib/useI18n'
-import { BOOST_AVAILABILITY_BUSY, BOOST_CITY, BOOST_INDUSTRY, WEIGHT_COVERAGE, WEIGHT_SEMANTIC } from '../lib/weights'
+import { BOOST_AVAILABILITY_BUSY, BOOST_CITY, WEIGHT_COVERAGE, WEIGHT_SEMANTIC } from '../lib/weights'
 
 function Figure({ value, unit, label }: { value: string; unit?: string; label: string }) {
   return (
@@ -49,7 +49,6 @@ export function Formula() {
         <Figure value={String(WEIGHT_COVERAGE)} unit="%" label={t.formula.coverage} />
         <Operator>×</Operator>
         <Boost value={String(BOOST_CITY)} label={t.formula.sameCity} tone="lime" />
-        <Boost value={String(BOOST_INDUSTRY)} label={t.formula.sameIndustry} tone="lime" />
         <Boost value={String(BOOST_AVAILABILITY_BUSY)} label={t.formula.busy} tone="ink" />
       </div>
     </section>
