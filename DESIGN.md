@@ -36,7 +36,7 @@ colors:
   danger: "#c0362c"
   danger-tint: "#fdeceb"
 fonts:
-  sans: "Inter 400/500/600/700 (@fontsource, Cyrillic + Kazakh)"
+  sans: "Onest 400/500/600/700 (@fontsource, Cyrillic + Kazakh)"
 radius:
   control: 8px
   panel: 12px
@@ -53,8 +53,8 @@ Sarap is a tool, not a landing page: a calm navy-and-white working app with one 
 
 ## Layout
 
-- **Shell** (`components/Shell.tsx`). A sticky navy top bar: the Sarap | AIID lock-up on the left, the sections (Search, Data, Analytics) as centred tabs with a gold underline on the active one, the EN/RU/KK switch on the right. On phones the tabs move to a second row of the bar. Directly under the bar a thin gold strip carries the synthetic-data notice, so it is visible on every screen. Content sits in one centred container (`CONTAINER`, max 1280 px) shared with the bar, so edges line up.
-- **Search** (`pages/SearchPage.tsx`). Before the first search: a heading with the catalogue size, the query card (field + button, filters in the card's lower row), example queries as a card grid, three "how it works" cards and the formula. After a search the heading hides and the query card moves to the top; below it quick examples as chips, the readback ("Understood:" tags, count, time), the view switch (Candidates / Team for the query) and two columns: the result list and the profile pane (sticky under the bar). On a phone the profile opens as a full-screen sheet over the list.
+- **Shell** (`components/Shell.tsx`). A sticky navy top bar: the Sarap | AIID lock-up on the left, the sections (Search, Data, Analytics) as centred tabs with a gold underline on the active one, the EN/RU/KK switch on the right. On phones the tabs move to a second row of the bar. Directly under the bar a thin dark strip with a gold dot carries the synthetic-data notice, so it is visible on every screen; the phone profile sheet repeats it at its sticky top. Content sits in one centred container (`CONTAINER`, max 1280 px) shared with the bar, so edges line up.
+- **Search** (`pages/SearchPage.tsx`). Before the first search: a heading with the catalogue size, the query card (field + button, filters in the card's lower row), example queries as buttons that wrap at their natural width, three "how it works" points in one row (icon + text, no cards) and the formula. After a search the heading hides and the query card moves to the top; below it the readback ("Understood:" tags, count, time), the view switch (Candidates / Team for the query) and two columns: the result list and the profile pane (sticky under the bar). On a phone the profile opens as a full-screen sheet over the list.
 - **Data** and **Analytics** use a page header (h1 + one-line purpose) and white panels in the same container.
 
 ## Colour roles
@@ -63,7 +63,7 @@ Sarap is a tool, not a landing page: a calm navy-and-white working app with one 
 | --- | --- |
 | Top bar, accent metric | `night`, `night-2`, `night-line`, text `night-text` / `night-dim` |
 | Primary action, selection, strong match, skill tags | `brand` (fill), `brand-deep` (text), `brand-tint` (background) |
-| Active tab underline and icon, mark circle, synthetic-data strip | `spark`, strip `spark-text` on `spark-tint` |
+| Active tab underline and icon, mark circle, notice dot | `spark` |
 | City and industry tags, industry chips | `place` on `place-tint` |
 | Conditions (experience, available only), weak-match notice | `cond` on `cond-tint` |
 | Excluded terms, errors | `danger` on `danger-tint`; excluded tags are struck through |
@@ -71,7 +71,7 @@ Sarap is a tool, not a landing page: a calm navy-and-white working app with one 
 
 ## Score
 
-`components/Score.tsx`. In lists a number plus a 4 px meter; in the profile a ring (arc length = percent) with the number inside. Colour comes only from `strengthOf` (`lib/format.ts`): ≥70 brand, ≥40 amber (`medium`), below grey (`weak`). The profile ring adds the strength word ("strong / partial / weak match"), so colour is never the only signal and 26% never looks like success. Filter-only queries show years of experience instead of a score.
+`components/Score.tsx`. In lists a number plus a 6 px meter; in the profile a large number with % , a full-width meter and the strength word under it (no ring). Colour comes only from `strengthOf` (`lib/format.ts`): ≥70 brand, ≥40 amber (`medium`), below grey (`weak`). The profile adds the strength word ("strong / partial / weak match"), so colour is never the only signal and 26% never looks like success. Filter-only queries show years of experience instead of a score.
 
 ## Status
 
@@ -79,17 +79,17 @@ Sarap is a tool, not a landing page: a calm navy-and-white working app with one 
 
 ## Components
 
-- `ui.tsx`: `Button` (primary / secondary / ghost / positive), `Select`, `Checkbox` (`.check`), `Panel`, `Eyebrow`, `Segmented`, `Skeleton` (`.sk`).
+- `ui.tsx`: `Button` (primary / secondary / ghost / positive), `Select`, `Checkbox` (`.check`), `Panel`, `PanelTitle`, `Segmented`, `Skeleton` (`.sk`).
 - `Readback.tsx`: parsed query as tags, each with a hidden role label for screen readers.
-- `ResultList.tsx`: two groups (Recommended = top 3, More candidates) or one (Closest profiles for a weak match); rows are buttons with `aria-current` on the selected one.
-- `ExpertPane.tsx`: label (Best match / Candidate No. n / Closest profile / Similar profile), name, hero score, facts, "Why this expert" with the profile field each reason came from, "Why not them?" (confirmed / missing / constraints from `/explain`), skills with matched ones highlighted, bio, languages, email, feedback, similar experts with a back trail.
+- `ResultList.tsx`: two groups (Recommended = top 3, More candidates) or one (Closest profiles for a weak match); rows are buttons with `aria-current` on the selected one (tinted, no side stripe); below the top 3 rows are sorted by percent.
+- `ExpertPane.tsx`: name, then a tinted badge (Best match / Candidate No. n / Closest profile / Similar profile), hero score, facts, "Why this expert" (or "What matches the profile" for a weak match) with the profile field each reason came from; city, industry and experience count as reasons only when the query asked for them, busy/partly available is marked as a limit, "Why not them?" (confirmed / missing / constraints from `/explain`), skills with matched ones highlighted, bio, languages, email, feedback, similar experts with a back trail.
 - `TeamView.tsx`: members as rows, query terms as columns, covered cells as a tinted round check.
-- `Formula.tsx`: one-line formula from `lib/weights.ts`; the explanation opens in a `<details>`.
+- `Formula.tsx`: one-line formula in a white panel, each operator wraps with its number, from `lib/weights.ts`; the explanation opens in a `<details>`.
 - `Logo.tsx`: `SarapMark` (a blue tile with two circles on the diagonal, query and expert in gold; the white lens where they overlap is the match and pulses while searching), `AiidLogo` (the original white AIID logo, unchanged, cropped by viewBox), `Brand` lock-up.
 
 ## Type
 
-Inter, one family. Headlines 700 with negative tracking (−0.025 em), body 400–500, labels 700 uppercase 12 px with +0.08 em tracking. Every number uses `.tnum`.
+Onest, one family. Headings 600 with negative tracking (−0.025…−0.03 em), names 700, body 400–500. No uppercase eyebrow labels: panel and group titles are sentence-case 15–16 px semibold (`PanelTitle`). Figures are proportional lining (`.tnum`): Onest's tabular "1" is too wide, so numeric columns align by edge instead.
 
 ## Shape and depth
 
