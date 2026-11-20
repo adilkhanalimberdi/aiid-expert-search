@@ -5,8 +5,8 @@
     "k": 3,
     "hits": 7,
     "total": 7,
-    "avg_ms": 167.6,
-    "p95_ms": 180.1,
+    "avg_ms": 161.9,
+    "p95_ms": 185.6,
     "queries": [
       {
         "query": "нужен специалист по GMP и клиническим исследованиям из Алматы",
@@ -22,7 +22,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 171
+        "took_ms": 180
       },
       {
         "query": "эксперт по клиническим испытаниям препаратов",
@@ -38,7 +38,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 163
+        "took_ms": 132
       },
       {
         "query": "BIM-проектирование промышленных объектов, Астана",
@@ -54,7 +54,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 151
+        "took_ms": 156
       },
       {
         "query": "кто может внедрить компьютерное зрение на заводе",
@@ -70,7 +70,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 159
+        "took_ms": 140
       },
       {
         "query": "аудитор ISO 9001 с опытом от 10 лет",
@@ -86,7 +86,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 178
+        "took_ms": 188
       },
       {
         "query": "методист по STEM для школ",
@@ -102,7 +102,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 170
+        "took_ms": 166
       },
       {
         "query": "Алматыдан өнеркәсіптік қауіпсіздік маманы керек",
@@ -118,7 +118,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 181
+        "took_ms": 171
       }
     ]
   },
@@ -128,8 +128,8 @@
     "k": 3,
     "hits": 6,
     "total": 7,
-    "avg_ms": 159.1,
-    "p95_ms": 168.7,
+    "avg_ms": 180.9,
+    "p95_ms": 194.7,
     "queries": [
       {
         "query": "нужен специалист по GMP и клиническим исследованиям из Алматы",
@@ -145,7 +145,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 166
+        "took_ms": 167
       },
       {
         "query": "эксперт по клиническим испытаниям препаратов",
@@ -161,7 +161,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 150
+        "took_ms": 164
       },
       {
         "query": "BIM-проектирование промышленных объектов, Астана",
@@ -177,7 +177,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 163
+        "took_ms": 176
       },
       {
         "query": "кто может внедрить компьютерное зрение на заводе",
@@ -193,7 +193,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 168
+        "took_ms": 194
       },
       {
         "query": "аудитор ISO 9001 с опытом от 10 лет",
@@ -209,7 +209,7 @@
         ],
         "hit": true,
         "position": 2,
-        "took_ms": 169
+        "took_ms": 194
       },
       {
         "query": "методист по STEM для школ",
@@ -225,7 +225,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 154
+        "took_ms": 176
       },
       {
         "query": "Алматыдан өнеркәсіптік қауіпсіздік маманы керек",
@@ -233,7 +233,7 @@
         "names": [],
         "hit": false,
         "position": null,
-        "took_ms": 144
+        "took_ms": 195
       }
     ]
   },
@@ -243,8 +243,8 @@
     "k": 3,
     "hits": 7,
     "total": 7,
-    "avg_ms": 161.7,
-    "p95_ms": 178.4,
+    "avg_ms": 211.4,
+    "p95_ms": 224.5,
     "queries": [
       {
         "query": "нужен специалист по GMP и клиническим исследованиям из Алматы",
@@ -260,7 +260,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 167
+        "took_ms": 229
       },
       {
         "query": "эксперт по клиническим испытаниям препаратов",
@@ -276,7 +276,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 133
+        "took_ms": 213
       },
       {
         "query": "BIM-проектирование промышленных объектов, Астана",
@@ -292,7 +292,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 170
+        "took_ms": 214
       },
       {
         "query": "кто может внедрить компьютерное зрение на заводе",
@@ -308,7 +308,7 @@
         ],
         "hit": true,
         "position": 2,
-        "took_ms": 182
+        "took_ms": 209
       },
       {
         "query": "аудитор ISO 9001 с опытом от 10 лет",
@@ -324,7 +324,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 155
+        "took_ms": 203
       },
       {
         "query": "методист по STEM для школ",
@@ -340,7 +340,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 155
+        "took_ms": 201
       },
       {
         "query": "Алматыдан өнеркәсіптік қауіпсіздік маманы керек",
@@ -356,7 +356,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 170
+        "took_ms": 211
       }
     ]
   },
@@ -366,8 +366,8 @@
     "k": 3,
     "hits": 10,
     "total": 10,
-    "avg_ms": 167.8,
-    "p95_ms": 188.9,
+    "avg_ms": 203.2,
+    "p95_ms": 246.2,
     "queries": [
       {
         "query": "Актобе: регистрация лекарств и фармаконадзор",
@@ -383,7 +383,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 148
+        "took_ms": 202
       },
       {
         "query": "Логистика лекарств по GDP в Атырау",
@@ -399,7 +399,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 162
+        "took_ms": 185
       },
       {
         "query": "Безопасность облачной инфраструктуры, Астана",
@@ -415,7 +415,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 166
+        "took_ms": 184
       },
       {
         "query": "Обработка текстов и рекомендательные системы в Алматы",
@@ -431,7 +431,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 158
+        "took_ms": 184
       },
       {
         "query": "Расчёт сейсмостойких конструкций, Шымкент",
@@ -447,7 +447,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 173
+        "took_ms": 189
       },
       {
         "query": "Энергоэффективная вентиляция в Костанае",
@@ -463,7 +463,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 165
+        "took_ms": 192
       },
       {
         "query": "Неразрушающий контроль в металлургии, Караганда",
@@ -479,7 +479,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 166
+        "took_ms": 213
       },
       {
         "query": "Экологический мониторинг нефтегаза в Атырау",
@@ -495,7 +495,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 163
+        "took_ms": 257
       },
       {
         "query": "Подготовка учителей для инклюзивного образования в Павлодаре",
@@ -511,7 +511,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 193
+        "took_ms": 233
       },
       {
         "query": "Дистанционное обучение взрослых, Тараз",
@@ -527,7 +527,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 184
+        "took_ms": 193
       }
     ]
   },
@@ -537,8 +537,8 @@
     "k": 3,
     "hits": 10,
     "total": 10,
-    "avg_ms": 170.4,
-    "p95_ms": 209.6,
+    "avg_ms": 188.2,
+    "p95_ms": 222.3,
     "queries": [
       {
         "query": "Актобе: регистрация лекарств и фармаконадзор",
@@ -554,7 +554,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 141
+        "took_ms": 184
       },
       {
         "query": "Логистика лекарств по GDP в Атырау",
@@ -570,7 +570,7 @@
         ],
         "hit": true,
         "position": 2,
-        "took_ms": 150
+        "took_ms": 180
       },
       {
         "query": "Безопасность облачной инфраструктуры, Астана",
@@ -586,7 +586,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 162
+        "took_ms": 183
       },
       {
         "query": "Обработка текстов и рекомендательные системы в Алматы",
@@ -602,7 +602,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 157
+        "took_ms": 188
       },
       {
         "query": "Расчёт сейсмостойких конструкций, Шымкент",
@@ -618,7 +618,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 220
+        "took_ms": 184
       },
       {
         "query": "Энергоэффективная вентиляция в Костанае",
@@ -634,7 +634,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 169
+        "took_ms": 184
       },
       {
         "query": "Неразрушающий контроль в металлургии, Караганда",
@@ -650,7 +650,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 172
+        "took_ms": 171
       },
       {
         "query": "Экологический мониторинг нефтегаза в Атырау",
@@ -666,7 +666,178 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 168
+        "took_ms": 164
+      },
+      {
+        "query": "Подготовка учителей для инклюзивного образования в Павлодаре",
+        "top": [
+          "E019",
+          "E130",
+          "E146"
+        ],
+        "names": [
+          "Елена Лебедева",
+          "Бауыржан Петров",
+          "Нурлан Петров"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 219
+      },
+      {
+        "query": "Дистанционное обучение взрослых, Тараз",
+        "top": [
+          "E020",
+          "E139",
+          "E143"
+        ],
+        "names": [
+          "Виктор Омаров",
+          "Дарья Омарова",
+          "Ольга Ахметова"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 225
+      }
+    ]
+  },
+  "eval_holdout:vector:k3": {
+    "dataset": "eval_holdout.json",
+    "mode": "vector",
+    "k": 3,
+    "hits": 10,
+    "total": 10,
+    "avg_ms": 200.9,
+    "p95_ms": 233.9,
+    "queries": [
+      {
+        "query": "Актобе: регистрация лекарств и фармаконадзор",
+        "top": [
+          "E011",
+          "E032",
+          "E028"
+        ],
+        "names": [
+          "Динара Рахимова",
+          "Темирлан Сатпаев",
+          "Тимур Соколов"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 192
+      },
+      {
+        "query": "Логистика лекарств по GDP в Атырау",
+        "top": [
+          "E012",
+          "E041",
+          "E024"
+        ],
+        "names": [
+          "Дмитрий Жумабаев",
+          "Наталья Касымова",
+          "Темирлан Омаров"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 186
+      },
+      {
+        "query": "Безопасность облачной инфраструктуры, Астана",
+        "top": [
+          "E013",
+          "E065",
+          "E064"
+        ],
+        "names": [
+          "Наталья Лебедева",
+          "Татьяна Жумабаева",
+          "Руслан Соколов"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 203
+      },
+      {
+        "query": "Обработка текстов и рекомендательные системы в Алматы",
+        "top": [
+          "E014",
+          "E143",
+          "E027"
+        ],
+        "names": [
+          "Данияр Соколов",
+          "Ольга Ахметова",
+          "Динара Сатпаева"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 218
+      },
+      {
+        "query": "Расчёт сейсмостойких конструкций, Шымкент",
+        "top": [
+          "E015",
+          "E084",
+          "E096"
+        ],
+        "names": [
+          "Томирис Соколова",
+          "Алексей Ахметов",
+          "Нурлан Орлов"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 196
+      },
+      {
+        "query": "Энергоэффективная вентиляция в Костанае",
+        "top": [
+          "E016",
+          "E103",
+          "E079"
+        ],
+        "names": [
+          "Данияр Ахметов",
+          "Томирис Искакова",
+          "Ольга Лебедева"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 201
+      },
+      {
+        "query": "Неразрушающий контроль в металлургии, Караганда",
+        "top": [
+          "E017",
+          "E121",
+          "E103"
+        ],
+        "names": [
+          "Аружан Жумабаева",
+          "Алия Лебедева",
+          "Томирис Искакова"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 247
+      },
+      {
+        "query": "Экологический мониторинг нефтегаза в Атырау",
+        "top": [
+          "E018",
+          "E076",
+          "E103"
+        ],
+        "names": [
+          "Асхат Соколов",
+          "Ерлан Искаков",
+          "Томирис Искакова"
+        ],
+        "hit": true,
+        "position": 1,
+        "took_ms": 199
       },
       {
         "query": "Подготовка учителей для инклюзивного образования в Павлодаре",
@@ -689,177 +860,6 @@
         "top": [
           "E020",
           "E139",
-          "E143"
-        ],
-        "names": [
-          "Виктор Омаров",
-          "Дарья Омарова",
-          "Ольга Ахметова"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 168
-      }
-    ]
-  },
-  "eval_holdout:vector:k3": {
-    "dataset": "eval_holdout.json",
-    "mode": "vector",
-    "k": 3,
-    "hits": 10,
-    "total": 10,
-    "avg_ms": 179.8,
-    "p95_ms": 203.0,
-    "queries": [
-      {
-        "query": "Актобе: регистрация лекарств и фармаконадзор",
-        "top": [
-          "E011",
-          "E032",
-          "E028"
-        ],
-        "names": [
-          "Динара Рахимова",
-          "Темирлан Сатпаев",
-          "Тимур Соколов"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 155
-      },
-      {
-        "query": "Логистика лекарств по GDP в Атырау",
-        "top": [
-          "E012",
-          "E041",
-          "E024"
-        ],
-        "names": [
-          "Дмитрий Жумабаев",
-          "Наталья Касымова",
-          "Темирлан Омаров"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 192
-      },
-      {
-        "query": "Безопасность облачной инфраструктуры, Астана",
-        "top": [
-          "E013",
-          "E065",
-          "E064"
-        ],
-        "names": [
-          "Наталья Лебедева",
-          "Татьяна Жумабаева",
-          "Руслан Соколов"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 180
-      },
-      {
-        "query": "Обработка текстов и рекомендательные системы в Алматы",
-        "top": [
-          "E014",
-          "E143",
-          "E027"
-        ],
-        "names": [
-          "Данияр Соколов",
-          "Ольга Ахметова",
-          "Динара Сатпаева"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 184
-      },
-      {
-        "query": "Расчёт сейсмостойких конструкций, Шымкент",
-        "top": [
-          "E015",
-          "E084",
-          "E096"
-        ],
-        "names": [
-          "Томирис Соколова",
-          "Алексей Ахметов",
-          "Нурлан Орлов"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 180
-      },
-      {
-        "query": "Энергоэффективная вентиляция в Костанае",
-        "top": [
-          "E016",
-          "E103",
-          "E079"
-        ],
-        "names": [
-          "Данияр Ахметов",
-          "Томирис Искакова",
-          "Ольга Лебедева"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 170
-      },
-      {
-        "query": "Неразрушающий контроль в металлургии, Караганда",
-        "top": [
-          "E017",
-          "E121",
-          "E103"
-        ],
-        "names": [
-          "Аружан Жумабаева",
-          "Алия Лебедева",
-          "Томирис Искакова"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 174
-      },
-      {
-        "query": "Экологический мониторинг нефтегаза в Атырау",
-        "top": [
-          "E018",
-          "E076",
-          "E103"
-        ],
-        "names": [
-          "Асхат Соколов",
-          "Ерлан Искаков",
-          "Томирис Искакова"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 164
-      },
-      {
-        "query": "Подготовка учителей для инклюзивного образования в Павлодаре",
-        "top": [
-          "E019",
-          "E130",
-          "E146"
-        ],
-        "names": [
-          "Елена Лебедева",
-          "Бауыржан Петров",
-          "Нурлан Петров"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 212
-      },
-      {
-        "query": "Дистанционное обучение взрослых, Тараз",
-        "top": [
-          "E020",
-          "E139",
           "E127"
         ],
         "names": [
@@ -869,7 +869,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 187
+        "took_ms": 170
       }
     ]
   },
@@ -879,8 +879,8 @@
     "k": 3,
     "hits": 14,
     "total": 15,
-    "avg_ms": 170.6,
-    "p95_ms": 197.6,
+    "avg_ms": 173.2,
+    "p95_ms": 197.1,
     "queries": [
       {
         "query": "кто умеет выкатывать модели в продакшен и автоматизировать их обновление",
@@ -896,23 +896,23 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 213
+        "took_ms": 223
       },
       {
         "query": "эксперт по защите информации и защите от взлома",
         "top": [
+          "E048",
           "E115",
-          "E013",
-          "E048"
+          "E058"
         ],
         "names": [
+          "Данияр Серикбаев",
           "Томирис Рахимова",
-          "Наталья Лебедева",
-          "Данияр Серикбаев"
+          "Иван Касымов"
         ],
         "hit": true,
-        "position": 2,
-        "took_ms": 172
+        "position": 1,
+        "took_ms": 178
       },
       {
         "query": "подготовка регистрационного досье на новый препарат",
@@ -928,7 +928,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 171
+        "took_ms": 172
       },
       {
         "query": "проектирование электрических сетей для завода",
@@ -944,7 +944,7 @@
         ],
         "hit": false,
         "position": null,
-        "took_ms": 157
+        "took_ms": 143
       },
       {
         "query": "алгоритмы рекомендаций для интернет-магазина",
@@ -960,7 +960,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 163
+        "took_ms": 166
       },
       {
         "query": "как оценивать знания школьников и составлять тесты",
@@ -976,7 +976,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 191
+        "took_ms": 173
       },
       {
         "query": "здание должно выдержать землетрясение",
@@ -992,7 +992,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 182
+        "took_ms": 176
       },
       {
         "query": "снизить потери на производстве методом кайдзен",
@@ -1008,7 +1008,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 183
+        "took_ms": 169
       },
       {
         "query": "проверка сварных швов без разрушения изделия",
@@ -1024,7 +1024,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 184
+        "took_ms": 182
       },
       {
         "query": "обучать взрослых онлайн",
@@ -1040,7 +1040,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 141
+        "took_ms": 139
       },
       {
         "query": "нужен аналитик, который пишет SQL, Алматы",
@@ -1072,7 +1072,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 165
+        "took_ms": 174
       },
       {
         "query": "наставник для начинающих учителей",
@@ -1088,7 +1088,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 150
+        "took_ms": 171
       },
       {
         "query": "оценка и снижение рисков на предприятии, Астана",
@@ -1104,7 +1104,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 160
+        "took_ms": 176
       },
       {
         "query": "цифровые двойники заводов",
@@ -1120,7 +1120,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 157
+        "took_ms": 186
       }
     ]
   },
@@ -1128,10 +1128,10 @@
     "dataset": "eval_jury.json",
     "mode": "bm25",
     "k": 3,
-    "hits": 8,
+    "hits": 7,
     "total": 15,
-    "avg_ms": 174.8,
-    "p95_ms": 200.3,
+    "avg_ms": 189.7,
+    "p95_ms": 233.2,
     "queries": [
       {
         "query": "кто умеет выкатывать модели в продакшен и автоматизировать их обновление",
@@ -1139,23 +1139,15 @@
         "names": [],
         "hit": false,
         "position": null,
-        "took_ms": 196
+        "took_ms": 208
       },
       {
         "query": "эксперт по защите информации и защите от взлома",
-        "top": [
-          "E013",
-          "E119",
-          "E115"
-        ],
-        "names": [
-          "Наталья Лебедева",
-          "Наталья Ахметова",
-          "Томирис Рахимова"
-        ],
-        "hit": true,
-        "position": 1,
-        "took_ms": 162
+        "top": [],
+        "names": [],
+        "hit": false,
+        "position": null,
+        "took_ms": 173
       },
       {
         "query": "подготовка регистрационного досье на новый препарат",
@@ -1171,7 +1163,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 161
+        "took_ms": 175
       },
       {
         "query": "проектирование электрических сетей для завода",
@@ -1187,7 +1179,7 @@
         ],
         "hit": false,
         "position": null,
-        "took_ms": 177
+        "took_ms": 170
       },
       {
         "query": "алгоритмы рекомендаций для интернет-магазина",
@@ -1195,7 +1187,7 @@
         "names": [],
         "hit": false,
         "position": null,
-        "took_ms": 180
+        "took_ms": 170
       },
       {
         "query": "как оценивать знания школьников и составлять тесты",
@@ -1211,7 +1203,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 200
+        "took_ms": 186
       },
       {
         "query": "здание должно выдержать землетрясение",
@@ -1227,7 +1219,7 @@
         ],
         "hit": false,
         "position": null,
-        "took_ms": 201
+        "took_ms": 182
       },
       {
         "query": "снизить потери на производстве методом кайдзен",
@@ -1243,7 +1235,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 185
+        "took_ms": 193
       },
       {
         "query": "проверка сварных швов без разрушения изделия",
@@ -1251,7 +1243,7 @@
         "names": [],
         "hit": false,
         "position": null,
-        "took_ms": 181
+        "took_ms": 192
       },
       {
         "query": "обучать взрослых онлайн",
@@ -1267,7 +1259,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 157
+        "took_ms": 163
       },
       {
         "query": "нужен аналитик, который пишет SQL, Алматы",
@@ -1283,7 +1275,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 161
+        "took_ms": 211
       },
       {
         "query": "контроль стерильности на фармацевтическом заводе",
@@ -1299,7 +1291,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 160
+        "took_ms": 285
       },
       {
         "query": "наставник для начинающих учителей",
@@ -1307,7 +1299,7 @@
         "names": [],
         "hit": false,
         "position": null,
-        "took_ms": 161
+        "took_ms": 194
       },
       {
         "query": "оценка и снижение рисков на предприятии, Астана",
@@ -1323,7 +1315,7 @@
         ],
         "hit": false,
         "position": null,
-        "took_ms": 166
+        "took_ms": 177
       },
       {
         "query": "цифровые двойники заводов",
@@ -1339,7 +1331,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 174
+        "took_ms": 166
       }
     ]
   },
@@ -1349,8 +1341,8 @@
     "k": 3,
     "hits": 15,
     "total": 15,
-    "avg_ms": 176.5,
-    "p95_ms": 201.9,
+    "avg_ms": 173.0,
+    "p95_ms": 193.7,
     "queries": [
       {
         "query": "кто умеет выкатывать модели в продакшен и автоматизировать их обновление",
@@ -1366,7 +1358,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 211
+        "took_ms": 207
       },
       {
         "query": "эксперт по защите информации и защите от взлома",
@@ -1398,7 +1390,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 173
+        "took_ms": 175
       },
       {
         "query": "проектирование электрических сетей для завода",
@@ -1414,7 +1406,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 176
+        "took_ms": 181
       },
       {
         "query": "алгоритмы рекомендаций для интернет-магазина",
@@ -1430,7 +1422,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 198
+        "took_ms": 188
       },
       {
         "query": "как оценивать знания школьников и составлять тесты",
@@ -1446,7 +1438,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 183
+        "took_ms": 163
       },
       {
         "query": "здание должно выдержать землетрясение",
@@ -1462,7 +1454,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 171
+        "took_ms": 178
       },
       {
         "query": "снизить потери на производстве методом кайдзен",
@@ -1478,7 +1470,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 171
+        "took_ms": 176
       },
       {
         "query": "проверка сварных швов без разрушения изделия",
@@ -1494,7 +1486,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 178
+        "took_ms": 175
       },
       {
         "query": "обучать взрослых онлайн",
@@ -1510,7 +1502,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 157
+        "took_ms": 148
       },
       {
         "query": "нужен аналитик, который пишет SQL, Алматы",
@@ -1526,7 +1518,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 180
+        "took_ms": 170
       },
       {
         "query": "контроль стерильности на фармацевтическом заводе",
@@ -1542,7 +1534,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 190
+        "took_ms": 178
       },
       {
         "query": "наставник для начинающих учителей",
@@ -1558,7 +1550,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 155
+        "took_ms": 153
       },
       {
         "query": "оценка и снижение рисков на предприятии, Астана",
@@ -1574,7 +1566,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 159
+        "took_ms": 170
       },
       {
         "query": "цифровые двойники заводов",
@@ -1590,7 +1582,7 @@
         ],
         "hit": true,
         "position": 2,
-        "took_ms": 163
+        "took_ms": 151
       }
     ]
   },
@@ -1600,24 +1592,24 @@
     "k": 3,
     "hits": 12,
     "total": 12,
-    "avg_ms": 148.3,
-    "p95_ms": 162.5,
+    "avg_ms": 161.8,
+    "p95_ms": 189.2,
     "queries": [
       {
         "query": "cybersecurity specialist",
         "top": [
           "E013",
-          "E119",
-          "E115"
+          "E062",
+          "E067"
         ],
         "names": [
           "Наталья Лебедева",
-          "Наталья Ахметова",
-          "Томирис Рахимова"
+          "Бауыржан Жумабаев",
+          "Мадина Смирнова"
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 147
+        "took_ms": 154
       },
       {
         "query": "machine learning engineer",
@@ -1633,7 +1625,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 142
+        "took_ms": 141
       },
       {
         "query": "clinical trials expert",
@@ -1649,7 +1641,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 145
+        "took_ms": 158
       },
       {
         "query": "BIM designer for industrial plants, Astana",
@@ -1665,7 +1657,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 157
+        "took_ms": 193
       },
       {
         "query": "lean manufacturing consultant",
@@ -1681,7 +1673,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 153
+        "took_ms": 161
       },
       {
         "query": "pharmacovigilance specialist",
@@ -1697,7 +1689,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 133
+        "took_ms": 146
       },
       {
         "query": "teacher training and mentoring",
@@ -1713,7 +1705,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 150
+        "took_ms": 164
       },
       {
         "query": "oil and gas environmental monitoring",
@@ -1729,7 +1721,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 147
+        "took_ms": 156
       },
       {
         "query": "earthquake-resistant structures",
@@ -1745,7 +1737,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 158
+        "took_ms": 186
       },
       {
         "query": "online learning for adults",
@@ -1761,7 +1753,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 134
+        "took_ms": 143
       },
       {
         "query": "cloud infrastructure and DevOps in Almaty",
@@ -1777,7 +1769,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 168
+        "took_ms": 167
       },
       {
         "query": "non destructive testing in metallurgy",
@@ -1793,7 +1785,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 146
+        "took_ms": 172
       }
     ]
   },
@@ -1803,24 +1795,24 @@
     "k": 3,
     "hits": 11,
     "total": 12,
-    "avg_ms": 144.8,
-    "p95_ms": 163.4,
+    "avg_ms": 158.1,
+    "p95_ms": 178.2,
     "queries": [
       {
         "query": "cybersecurity specialist",
         "top": [
           "E013",
-          "E119",
-          "E115"
+          "E062",
+          "E060"
         ],
         "names": [
           "Наталья Лебедева",
-          "Наталья Ахметова",
-          "Томирис Рахимова"
+          "Бауыржан Жумабаев",
+          "Темирлан Попов"
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 131
+        "took_ms": 157
       },
       {
         "query": "machine learning engineer",
@@ -1836,7 +1828,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 130
+        "took_ms": 147
       },
       {
         "query": "clinical trials expert",
@@ -1852,7 +1844,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 130
+        "took_ms": 162
       },
       {
         "query": "BIM designer for industrial plants, Astana",
@@ -1868,7 +1860,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 155
+        "took_ms": 165
       },
       {
         "query": "lean manufacturing consultant",
@@ -1884,7 +1876,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 139
+        "took_ms": 148
       },
       {
         "query": "pharmacovigilance specialist",
@@ -1900,7 +1892,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 147
+        "took_ms": 149
       },
       {
         "query": "teacher training and mentoring",
@@ -1916,7 +1908,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 144
+        "took_ms": 154
       },
       {
         "query": "oil and gas environmental monitoring",
@@ -1932,7 +1924,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 144
+        "took_ms": 167
       },
       {
         "query": "earthquake-resistant structures",
@@ -1940,7 +1932,7 @@
         "names": [],
         "hit": false,
         "position": null,
-        "took_ms": 163
+        "took_ms": 154
       },
       {
         "query": "online learning for adults",
@@ -1956,7 +1948,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 141
+        "took_ms": 136
       },
       {
         "query": "cloud infrastructure and DevOps in Almaty",
@@ -1972,7 +1964,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 164
+        "took_ms": 171
       },
       {
         "query": "non destructive testing in metallurgy",
@@ -1988,7 +1980,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 150
+        "took_ms": 187
       }
     ]
   },
@@ -1998,8 +1990,8 @@
     "k": 3,
     "hits": 11,
     "total": 12,
-    "avg_ms": 145.8,
-    "p95_ms": 172.4,
+    "avg_ms": 165.0,
+    "p95_ms": 178.2,
     "queries": [
       {
         "query": "cybersecurity specialist",
@@ -2015,7 +2007,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 138
+        "took_ms": 152
       },
       {
         "query": "machine learning engineer",
@@ -2031,7 +2023,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 149
+        "took_ms": 162
       },
       {
         "query": "clinical trials expert",
@@ -2047,7 +2039,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 139
+        "took_ms": 164
       },
       {
         "query": "BIM designer for industrial plants, Astana",
@@ -2063,7 +2055,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 150
+        "took_ms": 182
       },
       {
         "query": "lean manufacturing consultant",
@@ -2079,7 +2071,7 @@
         ],
         "hit": false,
         "position": null,
-        "took_ms": 121
+        "took_ms": 157
       },
       {
         "query": "pharmacovigilance specialist",
@@ -2095,7 +2087,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 119
+        "took_ms": 157
       },
       {
         "query": "teacher training and mentoring",
@@ -2111,7 +2103,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 149
+        "took_ms": 161
       },
       {
         "query": "oil and gas environmental monitoring",
@@ -2127,7 +2119,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 135
+        "took_ms": 167
       },
       {
         "query": "earthquake-resistant structures",
@@ -2143,7 +2135,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 170
+        "took_ms": 172
       },
       {
         "query": "online learning for adults",
@@ -2159,7 +2151,7 @@
         ],
         "hit": true,
         "position": 1,
-        "took_ms": 134
+        "took_ms": 159
       },
       {
         "query": "cloud infrastructure and DevOps in Almaty",
@@ -2175,7 +2167,7 @@
         ],
         "hit": true,
         "position": 3,
-        "took_ms": 173
+        "took_ms": 175
       },
       {
         "query": "non destructive testing in metallurgy",
