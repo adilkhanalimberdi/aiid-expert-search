@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Brand } from './components/Logo'
+import { Constellation } from './components/Constellation'
+import { AiidLogo, Brand } from './components/Logo'
 import { SyntheticNotice } from './components/SyntheticNotice'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { DataPage } from './pages/DataPage'
@@ -17,7 +18,16 @@ export default function App() {
   const [tab, setTab] = useState<TabId>('search')
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      {/* Лёгкое созвездие на светлом фоне страницы; за шапкой, карточками и тёмным блоком его не видно */}
+      <Constellation
+        dotColorVar="--color-teal"
+        lineColorVar="--color-teal"
+        density={5}
+        intensity={0.35}
+        className="fixed inset-0 z-0 size-full"
+      />
+      <div className="relative z-10 flex min-h-screen flex-col">
       <header className="bg-ink">
         <nav className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-6" aria-label="Sections">
           <Brand />
@@ -42,7 +52,7 @@ export default function App() {
       </header>
 
       {/* Экраны остаются в дереве, чтобы поиск не терялся при переключении вкладок */}
-      <main>
+      <main className="flex-1">
         <div hidden={tab !== 'search'}>
           <SearchPage />
         </div>
@@ -53,9 +63,16 @@ export default function App() {
           <AnalyticsPage isActive={tab === 'analytics'} />
         </div>
       </main>
-      <footer className="border-t border-line px-4 py-6 text-center text-sm text-muted">
-        Lodestar · expert matching for AIID · runs offline, no external services
+      <footer className="bg-ink text-ground">
+        <div className="mx-auto flex max-w-[1160px] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-6 sm:px-6">
+          <AiidLogo height={52} />
+          <p className="max-w-xl text-sm text-ground/80">
+            Lodestar is an expert matching service for the AIID ecosystem. It runs offline, with no external
+            services. The AIID logo is shown here to demonstrate how the service fits into the AIID portal.
+          </p>
+        </div>
       </footer>
+      </div>
     </div>
   )
 }
