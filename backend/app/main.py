@@ -2,7 +2,7 @@
 
 import logging
 import threading
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from time import perf_counter
 
@@ -23,6 +23,7 @@ from .schemas import (
     FeedbackRequest,
     HealthResponse,
     Language,
+    ParsedQuery,
     SearchRequest,
     SearchResponse,
     SimilarExpert,
@@ -31,7 +32,7 @@ from .schemas import (
     TeamResponse,
     UploadResponse,
 )
-from .text import covered_terms, fix_typing
+from .text import covered_terms, display_forms, fix_typing
 
 logger = logging.getLogger(__name__)
 _upload_lock = threading.Lock()
@@ -66,6 +67,21 @@ app = FastAPI(title="AIID: подбор экспертов", version="1.0.0", li
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_list, allow_methods=["*"], allow_headers=["*"])
 
 
+def shown(query: str) -> Callable[[str], str]:
+    """Термин для ответа: казахские слова в том написании, в каком их ввёл человек."""
+    forms = display_forms(query)
+    return lambda term: forms.get(term, term)
+
+
+def shown_parsed(parsed: ParsedQuery, show: Callable[[str], str]) -> ParsedQuery:
+    return parsed.model_copy(
+        update={
+            "terms": [show(term) for term in parsed.terms],
+            "excluded_terms": [show(term) for term in parsed.excluded_terms],
+        }
+    )
+
+
 @app.get("/api/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(status="ok", experts=len(app.state.index.experts), model=settings.model_path)
@@ -75,13 +91,25 @@ def health() -> HealthResponse:
 def search(req: SearchRequest) -> SearchResponse:
     snapshot = app.state.index
     response = ranker.search(snapshot, req, feedback_votes=feedback_store.votes())
+    response = response.model_copy(update={"parsed": shown_parsed(response.parsed, shown(req.query))})
     stats_store.log_query(response.parsed.terms, response.took_ms, response.weak_match)
     return response
 
 
 @app.post("/api/team", response_model=TeamResponse)
 def assemble_team(req: TeamRequest) -> TeamResponse:
-    return team.assemble(app.state.index, req)
+    response = team.assemble(app.state.index, req)
+    show = shown(req.query)
+    return response.model_copy(
+        update={
+            "parsed": shown_parsed(response.parsed, show),
+            "coverage": [
+                row.model_copy(update={"terms": {show(term): ok for term, ok in row.terms.items()}})
+                for row in response.coverage
+            ],
+            "uncovered_terms": [show(term) for term in response.uncovered_terms],
+        }
+    )
 
 
 @app.post("/api/upload", response_model=UploadResponse)
@@ -140,10 +168,11 @@ def explain_expert(
     )
     expert = snapshot.experts[candidate]
     confirmed = covered_terms(parsed.terms, "; ".join(expert.competencies))
+    show = shown(query)
     return ExpertExplanation(
-        parsed=parsed,
+        parsed=shown_parsed(parsed, show),
         expert=ranker.result_for(snapshot, candidate, parsed, ranker.query_vector(query, parsed), lang=lang),
-        missing_terms=list(dict.fromkeys(term for term in parsed.terms if term not in confirmed)),
+        missing_terms=list(dict.fromkeys(show(term) for term in parsed.terms if term not in confirmed)),
         constraints=explain_module.constraints(expert, parsed, lang),
     )
 
