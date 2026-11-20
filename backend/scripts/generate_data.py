@@ -143,6 +143,31 @@ JURY_QUERIES = [
     ("оценка и снижение рисков на предприятии, Астана", ["управление рисками"], "Астана"),
     ("цифровые двойники заводов", ["цифровые двойники"], None),
 ]
+# Те же проверки на английском: интерфейс английский, жюри может писать так же.
+ENGLISH_QUERIES = [
+    ("cybersecurity specialist", ["кибербезопасность"], None),
+    (
+        "machine learning engineer",
+        [
+            "машинное обучение",
+            "MLOps",
+            "компьютерное зрение",
+            "рекомендательные системы",
+            "обработка естественного языка",
+        ],
+        None,
+    ),
+    ("clinical trials expert", ["клинические исследования", "клинические испытания"], None),
+    ("BIM designer for industrial plants, Astana", ["BIM"], "Астана"),
+    ("lean manufacturing consultant", ["бережливое производство"], None),
+    ("pharmacovigilance specialist", ["фармаконадзор"], None),
+    ("teacher training and mentoring", ["подготовка преподавателей", "наставничество"], None),
+    ("oil and gas environmental monitoring", ["экологический мониторинг", "нефтегаз"], None),
+    ("earthquake-resistant structures", ["сейсмостойкость"], None),
+    ("online learning for adults", ["дистанционное обучение", "обучение взрослых"], None),
+    ("cloud infrastructure and DevOps in Almaty", ["облачная инфраструктура", "DevOps"], "Алматы"),
+    ("non destructive testing in metallurgy", ["неразрушающий контроль"], None),
+]
 # Сценарные профили заданы до поиска; ранжирование не знает их идентификаторов.
 FIXTURES = [
     (0, "Алматы", "available", "GMP;клинические исследования;валидация процессов;GCP"),
@@ -275,17 +300,25 @@ def main() -> None:
         (DATA / filename).write_text(
             json.dumps(content, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
-    jury = [
-        {
-            "query": query,
-            "relevant": [
-                row["id"]
-                for row in rows
-                if set(skills) & set(row["competencies"].split(";")) and (not city or row["city"] == city)
-            ],
-        }
-        for query, skills, city in JURY_QUERIES
-    ]
+
+    def by_rule(queries: list) -> list[dict]:
+        return [
+            {
+                "query": query,
+                "relevant": [
+                    row["id"]
+                    for row in rows
+                    if set(skills) & set(row["competencies"].split(";")) and (not city or row["city"] == city)
+                ],
+            }
+            for query, skills, city in queries
+        ]
+
+    jury = by_rule(JURY_QUERIES)
+    english = by_rule(ENGLISH_QUERIES)
+    (DATA / "eval_english.json").write_text(
+        json.dumps(english, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     (DATA / "eval_jury.json").write_text(
         json.dumps(jury, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )

@@ -78,7 +78,10 @@ def main() -> None:
             (path, mode)
             for path in [
                 args.file,
-                *(args.file.with_name(n) for n in ("eval_holdout.json", "eval_jury.json")),
+                *(
+                    args.file.with_name(n)
+                    for n in ("eval_holdout.json", "eval_jury.json", "eval_english.json")
+                ),
             ]
             for mode in ["hybrid", "bm25", "vector"]
         ]

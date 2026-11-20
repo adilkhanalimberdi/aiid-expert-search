@@ -136,3 +136,10 @@ def test_english_explanations():
 
     assert years_label(1, "en") == "1 year" and years_label(5, "en") == "5 years"
     assert set(TEXTS["ru"]) == set(TEXTS["en"])
+
+
+def test_english_query_parsing():
+    parsed = parse("I need a cybersecurity expert from Almaty with 5+ years")
+    assert (parsed.city, parsed.min_experience, parsed.terms) == ("Алматы", 5, ["cybersecurity"])
+    assert "кибербезопасность" in expand_synonyms(["cybersecurity"])
+    assert parse("audit at least 10 years").min_experience == 10

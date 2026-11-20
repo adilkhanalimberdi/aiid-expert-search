@@ -11,6 +11,11 @@ from .schemas import ParsedQuery
 from .text import contains, lemmas, normalize
 
 MIN_FUZZY_LENGTH = 5
+# «от 10 лет», «не менее 5 лет» и английские «5+ years», «at least 10 years»
+EXPERIENCE_PATTERN = (
+    r"(?:от|не менее|минимум)\s*(\d+)\s*(?:лет|год\w*)"
+    r"|(?:at least|minimum|over|more than)?\s*(\d+)\s*\+?\s*(?:years?|yrs?)"
+)
 
 
 @lru_cache(maxsize=2)
@@ -56,8 +61,8 @@ def parse(query: str) -> ParsedQuery:
         city, matched_word = typo
         words = [word for word in words if word != matched_word]
     remaining = " ".join(words)
-    experience = re.search(r"(?:от|не менее|минимум)\s*(\d+)\s*(?:лет|год\w*)", remaining)
-    min_experience = int(experience[1]) if experience else None
+    experience = re.search(EXPERIENCE_PATTERN, remaining)
+    min_experience = int(experience[1] or experience[2]) if experience else None
     if experience:
         remaining = remaining[: experience.start()] + remaining[experience.end() :]
     terms = lemmas(remaining)
