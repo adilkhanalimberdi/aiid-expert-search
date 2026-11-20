@@ -21,6 +21,9 @@ def morphology() -> pymorphy3.MorphAnalyzer:
 
 @lru_cache(maxsize=50000)
 def lemma(word: str) -> str:
+    """Лемма слова; латиницу и короткие аббревиатуры (ИИ, ML) не трогаем."""
+    if word.isascii() or len(word) <= 2:
+        return word
     return morphology().parse(word)[0].normal_form
 
 

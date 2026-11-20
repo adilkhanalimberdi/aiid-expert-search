@@ -83,3 +83,9 @@ def test_filters_and_zero_bm25(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.ranker.encode_query", lambda _: np.array([0.0, 1.0]))
     assert search(index, SearchRequest(query="несуществующий")).weak_match
     assert search(index, SearchRequest(query="bim", industry="Нет такой отрасли")).results == []
+
+
+def test_abbreviations_and_kazakh_filler_are_not_terms():
+    assert "ии" in lemmas("специалист по ИИ")
+    assert "ml" in lemmas("ML инженер")
+    assert lemmas("маманы керек") == []
