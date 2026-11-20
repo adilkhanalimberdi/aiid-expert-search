@@ -1,6 +1,8 @@
 models/
 data/cache/
 data/feedback.db
+data/uploaded.csv
+data/uploaded.tmp
 **/__pycache__/
 *.npy
 *.pyc

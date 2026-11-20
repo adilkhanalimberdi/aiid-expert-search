@@ -1,0 +1,13 @@
+{
+  "url": "http://localhost:8080",
+  "search_http": 200,
+  "search_ms": 496.6,
+  "top_id": "E001",
+  "upload": {
+    "loaded": 1,
+    "skipped": 0,
+    "errors": []
+  },
+  "invalid_csv_http": 400,
+  "restored": 150
+}

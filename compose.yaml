@@ -9,6 +9,7 @@ services:
     environment:
       CACHE_DIR: state/cache
       FEEDBACK_DB: state/feedback.db
+      UPLOADED_CSV: state/uploaded.csv
     volumes:
       - ./backend/models:/app/models:ro
       - backend-state:/app/state
