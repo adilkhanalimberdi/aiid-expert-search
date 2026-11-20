@@ -39,6 +39,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Поиск
+CITY_TYPO_CUTOFF = 0.8  # похожесть слова на город (difflib), чтобы поправить опечатку
 TOP_N_PER_RETRIEVER = 30  # сколько кандидатов берёт BM25 и вектор
 RRF_K = 60  # score = sum(1 / (RRF_K + rank))
 

@@ -103,3 +103,14 @@ def test_years_label_declension():
         "22 года",
         "15 лет",
     ]
+
+
+def test_city_typo_is_fixed_but_ordinary_words_are_not():
+    assert parse("специалист из Алмты").city == "Алматы"
+    assert parse("из Шымкнте").city == "Шымкент"
+    assert parse("нужен станок и тариф").city is None
+
+
+def test_cyrillic_spelling_of_latin_term_expands_synonyms():
+    assert "devops" in expand_synonyms(["девопс"])
+    assert "python" in expand_synonyms(["питон"])
