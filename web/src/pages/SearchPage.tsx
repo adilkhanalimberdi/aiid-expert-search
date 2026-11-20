@@ -75,36 +75,44 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
     <>
       <HeroBand nav={nav}>
         <div className="pt-14 text-center sm:pt-[72px]">
-          <h1 className="font-display text-[46px] font-light leading-none tracking-[-0.04em] text-balance sm:text-[96px]">
+          <h1 className="font-display text-[38px] font-light leading-[1.02] tracking-[-0.035em] text-balance sm:text-[76px]">
             {t.search.h1}
           </h1>
           <p className="mx-auto mt-6 max-w-[560px] text-lg leading-relaxed text-white/90">{t.search.sub}</p>
           {catalog.data && industries.data && (
-            <p className="mt-3 text-sm text-white/80">
+            <p className="tnum mt-3 text-sm text-white/75">
               {t.search.experts(catalog.data.experts)} · {t.search.industriesCount(industries.data.length)}
             </p>
           )}
         </div>
 
         <form onSubmit={submit} role="search" className="mx-auto mt-11 flex max-w-[920px] flex-col items-center gap-7">
-          <div className="w-full shadow-[6px_6px_0_var(--color-ink)] sm:shadow-[10px_10px_0_var(--color-ink)]">
+          <div className="w-full shadow-[0_22px_44px_-18px_rgb(8_12_40/0.7)]">
             <label htmlFor="query" className="sr-only">
               {t.search.queryLabel}
             </label>
-            <input
+            {/* поле растёт по тексту: длинный запрос виден целиком и на телефоне; Enter ищет, Shift+Enter переносит */}
+            <textarea
               id="query"
+              rows={1}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                  event.preventDefault()
+                  event.currentTarget.form?.requestSubmit()
+                }
+              }}
               maxLength={500}
               placeholder={t.search.placeholder}
-              className="h-[68px] w-full rounded-none bg-paper px-4 font-display text-lg font-light tracking-[-0.02em] text-ink outline-none placeholder:text-ash-deep focus:shadow-[inset_0_-6px_0_var(--color-lime)] sm:h-[88px] sm:px-8 sm:text-[30px]"
+              className="block min-h-[68px] w-full resize-none rounded-none border-b-[6px] border-ochre bg-plaster px-4 py-[19px] text-lg leading-snug text-grout outline-none [field-sizing:content] placeholder:font-display placeholder:font-light placeholder:tracking-[-0.02em] placeholder:text-stone focus:border-turquoise sm:min-h-[88px] sm:px-8 sm:py-[24px] sm:text-[24px]"
             />
           </div>
-          <Button type="submit" variant="lime" size="lg" className="w-full sm:w-auto">
+          <Button type="submit" variant="primary" size="lg" className="w-full sm:w-auto">
             {t.search.submit}
             <ArrowRight />
           </Button>
-          <p className="-mt-3 min-h-5 text-sm text-lime" aria-live="polite">
+          <p className="-mt-3 min-h-5 text-sm text-ochre-soft" aria-live="polite">
             {emptyHint && t.search.emptyQuery}
           </p>
         </form>
@@ -117,7 +125,7 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
               type="button"
               onClick={() => applyExample(example)}
               // на телефоне три примера: остальные отодвигали результаты на второй экран
-              className={`${index >= 3 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-[15px] font-medium text-white underline decoration-[1.5px] underline-offset-[5px] hover:decoration-lime`}
+              className={`${index >= 3 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-[15px] font-medium text-white underline decoration-white/45 decoration-[1.5px] underline-offset-[5px] hover:decoration-ochre`}
             >
               {example}
             </button>
@@ -132,7 +140,7 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
                 key={item}
                 type="button"
                 onClick={() => applyExample(item)}
-                className={`${index >= 1 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-sm text-white/90 underline decoration-white/40 decoration-1 underline-offset-[5px] hover:decoration-lime`}
+                className={`${index >= 1 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-sm text-white/90 underline decoration-white/35 decoration-1 underline-offset-[5px] hover:decoration-ochre`}
               >
                 {item}
               </button>
@@ -163,7 +171,14 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
 
       <section className="mx-auto max-w-[1120px] px-4 pb-6 pt-16 sm:px-6" aria-live="polite">
         {state.status === 'idle' && (
-          <p className="border-2 border-dashed border-rule p-10 text-center text-muted">{t.search.idle}</p>
+          <div className="flex flex-col items-center gap-5 border-2 border-dashed border-seam px-6 py-12 text-center text-slate">
+            <span aria-hidden className="flex gap-0.5">
+              {['bg-turquoise', 'bg-ochre', 'bg-smalt', 'bg-seam', 'bg-seam'].map((tone, index) => (
+                <span key={index} className={`size-4 ${tone}`} />
+              ))}
+            </span>
+            <p className="max-w-[46ch]">{t.search.idle}</p>
+          </div>
         )}
         {state.status === 'loading' && <ResultsSkeleton />}
         {state.status === 'error' && (
@@ -197,7 +212,9 @@ interface ResultsProps {
 }
 
 function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="mb-5 mt-[72px] font-display text-4xl font-light leading-[1.1] tracking-[-0.035em] sm:text-[40px]">{children}</h2>
+  return (
+    <h2 className="mb-5 mt-16 font-display text-[26px] font-light leading-[1.1] tracking-[-0.025em] sm:text-[32px]">{children}</h2>
+  )
 }
 
 function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsProps) {
@@ -211,24 +228,26 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
       <Readback parsed={data.parsed} tookMs={data.took_ms} count={data.results.length} />
 
       {data.weak_match && (
-        <p role="status" className="mt-8 border-2 border-ink bg-amber p-4 font-medium">
-          {t.search.weak}
+        <p role="status" className="mt-8 flex items-start gap-3 border-2 border-ochre-deep bg-ochre-soft/60 p-4 font-medium">
+          <span aria-hidden className="mt-1 size-3 flex-none bg-ochre-deep" />
+          <span>{t.search.weak}</span>
         </p>
       )}
 
       {data.filter_only && (
-        <p role="status" className="mt-8 border-2 border-ink bg-white p-4 font-medium">
-          {t.search.filterOnly([data.parsed.city, data.parsed.industry].filter(Boolean).join(', '))}
+        <p role="status" className="mt-8 flex items-start gap-3 border-2 border-smalt bg-plaster p-4 font-medium">
+          <span aria-hidden className="mt-1 size-3 flex-none bg-smalt" />
+          <span>{t.search.filterOnly([data.parsed.city, data.parsed.industry].filter(Boolean).join(', '))}</span>
         </p>
       )}
 
-      {!best && <p className="mt-8 border-2 border-ink bg-white p-10 text-center text-muted">{t.search.nobody}</p>}
+      {!best && <p className="mt-8 border-2 border-dashed border-seam p-10 text-center text-slate">{t.search.nobody}</p>}
 
       {best && data.weak_match && (
         // слабое совпадение не получает чёрную панель «лучшего»: это ближайшие профили, а не рекомендация
         <>
           <SectionTitle>{t.card.closest}</SectionTitle>
-          <div className="border-t-2 border-ink">
+          <div className="border-t-2 border-grout">
             {data.results.map((expert) => (
               <CandidateRow key={expert.id} expert={expert} query={submitted.query} onOpen={onOpen} />
             ))}
@@ -245,9 +264,9 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
           {alsoFit.length > 0 && (
             <>
               <SectionTitle>{t.card.also}</SectionTitle>
-              <div className="grid border-2 border-ink bg-white md:grid-cols-2">
-                {alsoFit.map((expert, index) => (
-                  <div key={expert.id} className={index > 0 ? 'border-t-2 border-ink md:border-l-2 md:border-t-0' : ''}>
+              <div className="grid gap-0.5 bg-seam p-0.5 md:grid-cols-2">
+                {alsoFit.map((expert) => (
+                  <div key={expert.id}>
                     <AlsoFit expert={expert} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
                   </div>
                 ))}
@@ -258,7 +277,7 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
           {others.length > 0 && (
             <>
               <SectionTitle>{t.card.others}</SectionTitle>
-              <div className="border-t-2 border-ink">
+              <div className="border-t-2 border-grout">
                 {others.map((expert) => (
                   <CandidateRow
                     key={expert.id}

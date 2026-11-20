@@ -8,7 +8,7 @@ interface TopBarProps {
   onTab: (tab: TabId) => void
 }
 
-/** Бренд слева, разделы по центру, язык справа. */
+/** Бренд слева, разделы по центру плитками, язык справа. */
 export function TopBar({ tab, onTab }: TopBarProps) {
   const { t } = useI18n()
   return (
@@ -16,15 +16,15 @@ export function TopBar({ tab, onTab }: TopBarProps) {
       <div className="flex flex-[1_1_240px] items-center">
         <Brand />
       </div>
-      <nav aria-label={t.nav.sections} className="order-last flex w-full justify-center gap-1 sm:order-none sm:w-auto">
+      <nav aria-label={t.nav.sections} className="order-last flex w-full justify-center gap-0.5 sm:order-none sm:w-auto">
         {TABS.map((id) => (
           <button
             key={id}
             type="button"
             onClick={() => onTab(id)}
             aria-current={tab === id ? 'page' : undefined}
-            className={`min-h-11 cursor-pointer px-5 text-[15px] transition-colors ${
-              tab === id ? 'bg-ink font-semibold text-white' : 'font-medium text-white hover:bg-white/10'
+            className={`min-h-11 cursor-pointer px-5 text-[15px] font-medium transition-colors duration-150 ${
+              tab === id ? 'bg-plaster text-smalt' : 'bg-smalt-deep/55 text-white hover:bg-smalt-deep'
             }`}
           >
             {t.nav[id]}

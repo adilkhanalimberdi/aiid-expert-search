@@ -59,16 +59,16 @@ export function DataPage({ nav }: { nav: ReactNode }) {
             )}
             {health.data && (
               <div className="pt-6">
-                <p className="tnum font-display text-[84px] font-light leading-[0.9] tracking-[-0.045em] text-cobalt-deep sm:text-[104px]">
+                <p className="tnum font-display text-[76px] font-light leading-[0.9] tracking-[-0.04em] text-smalt sm:text-[96px]">
                   {health.data.experts}
                 </p>
                 <p className="mt-3 text-[15px] font-medium">{t.data.experts}</p>
                 {industries.data && (
-                  <p className="mt-6 border-t border-rule pt-4 text-[15px] leading-relaxed text-muted">
-                    <span className="inline-block font-medium text-ink first-letter:uppercase">{t.data.industries}:</span> {industries.data.join(', ')}
+                  <p className="mt-6 border-t border-seam pt-4 text-[15px] leading-relaxed text-slate">
+                    <span className="inline-block font-medium text-grout first-letter:uppercase">{t.data.industries}:</span> {industries.data.join(', ')}
                   </p>
                 )}
-                <p className="mt-3 border-t border-rule pt-4 text-sm text-quiet first-letter:uppercase">
+                <p className="mt-3 border-t border-seam pt-4 text-sm text-pebble first-letter:uppercase">
                   {t.data.model} {health.data.model}
                 </p>
               </div>
@@ -83,15 +83,15 @@ export function DataPage({ nav }: { nav: ReactNode }) {
             onDragLeave={() => setIsDragging(false)}
             onDrop={drop}
             className={`flex min-h-72 flex-col items-center justify-center border-2 border-dashed p-8 text-center transition-colors sm:p-10 ${
-              isDragging ? 'border-cobalt bg-lime' : 'border-ink bg-white'
+              isDragging ? 'border-turquoise bg-turquoise/10' : 'border-grout/40 bg-plaster'
             }`}
             aria-label={t.data.upload}
           >
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" aria-hidden className="text-cobalt">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" aria-hidden className="text-turquoise">
               <path d="M12 16V4M7 9l5-5 5 5M4 15v5h16v-5" />
             </svg>
-            <p className="mt-5 font-display text-[28px] font-light leading-tight tracking-[-0.03em]">{t.data.dropTitle}</p>
-            <p className="mt-2 max-w-[44ch] text-sm text-muted">{t.data.dropHint}</p>
+            <p className="mt-5 font-display text-[22px] font-light leading-tight tracking-[-0.02em] sm:text-[26px]">{t.data.dropTitle}</p>
+            <p className="mt-2 max-w-[44ch] text-sm text-slate">{t.data.dropHint}</p>
             <input
               ref={fileInput}
               type="file"
@@ -103,7 +103,7 @@ export function DataPage({ nav }: { nav: ReactNode }) {
                 event.target.value = ''
               }}
             />
-            <Button variant="lime" className="mt-7 border-2 border-ink" onClick={() => fileInput.current?.click()} disabled={isUploading}>
+            <Button variant="primary" className="mt-7" onClick={() => fileInput.current?.click()} disabled={isUploading}>
               {isUploading ? t.data.uploading : t.data.upload}
             </Button>
           </section>
@@ -115,11 +115,11 @@ export function DataPage({ nav }: { nav: ReactNode }) {
           <div role="status">
             <Section id="report-title" title={t.data.result}>
               <p className="pt-5 text-[17px]">
-                {t.data.loaded}: <strong className="tnum font-semibold text-cobalt-deep">{report.loaded}</strong> ·{' '}
+                {t.data.loaded}: <strong className="tnum font-semibold text-turquoise-deep">{report.loaded}</strong> ·{' '}
                 {t.data.skipped}: <strong className="tnum font-semibold">{report.skipped}</strong>
               </p>
               {report.errors.length > 0 && (
-                <ul className="mt-3 max-h-48 list-disc space-y-1 overflow-y-auto pl-5 text-sm text-muted">
+                <ul className="mt-3 max-h-48 list-disc space-y-1 overflow-y-auto pl-5 text-sm text-slate">
                   {report.errors.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -134,12 +134,12 @@ export function DataPage({ nav }: { nav: ReactNode }) {
         <Section id="format-title" title={t.data.formatTitle}>
           <ul className="flex flex-wrap gap-2 pt-5">
             {REQUIRED_COLUMNS.map((column) => (
-              <li key={column} className="border-2 border-ink bg-white px-3 py-1.5 text-sm font-medium">
+              <li key={column} className="tile bg-grout px-3 py-1.5 text-sm font-medium text-white">
                 {column}
               </li>
             ))}
           </ul>
-          <p className="mt-4 max-w-[75ch] text-[15px] leading-relaxed text-muted">
+          <p className="mt-4 max-w-[75ch] text-[15px] leading-relaxed text-slate">
             {t.data.formatBody(REQUIRED_COLUMNS.map((column) => `“${column}”`).join(', '))}
           </p>
         </Section>

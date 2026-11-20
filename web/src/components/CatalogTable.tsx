@@ -32,11 +32,11 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
           {/* на телефоне список: таблица в семь колонок туда не помещается */}
           <ul className="sm:hidden">
             {page.data.items.map((expert) => (
-              <li key={expert.id} className="border-b border-rule py-4">
+              <li key={expert.id} className="border-b border-seam py-4">
                 <p className="font-semibold">{expert.full_name}</p>
-                <p className="mt-0.5 text-sm text-muted">{expert.position}</p>
+                <p className="mt-0.5 text-sm text-slate">{expert.position}</p>
                 <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                  <span className="tnum text-quiet">{expert.id}</span>
+                  <span className="tnum text-pebble">{expert.id}</span>
                   <span>{expert.industry}</span>
                   <span>{expert.city}</span>
                   <span className="tnum">{t.years(expert.experience_years)}</span>
@@ -48,7 +48,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
           <div className="hidden overflow-x-auto sm:block">
             <table className="w-full min-w-[720px] text-left text-[15px]">
               <thead>
-                <tr className="border-b border-ink text-sm text-muted">
+                <tr className="border-b border-grout text-sm text-slate">
                   {[c.id, c.name, c.position, c.industry, c.city, c.experience, c.status].map((label) => (
                     <th key={label} className="px-2 py-3 font-medium first:pl-0">
                       {label}
@@ -58,8 +58,8 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
               </thead>
               <tbody>
                 {page.data.items.map((expert) => (
-                  <tr key={expert.id} className="border-b border-rule transition-colors hover:bg-ink/[0.04]">
-                    <td className="tnum py-3.5 pr-2 text-quiet">{expert.id}</td>
+                  <tr key={expert.id} className="border-b border-seam transition-colors hover:bg-plaster">
+                    <td className="tnum py-3.5 pr-2 text-pebble">{expert.id}</td>
                     <td className="px-2 py-3.5 font-semibold">{expert.full_name}</td>
                     <td className="px-2 py-3.5">{expert.position}</td>
                     <td className="px-2 py-3.5">{expert.industry}</td>
@@ -74,7 +74,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
             </table>
           </div>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
-            <span className="tnum text-muted">{t.data.range(offset + 1, Math.min(offset + PAGE_SIZE, total), total)}</span>
+            <span className="tnum text-slate">{t.data.range(offset + 1, Math.min(offset + PAGE_SIZE, total), total)}</span>
             <div className="flex gap-2">
               <Button
                 variant="outline"
