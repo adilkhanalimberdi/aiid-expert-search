@@ -1,5 +1,7 @@
 // Типы повторяют backend/app/schemas.py. Меняешь там: меняй и здесь.
 
+import type { Language } from './i18n'
+
 export type Availability = 'available' | 'partial' | 'busy'
 
 export interface ParsedQuery {
@@ -39,7 +41,7 @@ export interface SearchRequest {
   industry?: string | null
   top_k?: number
   hide_busy?: boolean
-  lang?: 'ru' | 'en'
+  lang?: Language
 }
 
 export interface Expert {
@@ -80,7 +82,7 @@ export interface TeamRequest {
   industry?: string | null
   hide_busy?: boolean
   max_members?: number
-  lang?: 'ru' | 'en'
+  lang?: Language
 }
 
 export interface TeamResponse {
@@ -126,10 +128,16 @@ export interface FeedbackRequest {
 // В dev запросы идут через прокси Vite (/api → :8000). VITE_API_URL нужен для сборки без прокси.
 const BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? '')
 
-// Язык обоснований (reasons, constraints) совпадает с языком интерфейса
-const UI_LANGUAGE = 'en'
+// Язык обоснований (reasons, constraints) совпадает с языком интерфейса; меняется из I18nProvider
+let uiLanguage: Language = 'en'
 
-const NETWORK_ERROR = 'Cannot reach the server. Make sure the backend is running.'
+export function setApiLanguage(lang: Language): void {
+  uiLanguage = lang
+}
+
+/** Коды ошибок: текст по ним подбирает интерфейс (lib/errors.ts), чтобы он был на языке пользователя. */
+export const NETWORK_ERROR = 'network_error'
+export const SERVER_ERROR_PREFIX = 'server_error:'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const isJsonBody = typeof init?.body === 'string'
@@ -144,7 +152,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(typeof body.detail === 'string' ? body.detail : `Server error: ${res.status}`)
+    throw new Error(typeof body.detail === 'string' ? body.detail : `${SERVER_ERROR_PREFIX}${res.status}`)
   }
   return res.status === 204 ? (undefined as T) : res.json()
 }
@@ -153,13 +161,13 @@ const post = <T>(path: string, body: unknown) =>
   request<T>(path, { method: 'POST', body: JSON.stringify(body) })
 
 export const api = {
-  search: (req: SearchRequest) => post<SearchResponse>('/api/search', { lang: UI_LANGUAGE, ...req }),
-  team: (req: TeamRequest) => post<TeamResponse>('/api/team', { lang: UI_LANGUAGE, ...req }),
+  search: (req: SearchRequest) => post<SearchResponse>('/api/search', { lang: uiLanguage, ...req }),
+  team: (req: TeamRequest) => post<TeamResponse>('/api/team', { lang: uiLanguage, ...req }),
   industries: () => request<string[]>('/api/industries'),
   experts: (offset = 0, limit = 20) => request<ExpertPage>(`/api/experts?offset=${offset}&limit=${limit}`),
   expert: (id: string) => request<Expert>(`/api/experts/${encodeURIComponent(id)}`),
   explain: (id: string, query: string) =>
-    request<ExpertExplanation>(`/api/experts/${encodeURIComponent(id)}/explain?query=${encodeURIComponent(query)}&lang=${UI_LANGUAGE}`),
+    request<ExpertExplanation>(`/api/experts/${encodeURIComponent(id)}/explain?query=${encodeURIComponent(query)}&lang=${uiLanguage}`),
   similar: (id: string, limit = 5) =>
     request<SimilarExpert[]>(`/api/experts/${encodeURIComponent(id)}/similar?limit=${limit}`),
   feedback: (query: string, expert_id: string, verdict: FeedbackRequest['verdict']) =>
