@@ -43,7 +43,7 @@ def assemble(index: SearchIndex, req: TeamRequest) -> TeamResponse:
             break
     return TeamResponse(
         parsed=parsed,
-        members=[result_for(index, i, parsed, query_vec) for i in selected],
+        members=[result_for(index, i, parsed, query_vec, lang=req.lang) for i in selected],
         coverage=[
             CoverageRow(expert_id=index.experts[i].id, terms={term: term in covers[i] for term in terms})
             for i in selected

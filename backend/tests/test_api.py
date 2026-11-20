@@ -183,3 +183,13 @@ def test_experts_are_paginated(client: TestClient) -> None:
     assert client.get("/api/experts", params={"offset": 149, "limit": 5}).json()["items"][0]["id"] == "E150"
     assert client.get("/api/experts", params={"limit": 0}).status_code == 422
     assert client.get("/api/experts", params={"limit": 101}).status_code == 422
+
+
+def test_english_reasons_and_constraints(client: TestClient) -> None:
+    result = client.post("/api/search", json={"query": "GMP Алматы", "lang": "en"}).json()
+    assert any(reason.startswith("Matched skill") for reason in result["results"][0]["reasons"])
+    explanation = client.get(
+        "/api/experts/E008/explain", params={"query": "GMP из Алматы от 30 лет", "lang": "en"}
+    ).json()
+    assert "Busy" in explanation["constraints"]
+    assert client.post("/api/search", json={"query": "GMP", "lang": "de"}).status_code == 422

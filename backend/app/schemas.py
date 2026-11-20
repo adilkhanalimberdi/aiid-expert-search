@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 from .config import TEAM_MAX_MEMBERS, TEAM_MIN_MEMBERS
 
 Availability = Literal["available", "partial", "busy"]
+Language = Literal["ru", "en"]  # язык обоснований: reasons и constraints
 
 
 class Expert(BaseModel):
@@ -40,6 +41,7 @@ class SearchRequest(BaseModel):
     industry: str | None = None
     top_k: int = Field(default=5, ge=3, le=20)
     hide_busy: bool = False
+    lang: Language = "ru"
 
     @field_validator("query")
     @classmethod
@@ -91,6 +93,7 @@ class TeamRequest(BaseModel):
     industry: str | None = None
     hide_busy: bool = False
     max_members: int = Field(default=TEAM_MAX_MEMBERS, ge=TEAM_MIN_MEMBERS, le=TEAM_MAX_MEMBERS)
+    lang: Language = "ru"
 
     @field_validator("query")
     @classmethod

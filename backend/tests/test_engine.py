@@ -114,3 +114,25 @@ def test_city_typo_is_fixed_but_ordinary_words_are_not():
 def test_cyrillic_spelling_of_latin_term_expands_synonyms():
     assert "devops" in expand_synonyms(["девопс"])
     assert "python" in expand_synonyms(["питон"])
+
+
+def test_unknown_word_is_not_distorted_and_prefix_is_confirmed():
+    assert lemmas("деплой") == ["деплой"]
+    assert covered_terms(["кибер"], "кибербезопасность; DevOps") == {"кибер"}
+    assert covered_terms(["каб"], "кабель") == set()  # короче порога: не приставка
+
+
+def test_vocabulary_expansion_by_prefix_and_typo():
+    from app.text import expand_vocabulary
+
+    vocabulary = ["кибербезопасность", "devops", "промышленный"]
+    assert "кибербезопасность" in expand_vocabulary(["кибер"], vocabulary)
+    assert "кибербезопасность" in expand_vocabulary(["кибирбезопасность"], vocabulary)
+    assert expand_vocabulary(["devops"], vocabulary) == ["devops"]
+
+
+def test_english_explanations():
+    from app.explain import TEXTS, years_label
+
+    assert years_label(1, "en") == "1 year" and years_label(5, "en") == "5 years"
+    assert set(TEXTS["ru"]) == set(TEXTS["en"])
