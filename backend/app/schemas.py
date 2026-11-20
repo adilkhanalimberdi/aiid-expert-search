@@ -81,6 +81,8 @@ class SearchResponse(BaseModel):
     weak_match: bool
     took_ms: int
     results: list[SearchResult]
+    # в запросе нет темы, только город или отрасль: эксперты отобраны по фильтрам, процент не показываем
+    filter_only: bool = False
 
 
 class ExpertExplanation(BaseModel):

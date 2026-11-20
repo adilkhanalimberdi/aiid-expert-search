@@ -215,12 +215,18 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
         </p>
       )}
 
+      {data.filter_only && (
+        <p role="status" className="mt-8 border-2 border-ink bg-white p-4 font-medium">
+          {t.search.filterOnly([data.parsed.city, data.parsed.industry].filter(Boolean).join(', '))}
+        </p>
+      )}
+
       {!best && <p className="mt-8 border-2 border-ink bg-white p-10 text-center text-muted">{t.search.nobody}</p>}
 
       {best && (
         <>
           <div className="mt-12">
-            <BestMatch expert={best} query={submitted.query} onOpen={onOpen} />
+            <BestMatch expert={best} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
           </div>
 
           {alsoFit.length > 0 && (
@@ -229,7 +235,7 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
               <div className="grid border-2 border-ink bg-white md:grid-cols-2">
                 {alsoFit.map((expert, index) => (
                   <div key={expert.id} className={index > 0 ? 'border-t-2 border-ink md:border-l-2 md:border-t-0' : ''}>
-                    <AlsoFit expert={expert} query={submitted.query} onOpen={onOpen} />
+                    <AlsoFit expert={expert} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
                   </div>
                 ))}
               </div>
@@ -241,7 +247,13 @@ function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsP
               <SectionTitle>{t.card.others}</SectionTitle>
               <div className="border-t-2 border-ink">
                 {others.map((expert) => (
-                  <CandidateRow key={expert.id} expert={expert} query={submitted.query} onOpen={onOpen} />
+                  <CandidateRow
+                    key={expert.id}
+                    expert={expert}
+                    query={submitted.query}
+                    onOpen={onOpen}
+                    showScore={!data.filter_only}
+                  />
                 ))}
               </div>
             </>

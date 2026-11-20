@@ -7,6 +7,7 @@ const STYLE: Record<Kind, string> = {
   skill: 'bg-lime px-[0.12em]',
   place: 'bg-ink px-[0.12em] text-white',
   condition: 'text-cobalt underline decoration-[3px] underline-offset-[0.12em]',
+  excluded: 'text-quiet line-through decoration-[3px] decoration-danger',
 }
 
 export function Readback({ parsed, tookMs, count }: { parsed: ParsedQuery; tookMs: number; count: number }) {
@@ -34,6 +35,14 @@ export function Readback({ parsed, tookMs, count }: { parsed: ParsedQuery; tookM
           <span aria-hidden className="h-[3px] w-4 bg-cobalt" />
           {t.readback.legendCondition}
         </span>
+        {parsed.excluded_terms.length > 0 && (
+          <span className="inline-flex items-center gap-2">
+            <span aria-hidden className="text-quiet line-through decoration-2 decoration-danger">
+              abc
+            </span>
+            {t.readback.legendExcluded}
+          </span>
+        )}
         <span className="ml-auto text-quiet">
           {t.results(count)} · {t.took(tookMs)}
         </span>

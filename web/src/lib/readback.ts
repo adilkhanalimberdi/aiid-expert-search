@@ -1,7 +1,7 @@
 import type { ParsedQuery } from './api'
 import type { Dict } from './i18n'
 
-export type Kind = 'plain' | 'skill' | 'place' | 'condition'
+export type Kind = 'plain' | 'skill' | 'place' | 'condition' | 'excluded'
 interface Piece {
   kind: Kind
   text: string
@@ -27,6 +27,10 @@ export function readbackPieces(parsed: ParsedQuery, t: Dict): Piece[] {
   if (parsed.industry) pieces.push(...piece('plain', r.inIndustry), { kind: 'place', text: parsed.industry })
   if (parsed.min_experience !== null) pieces.push(...piece('condition', r.fromExperience(parsed.min_experience)))
   if (parsed.available_only) pieces.push(...piece('condition', r.availableOnly))
+  // исключённое («не нужен GMP», «кроме Python») видно в предложении перечёркнутым: человек проверяет, что понято верно
+  parsed.excluded_terms.forEach((term, index) => {
+    pieces.push({ kind: 'plain', text: index === 0 ? r.except : ', ' }, { kind: 'excluded', text: term })
+  })
   return pieces
 }
 

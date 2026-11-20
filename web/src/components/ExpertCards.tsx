@@ -11,6 +11,8 @@ interface CardProps {
   expert: SearchResult
   query: string
   onOpen: (expertId: string) => void
+  /** false: запрос без темы, процент ничего не значит и не показывается */
+  showScore?: boolean
 }
 
 function Fact({ label, children, isLast = false }: { label: string; children: ReactNode; isLast?: boolean }) {
@@ -24,7 +26,7 @@ function Fact({ label, children, isLast = false }: { label: string; children: Re
 }
 
 /** Лучший кандидат: чёрная панель, имя и факты слева, оценка и причины справа, действия по центру. */
-export function BestMatch({ expert, query, onOpen }: CardProps) {
+export function BestMatch({ expert, query, onOpen, showScore = true }: CardProps) {
   const { t } = useI18n()
   return (
     <article className="on-dark bg-ink text-white">
@@ -45,8 +47,8 @@ export function BestMatch({ expert, query, onOpen }: CardProps) {
           </dl>
         </div>
         <div className="min-w-0 flex-[1_1_440px] border-white/20 p-6 sm:p-12 sm:pb-9 md:border-l">
-          <ScoreFigure percent={expert.match_percent} size="hero" onDark />
-          <h3 className="mt-9 text-lg font-semibold">{t.card.why}</h3>
+          {showScore && <ScoreFigure percent={expert.match_percent} size="hero" onDark />}
+          <h3 className={`text-lg font-semibold ${showScore ? 'mt-9' : ''}`}>{t.card.why}</h3>
           <ul className="mt-3.5">
             {expert.reasons.map((reason) => (
               <li key={reason} className="flex items-start gap-3.5 border-t border-white/20 py-3 text-base leading-snug">
@@ -80,13 +82,15 @@ export function BestMatch({ expert, query, onOpen }: CardProps) {
 }
 
 /** Тоже подходят: два блока в общей рамке, крупная цифра слева. */
-export function AlsoFit({ expert, query, onOpen }: CardProps) {
+export function AlsoFit({ expert, query, onOpen, showScore = true }: CardProps) {
   const { t } = useI18n()
   return (
     <article className="flex gap-5 p-6 sm:gap-6 sm:p-7">
-      <div className="min-w-[88px] flex-none sm:min-w-28">
-        <ScoreFigure percent={expert.match_percent} size="big" />
-      </div>
+      {showScore && (
+        <div className="min-w-[88px] flex-none sm:min-w-28">
+          <ScoreFigure percent={expert.match_percent} size="big" />
+        </div>
+      )}
       <div className="min-w-0 flex-1">
         <h3 className="font-display text-2xl font-normal leading-tight tracking-[-0.02em]">{expert.full_name}</h3>
         <p className="mt-1.5 text-[15px] text-muted">{expert.position}</p>
@@ -124,7 +128,7 @@ function FeedbackLinks({ query, expertId }: { query: string; expertId: string })
 }
 
 /** Остальные кандидаты: линованная таблица, оценка справа. */
-export function CandidateRow({ expert, query, onOpen }: CardProps) {
+export function CandidateRow({ expert, query, onOpen, showScore = true }: CardProps) {
   return (
     <article className="flex flex-wrap items-center gap-x-7 gap-y-3 border-b border-rule px-2 py-5 transition-colors hover:bg-ink/[0.04]">
       <div className="min-w-0 flex-[2_1_260px]">
@@ -141,10 +145,12 @@ export function CandidateRow({ expert, query, onOpen }: CardProps) {
       <p className="flex-[1_1_150px] text-[15px]">
         <StatusDot availability={expert.availability} />
       </p>
-      <div className="flex flex-[1_1_180px] items-center gap-4">
-        <ScoreBar percent={expert.match_percent} />
-        <ScoreFigure percent={expert.match_percent} size="row" />
-      </div>
+      {showScore && (
+        <div className="flex flex-[1_1_180px] items-center gap-4">
+          <ScoreBar percent={expert.match_percent} />
+          <ScoreFigure percent={expert.match_percent} size="row" />
+        </div>
+      )}
       <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
         <FeedbackLinks query={query} expertId={expert.id} />
       </div>
