@@ -1,0 +1,35 @@
+# Запуск всего приложения: docker compose up --build
+# UI: http://localhost:8080   API и Swagger: http://localhost:8000/docs
+# Модель НЕ запекается в образ: монтируется из backend/models (скачать один раз, см. README).
+
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      CACHE_DIR: state/cache
+      FEEDBACK_DB: state/feedback.db
+    volumes:
+      - ./backend/models:/app/models:ro
+      - backend-state:/app/state
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  backend-state:

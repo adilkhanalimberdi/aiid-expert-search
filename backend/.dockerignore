@@ -1,0 +1,8 @@
+models/
+data/cache/
+data/feedback.db
+**/__pycache__/
+*.npy
+*.pyc
+.pytest_cache/
+.ruff_cache/
