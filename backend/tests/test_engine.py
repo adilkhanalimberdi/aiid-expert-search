@@ -416,3 +416,12 @@ def test_city_query_puts_matching_city_first() -> None:
         "near",
         "weak",
     ]  # без города: процент × доступность
+
+
+def test_typos_are_corrected_against_dictionary_words_and_stopwords() -> None:
+    vocabulary = {"логистика": 1.0}
+    assert correct_terms(["logidtics"], vocabulary) == ["logistics"]  # английское слово из словаря синонимов
+    assert correct_terms(["мманы", "логистика"], vocabulary) == [
+        "логистика"
+    ]  # опечатка в стоп-слове «маманы»
+    assert correct_terms(["юрист"], vocabulary) == ["юрист"]  # слово вне базы не превращается в другое

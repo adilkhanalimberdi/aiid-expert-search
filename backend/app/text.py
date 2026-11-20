@@ -197,13 +197,29 @@ def expand_vocabulary(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
     return list(dict.fromkeys(expanded))
 
 
+_correction_pool: dict[int, tuple[frozenset[str], list[str]]] = {}
+
+
+def correction_pool(vocabulary: Iterable[str]) -> tuple[frozenset[str], list[str]]:
+    """Слова, к которым исправляем опечатки: слова каталога, словаря синонимов (английские, казахские)
+    и стоп-слова (опечатка в «маманы» должна стать стоп-словом, а не термином). Кэш по словарю индекса."""
+    key = id(vocabulary)
+    if key not in _correction_pool:
+        known = frozenset(vocabulary)
+        synonym_words = {word for group in synonym_groups() for phrase in group for word in phrase}
+        _correction_pool.clear()
+        _correction_pool[key] = (known, sorted(known | synonym_words | stopwords()))
+    return _correction_pool[key]
+
+
 def correct_terms(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
-    """Заменяет термин с опечаткой словом базы («кибербезопастность» → «кибербезопасность»).
+    """Заменяет термин с опечаткой ближайшим известным словом («кибербезопастность» → «кибербезопасность»,
+    «logidtics» → «logistics»); опечатка в стоп-слове убирает термин.
 
     Не трогает слова базы, приставки слов базы и термины из словаря синонимов (в том числе
     казахские формы), чтобы не превращать правильный запрос в другой.
     """
-    known = set(vocabulary)
+    known, pool = correction_pool(vocabulary)
     synonym_words = {word for group in synonym_groups() for phrase in group for word in phrase}
     fixed = []
     for term in terms:
@@ -215,7 +231,9 @@ def correct_terms(terms: list[str], vocabulary: Iterable[str]) -> list[str]:
         ):
             fixed.append(term)
             continue
-        close = get_close_matches(term, sorted(known), n=1, cutoff=config.TERM_FIX_CUTOFF)
+        close = get_close_matches(term, pool, n=1, cutoff=config.TERM_FIX_CUTOFF)
+        if close and close[0] in stopwords():
+            continue
         fixed.append(close[0] if close else term)
     return list(dict.fromkeys(fixed))
 
