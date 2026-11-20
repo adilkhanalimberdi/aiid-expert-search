@@ -4,8 +4,9 @@ import hashlib
 import json
 import os
 import threading
+from collections import Counter
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -95,6 +96,17 @@ class SearchIndex:
     position_vecs: np.ndarray | None = None
     target_matrix: np.ndarray | None = None
     target_offsets: np.ndarray | None = None
+
+    @cached_property
+    def competency_industries(self) -> dict[tuple[str, ...], Counter]:
+        """В каких отраслях встречается каждая компетенция каталога (по леммам): отрасль запроса по данным."""
+        result: dict[tuple[str, ...], Counter] = {}
+        for expert in self.experts:
+            for competency in expert.competencies:
+                phrase = tuple(lemmas(competency))
+                if phrase:
+                    result.setdefault(phrase, Counter())[expert.industry] += 1
+        return result
 
     @property
     def industry_names(self) -> tuple[str, ...]:

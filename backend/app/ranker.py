@@ -131,7 +131,10 @@ def warm_feedback(index: SearchIndex, queries: list[str]) -> None:
     if not missing:
         return
     texts = [
-        embedding_text(text, parse(text, index.bm25.idf, index.industry_names, index.city_names))
+        embedding_text(
+            text,
+            parse(text, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries),
+        )
         for text in missing
     ]
     for text, vector in zip(missing, encode_queries(texts), strict=True):
@@ -226,7 +229,9 @@ def search(
     if mode not in {"hybrid", "bm25", "vector"}:
         raise ValueError("Неизвестный режим поиска")
     started = perf_counter()
-    parsed = parse(req.query, index.bm25.idf, index.industry_names, index.city_names)
+    parsed = parse(
+        req.query, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries
+    )
     query_vec = query_vector(req.query, parsed)
     cosines = index.expert_vecs @ query_vec
     credits = term_credits(index, parsed)

@@ -2,6 +2,7 @@
 
 import json
 import re
+from collections import Counter
 from collections.abc import Iterable
 from difflib import get_close_matches
 from functools import lru_cache
@@ -9,7 +10,15 @@ from functools import lru_cache
 from . import config
 from .config import settings
 from .schemas import ParsedQuery
-from .text import contains_stem, correct_terms, is_dictionary_word, lemmas, normalize, related_phrases
+from .text import (
+    contains_stem,
+    correct_terms,
+    expand_synonyms,
+    is_dictionary_word,
+    lemmas,
+    normalize,
+    related_phrases,
+)
 
 MIN_FUZZY_LENGTH = 5
 # «от 10 лет», «20+ лет», «более 5 лет», «опыт 7 лет», «10 жыл», «5+ years», «at least 10 years».
@@ -109,11 +118,34 @@ def industry_aliases(industries: tuple[str, ...] | None) -> dict[str, tuple[tupl
     return result
 
 
+def industry_from_data(
+    terms: list[str], competency_industries: dict[tuple[str, ...], Counter] | None
+) -> str | None:
+    """Отрасль по компетенциям каталога, найденным в запросе целиком (с синонимами и на любом языке).
+
+    «стерильное производство» относится к фармацевтике, хотя слово «производство» в словаре отраслей
+    ведёт к промышленности: решают данные, а не отдельное общее слово. Длинные фразы весят больше.
+    """
+    if not competency_industries or not terms:
+        return None
+    expanded = expand_synonyms(terms)
+    votes: Counter = Counter()
+    for phrase, counts in competency_industries.items():
+        if contains_stem(expanded, phrase):
+            for name, count in counts.items():
+                votes[name] += count * len(phrase)
+    if not votes:
+        return None
+    name, best = votes.most_common(1)[0]
+    return name if best / sum(votes.values()) >= config.INDUSTRY_FROM_DATA_MIN_SHARE else None
+
+
 def parse(
     query: str,
     vocabulary: Iterable[str] | None = None,
     industries: tuple[str, ...] | None = None,
     cities: tuple[str, ...] | None = None,
+    competency_industries: dict[tuple[str, ...], Counter] | None = None,
 ) -> ParsedQuery:
     """Извлекает ограничения, сохраняя предметные компетенции в терминах.
 
@@ -151,11 +183,13 @@ def parse(
     terms = lemmas(remaining)
     if vocabulary is not None:
         terms = correct_terms(terms, vocabulary)
-    scores = {
-        name: sum(contains_stem(terms, phrase) for phrase in phrases)
-        for name, phrases in industry_aliases(industries).items()
-    }
-    industry = max(scores, key=scores.get) if any(scores.values()) else None
+    industry = industry_from_data(terms, competency_industries)
+    if industry is None:
+        scores = {
+            name: sum(contains_stem(terms, phrase) for phrase in phrases)
+            for name, phrases in industry_aliases(industries).items()
+        }
+        industry = max(scores, key=scores.get) if any(scores.values()) else None
     excluded_terms = lemmas(normalize(excluded_text)) if excluded_text else []
     if vocabulary is not None:
         excluded_terms = correct_terms(excluded_terms, vocabulary)

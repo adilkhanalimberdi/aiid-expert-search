@@ -13,7 +13,9 @@ from .text import covered_terms
 def assemble(index: SearchIndex, req: TeamRequest) -> TeamResponse:
     """Сначала максимизирует новые подтверждённые термины, затем релевантность."""
     started = perf_counter()
-    parsed = parse(req.query, index.bm25.idf, index.industry_names, index.city_names)
+    parsed = parse(
+        req.query, index.bm25.idf, index.industry_names, index.city_names, index.competency_industries
+    )
     terms = list(dict.fromkeys(parsed.terms))
     query_vec = query_vector(req.query, parsed)
     covers = {

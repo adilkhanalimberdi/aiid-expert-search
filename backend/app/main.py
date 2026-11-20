@@ -134,7 +134,9 @@ def explain_expert(
     candidate = next((i for i, expert in enumerate(snapshot.experts) if expert.id == expert_id), None)
     if candidate is None:
         raise HTTPException(404, "Эксперт не найден")
-    parsed = parse(query, snapshot.bm25.idf, snapshot.industry_names, snapshot.city_names)
+    parsed = parse(
+        query, snapshot.bm25.idf, snapshot.industry_names, snapshot.city_names, snapshot.competency_industries
+    )
     expert = snapshot.experts[candidate]
     confirmed = covered_terms(parsed.terms, "; ".join(expert.competencies))
     return ExpertExplanation(
