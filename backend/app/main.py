@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from time import perf_counter
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import feedback as feedback_store
@@ -14,8 +14,10 @@ from . import index, ranker
 from . import stats as stats_store
 from .config import UPLOAD_MAX_BYTES, settings
 from .data_loader import load_csv
+from .query_parser import parse
 from .schemas import (
     Expert,
+    ExpertExplanation,
     FeedbackRequest,
     HealthResponse,
     SearchRequest,
@@ -23,6 +25,7 @@ from .schemas import (
     StatsResponse,
     UploadResponse,
 )
+from .text import covered_terms
 
 logger = logging.getLogger(__name__)
 _upload_lock = threading.Lock()
@@ -93,6 +96,35 @@ def get_expert(expert_id: str) -> Expert:
         if expert.id == expert_id:
             return expert
     raise HTTPException(404, "Эксперт не найден")
+
+
+@app.get("/api/experts/{expert_id}/explain", response_model=ExpertExplanation)
+def explain_expert(expert_id: str, query: str = Query(min_length=1, max_length=500)) -> ExpertExplanation:
+    """Показывает подтверждённые совпадения и ограничения любого профиля."""
+    if not query.strip():
+        raise HTTPException(422, "Введите непустой поисковый запрос")
+    snapshot = app.state.index
+    candidate = next((i for i, expert in enumerate(snapshot.experts) if expert.id == expert_id), None)
+    if candidate is None:
+        raise HTTPException(404, "Эксперт не найден")
+    parsed = parse(query)
+    expert = snapshot.experts[candidate]
+    confirmed = covered_terms(parsed.terms, "; ".join(expert.competencies))
+    constraints = []
+    if parsed.city and parsed.city != expert.city:
+        constraints.append(f"Другой город: {expert.city}; запрошен {parsed.city}")
+    if parsed.industry and parsed.industry != expert.industry:
+        constraints.append(f"Другая отрасль: {expert.industry}; запрошена {parsed.industry}")
+    if parsed.min_experience is not None and expert.experience_years < parsed.min_experience:
+        constraints.append(f"Опыт {expert.experience_years} лет ниже запрошенных {parsed.min_experience}")
+    if expert.availability != "available":
+        constraints.append("Занят" if expert.availability == "busy" else "Частично доступен")
+    return ExpertExplanation(
+        parsed=parsed,
+        expert=ranker.result_for(snapshot, candidate, parsed, index.encode_query(query)),
+        missing_terms=list(dict.fromkeys(term for term in parsed.terms if term not in confirmed)),
+        constraints=constraints,
+    )
 
 
 @app.get("/api/industries", response_model=list[str])

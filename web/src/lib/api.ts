@@ -54,6 +54,13 @@ export interface Expert {
   email: string | null
 }
 
+export interface ExpertExplanation {
+  parsed: ParsedQuery
+  expert: SearchResult
+  missing_terms: string[]
+  constraints: string[]
+}
+
 export interface UploadResponse {
   loaded: number
   skipped: number

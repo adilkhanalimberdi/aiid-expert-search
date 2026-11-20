@@ -112,6 +112,19 @@ def test_upload_missing_column(client: TestClient) -> None:
     assert "city" in response.json()["detail"]
 
 
+def test_explain_any_expert(client: TestClient) -> None:
+    response = client.get("/api/experts/E008/explain", params={"query": "GMP из Алматы от 20 лет"})
+    assert response.status_code == 200
+    result = response.json()
+    assert result["expert"]["id"] == "E008"
+    assert "gmp" in result["missing_terms"]
+    assert any("Другой город" in item for item in result["constraints"])
+    assert "Занят" in result["constraints"]
+    assert any("ниже запрошенных" in item for item in result["constraints"])
+    assert client.get("/api/experts/E001/explain", params={"query": "  "}).status_code == 422
+    assert client.get("/api/experts/unknown/explain", params={"query": "GMP"}).status_code == 404
+
+
 def test_csv_aliases_duplicates_and_quotes() -> None:
     raw = (
         "id,ФИО,Должность,Отрасль,Компетенции,Город,Опыт,Статус\n"

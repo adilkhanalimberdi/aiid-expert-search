@@ -162,6 +162,7 @@ CSV в UTF-8, компетенции через `;`.
 | POST | `/api/search` | поиск, главный эндпоинт |
 | POST | `/api/upload` | CSV (multipart), пересборка индекса без перезапуска |
 | GET | `/api/experts/{id}` | полная карточка |
+| GET | `/api/experts/{id}/explain?query=...` | совпадения, `missing_terms` (не подтверждены компетенциями профиля), ограничения города, отрасли, опыта и доступности |
 | GET | `/api/industries` | отрасли для фильтра |
 | POST | `/api/feedback` | `{query, expert_id, verdict: "fit" | "not_fit"}` |
 | GET | `/api/stats` | топ-5 компетенций, число запросов, среднее время, доля «подошёл» |

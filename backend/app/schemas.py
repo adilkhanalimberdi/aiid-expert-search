@@ -66,6 +66,13 @@ class SearchResponse(BaseModel):
     results: list[SearchResult]
 
 
+class ExpertExplanation(BaseModel):
+    parsed: ParsedQuery
+    expert: SearchResult
+    missing_terms: list[str]
+    constraints: list[str]
+
+
 class UploadResponse(BaseModel):
     loaded: int
     skipped: int
