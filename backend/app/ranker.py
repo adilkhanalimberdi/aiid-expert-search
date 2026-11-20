@@ -239,7 +239,29 @@ def filter_only_response(
     )
 
 
-def phrase_holders(index: SearchIndex, terms: list[str], eligible: list[int]) -> list[int]:
+def semantic_phrase(index: SearchIndex, query_vec: np.ndarray) -> tuple[str, ...] | None:
+    """Компетенция каталога, ближайшая к запросу по смыслу, если она заметно ближе следующей.
+
+    Словарь не знает всех формулировок («manufacturing defect inspection» → «контроль дефектов
+    на производстве»). По рангу ближайшая компетенция верна в 9 из 10 случаев на трёх языках,
+    по абсолютному порогу нет; отрыв от второй отсекает случайные зацепки за одно слово.
+    """
+    phrases, vectors = index.unique_competencies
+    if len(phrases) < 2 or vectors.shape[1] != query_vec.shape[0]:
+        return None
+    scores = vectors @ query_vec
+    first, second = np.argsort(-scores)[:2]
+    if (
+        scores[first] >= config.SEMANTIC_PHRASE_MIN_COS
+        and scores[first] - scores[second] >= config.SEMANTIC_PHRASE_MARGIN
+    ):
+        return phrases[int(first)]
+    return None
+
+
+def phrase_holders(
+    index: SearchIndex, terms: list[str], eligible: list[int], query_vec: np.ndarray | None = None
+) -> list[int]:
     """Эксперты, у которых в профиле целиком есть компетенция, названная в запросе (с синонимами и языками).
 
     BM25 видит слова поодиночке: «контроль дефектов на производстве» проигрывал «инженерам производства»,
@@ -249,6 +271,8 @@ def phrase_holders(index: SearchIndex, terms: list[str], eligible: list[int]) ->
         return []
     expanded = expand_synonyms(terms)
     asked = [phrase for phrase in index.competency_industries if contains_stem(expanded, phrase)]
+    if not asked and query_vec is not None and (nearest := semantic_phrase(index, query_vec)):
+        asked = [nearest]
     if not asked:
         return []
     weight = {i: sum(len(p) for p in asked if p in index.competency_phrases[i]) for i in eligible}
@@ -297,7 +321,7 @@ def search(
     if (
         mode == "hybrid"
         and config.PHRASE_RANKING
-        and (holders := phrase_holders(index, parsed.terms, eligible))
+        and (holders := phrase_holders(index, parsed.terms, eligible, query_vec))
     ):
         rankings.append(holders)
     scores = rrf(rankings)
