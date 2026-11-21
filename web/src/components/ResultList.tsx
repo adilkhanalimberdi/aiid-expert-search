@@ -1,6 +1,8 @@
 import type { SearchResult } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
+import { strengthOf } from '../lib/format'
 import { Avatar } from './Avatar'
+import { Icon } from './Icon'
 import { Score } from './Score'
 import { Status } from './Status'
 import { Panel } from './ui'
@@ -19,45 +21,132 @@ export const RECOMMENDED = 3
 
 const rank = (n: number) => String(n).padStart(2, '0')
 
-
 /**
- * Вся выдача одним списком: группа «Рекомендованы» (топ-3, их порядок решает движок) и «Ещё кандидаты».
- * Строка выбирает эксперта для панели справа, где обоснование. У занятого из топ-3 тихая строка
- * со свободной заменой.
+ * Выдача: топ-3 отдельным блоком (крупнее, у каждого совпавшие навыки и первый довод с сервера,
+ * лучший отмечен), ниже компактный список «Ещё кандидаты». Строка выбирает эксперта для панели справа,
+ * где полное обоснование. Слабое совпадение: один список «Ближайшие профили», без рекомендаций.
  */
 export function ResultList({ results, selectedId, onSelect, isWeak, showScore }: ResultListProps) {
   const { t } = useI18n()
-  const groups = isWeak
-    ? [{ title: t.card.closest, items: [...results].sort((a, b) => b.match_percent - a.match_percent), offset: 0 }]
-    : [
-        { title: t.card.recommended, items: results.slice(0, RECOMMENDED), offset: 0 },
-        // остальные по проценту: состав и порядок топ-3 решает движок, ниже числа не должны скакать
-        { title: t.card.more, items: showScore ? [...results.slice(RECOMMENDED)].sort((a, b) => b.match_percent - a.match_percent) : results.slice(RECOMMENDED), offset: RECOMMENDED },
-      ].filter((group) => group.items.length > 0)
-
+  if (isWeak) {
+    return <Group title={t.card.closest} items={[...results].sort((a, b) => b.match_percent - a.match_percent)} offset={0} selectedId={selectedId} onSelect={onSelect} showScore={showScore} />
+  }
+  const top = results.slice(0, RECOMMENDED)
+  // остальные по проценту: состав и порядок топ-3 решает движок, ниже числа не должны скакать
+  const rest = showScore ? [...results.slice(RECOMMENDED)].sort((a, b) => b.match_percent - a.match_percent) : results.slice(RECOMMENDED)
   return (
-    <Panel className="fade-in overflow-hidden" aria-label={t.card.listLabel}>
-      {groups.map((group, groupIndex) => (
-        <div key={group.title}>
-          <div className={`flex items-center justify-between px-4 pb-2 pt-3.5 sm:px-5 ${groupIndex > 0 ? 'border-t border-line' : ''}`}>
-            <h2 className="label flex items-baseline gap-2 text-ink-2">
-              {group.title}
-              <span className="text-ink-3">{group.items.length}</span>
-            </h2>
-            {groupIndex === 0 && showScore && <span className="label text-ink-3">{t.card.match}, %</span>}
-          </div>
-          <ol start={group.offset + 1}>
-            {group.items.map((expert, index) => (
-              <li key={expert.id} className="border-t border-line first:border-t-0">
-                <Row expert={expert} rank={group.offset + index + 1} isSelected={expert.id === selectedId} onSelect={onSelect} showScore={showScore} />
-              </li>
-            ))}
-          </ol>
-        </div>
-      ))}
+    <div className="fade-in space-y-5" aria-label={t.card.listLabel} role="region">
+      <section aria-labelledby="top-title">
+        <h2 id="top-title" className="label mb-2.5 flex items-baseline gap-2 px-1 text-ink-2">
+          {t.card.recommended}
+          <span className="text-ink-3">{top.length}</span>
+        </h2>
+        <ol className="space-y-2">
+          {top.map((expert, index) => (
+            <li key={expert.id}>
+              <TopRow expert={expert} index={index} isSelected={expert.id === selectedId} onSelect={onSelect} showScore={showScore} />
+            </li>
+          ))}
+        </ol>
+      </section>
+      {rest.length > 0 && <Group title={t.card.more} items={rest} offset={RECOMMENDED} selectedId={selectedId} onSelect={onSelect} showScore={showScore} />}
+    </div>
+  )
+}
+
+interface GroupProps {
+  title: string
+  items: SearchResult[]
+  offset: number
+  selectedId: string | null
+  onSelect: (id: string) => void
+  showScore: boolean
+}
+
+function Group({ title, items, offset, selectedId, onSelect, showScore }: GroupProps) {
+  const { t } = useI18n()
+  return (
+    <Panel className="fade-in overflow-hidden" aria-label={offset === 0 ? t.card.listLabel : undefined}>
+      <div className="flex items-center justify-between px-4 pb-2 pt-3.5 sm:px-5">
+        <h2 className="label flex items-baseline gap-2 text-ink-2">
+          {title}
+          <span className="text-ink-3">{items.length}</span>
+        </h2>
+        {showScore && <span className="label text-ink-3">{t.card.match}, %</span>}
+      </div>
+      <ol start={offset + 1}>
+        {items.map((expert, index) => (
+          <li key={expert.id} className="border-t border-line">
+            <Row expert={expert} rank={offset + index + 1} isSelected={expert.id === selectedId} onSelect={onSelect} showScore={showScore} />
+          </li>
+        ))}
+      </ol>
     </Panel>
   )
 }
+
+/** Строка топ-3: крупнее обычной, с навыками и первым доводом; лучший подписан и отмечен полосой сигнала. */
+function TopRow({ expert, index, isSelected, onSelect, showScore }: { expert: SearchResult; index: number; isSelected: boolean; onSelect: (id: string) => void; showScore: boolean }) {
+  const { t } = useI18n()
+  const isBest = index === 0 && showScore
+  const strength = strengthOf(expert.match_percent)
+  const reason = expert.reasons[0]
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(expert.id)}
+      aria-current={isSelected ? 'true' : undefined}
+      className={`relative grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-4 overflow-hidden rounded-xl p-4 text-left transition-colors sm:p-5 ${
+        isSelected ? 'bg-raised ring-1 ring-line-strong' : 'bg-surface hover:bg-raised'
+      }`}
+    >
+      {isBest && <span aria-hidden className="absolute inset-y-0 left-0 w-[3px] bg-action" />}
+      <span className="flex min-w-0 gap-3.5">
+        <Avatar name={expert.full_name} />
+        <span className="min-w-0">
+          <span className="flex flex-wrap items-baseline gap-x-2.5">
+            <span className="text-[17px] font-semibold leading-tight text-ink [overflow-wrap:anywhere]">{expert.full_name}</span>
+            <span className={`text-[12px] ${isBest ? 'font-medium text-action' : 'text-ink-3'}`}>{isBest ? t.card.best : `№ ${index + 1}`}</span>
+          </span>
+          <span className="mt-0.5 block text-[13px] text-ink-3">
+            {expert.position} · {expert.city} · {t.years(expert.experience_years)}
+          </span>
+          {expert.matched.length > 0 && <span className="mt-2 block text-[14px] text-ink">{expert.matched.join(' · ')}</span>}
+          {reason && (
+            <span className="mt-1 flex items-start gap-1.5 text-[13px] text-ink-2">
+              <Icon name="check" size={14} strokeWidth={2.2} className="mt-0.5 text-ink-3" />
+              {reason}
+            </span>
+          )}
+          {expert.alternative && (
+            <span className="mt-1 block text-[12px] text-ink-3">
+              {t.card.altShort}: <span className="text-ink-2">{expert.alternative.full_name}</span> · {expert.alternative.match_percent}%
+            </span>
+          )}
+        </span>
+      </span>
+      <span className="flex flex-col items-end justify-between gap-3">
+        {showScore ? (
+          <span className="flex flex-col items-end gap-1.5" aria-label={t.card.matchAria(expert.match_percent)}>
+            <span className={`display text-[28px] font-semibold leading-none ${STRONG_TEXT[strength]}`}>{expert.match_percent}</span>
+            <span aria-hidden className="block h-[3px] w-14 overflow-hidden rounded-full bg-line">
+              <span className={`block h-full rounded-full ${STRONG_BAR[strength]}`} style={{ width: `${Math.max(3, expert.match_percent)}%` }} />
+            </span>
+          </span>
+        ) : (
+          <span className="display text-right text-[22px] font-semibold leading-none text-ink">
+            {expert.experience_years}
+            <span className="block text-[11px] font-normal tracking-normal text-ink-3">{t.card.yearsShort}</span>
+          </span>
+        )}
+        <Status availability={expert.availability} />
+      </span>
+    </button>
+  )
+}
+
+const STRONG_TEXT = { strong: 'text-ink', medium: 'text-medium', weak: 'text-weak' } as const
+const STRONG_BAR = { strong: 'bg-brand', medium: 'bg-medium-bar', weak: 'bg-weak' } as const
 
 function Row({ expert, rank: position, isSelected, onSelect, showScore }: { expert: SearchResult; rank: number; isSelected: boolean; onSelect: (id: string) => void; showScore: boolean }) {
   const { t } = useI18n()
