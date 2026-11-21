@@ -28,7 +28,7 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
         {stats.error && <ErrorBox message={stats.error} />}
         {stats.data && (
           <>
-            <dl className="grid divide-y divide-line rounded-xl border border-line bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <dl className="grid divide-y divide-line rounded-xl bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
               <Metric label={t.analytics.queries} value={String(stats.data.total_queries)} />
               <Metric label={t.analytics.avgTime} value={t.took(Math.round(stats.data.avg_took_ms))} />
               <Metric
@@ -89,7 +89,7 @@ function Bars({ id, title, hint, items, empty, tone }: { id: string; title: stri
                 <span className="mono w-5 text-xs text-ink-3">{String(index + 1).padStart(2, '0')}</span>
                 <span className="[overflow-wrap:anywhere]">{item.term}</span>
               </span>
-              <span className={`mono text-base font-medium ${tone === 'brand' ? 'text-brand-deep' : 'text-medium'}`}>{item.count}</span>
+              <span className={`mono text-base font-medium ${tone === 'brand' ? 'text-ink' : 'text-medium'}`}>{item.count}</span>
             </div>
             <span aria-hidden className="mt-2 ml-8 block h-1 overflow-hidden rounded-full bg-line">
               <span
@@ -144,7 +144,7 @@ function EvalTable({ runs }: { runs: EvalRun[] }) {
                     <td key={mode} className={`${mode === 'hybrid' ? '' : 'hidden sm:table-cell'} px-3 py-3.5`}>
                       {run ? (
                         <span className="flex items-center gap-2.5">
-                          <span className={`tnum ${mode === 'hybrid' ? 'text-lg font-bold text-brand-deep' : 'text-ink-2'}`}>
+                          <span className={`tnum ${mode === 'hybrid' ? 'text-lg font-semibold text-ink' : 'text-ink-2'}`}>
                             {run.hits}/{run.total}
                           </span>
                           <span aria-hidden className="hidden h-1.5 w-14 overflow-hidden rounded-full bg-line sm:block">

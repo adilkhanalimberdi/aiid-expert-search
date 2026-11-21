@@ -70,11 +70,11 @@ function DataContent({ health, catalogVersion, onUploaded }: Omit<DataPageProps,
             {health.data && (
               <>
                 <dl className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-line bg-sunken p-4">
-                    <dd className="display tnum text-[44px] font-semibold leading-none text-brand-deep">{health.data.experts}</dd>
+                  <div className="rounded-lg bg-sunken p-4">
+                    <dd className="display tnum text-[44px] font-semibold leading-none text-ink">{health.data.experts}</dd>
                     <dt className="mt-2 text-sm text-ink-3">{t.search.expertsWord(health.data.experts)}</dt>
                   </div>
-                  <div className="rounded-lg border border-line bg-sunken p-4">
+                  <div className="rounded-lg bg-sunken p-4">
                     <dd className="display tnum text-[44px] font-semibold leading-none text-ink">{industries.data?.length ?? '—'}</dd>
                     <dt className="mt-2 text-sm text-ink-3">{t.search.industriesWord(industries.data?.length ?? 0)}</dt>
                   </div>
@@ -82,16 +82,12 @@ function DataContent({ health, catalogVersion, onUploaded }: Omit<DataPageProps,
                 {industries.data && (
                   <ul className="mt-4 flex flex-wrap gap-1.5">
                     {industries.data.map((item) => (
-                      <li key={item} className="rounded border border-place-soft bg-place-tint px-2 py-0.5 text-[13px] font-medium text-place">
+                      <li key={item} className="rounded bg-sunken px-2 py-0.5 text-[13px] text-ink-2">
                         {item}
                       </li>
                     ))}
                   </ul>
                 )}
-                <p className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm text-ink-3">
-                  {t.data.model}
-                  <span className="mono text-xs text-ink-2">{health.data.model}</span>
-                </p>
               </>
             )}
           </Panel>
@@ -104,12 +100,11 @@ function DataContent({ health, catalogVersion, onUploaded }: Omit<DataPageProps,
             }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={drop}
-            className={`relative flex min-h-64 flex-col items-center justify-center rounded-xl border p-6 text-center transition-colors sm:p-8 ${
-              isDragging ? 'border-action bg-brand-tint' : 'border-line bg-surface'
+            className={`relative flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-colors sm:p-8 ${
+              isDragging ? 'border-ink-2 bg-raised' : 'border-line-strong bg-surface'
             }`}
           >
-            <span aria-hidden className={`reticle pointer-events-none absolute inset-3 rounded-lg ${isDragging ? '' : 'opacity-40'}`} />
-            <span className="grid size-12 place-items-center rounded-lg border border-brand-soft bg-brand-tint text-brand-deep">
+            <span className="grid size-12 place-items-center rounded-full bg-hover text-ink-2">
               <Icon name="upload" size={24} />
             </span>
             <p className="mt-4 text-[19px] font-semibold text-ink">{t.data.dropTitle}</p>
@@ -160,7 +155,7 @@ function DataContent({ health, catalogVersion, onUploaded }: Omit<DataPageProps,
           <PanelTitle id="format-title">{t.data.formatTitle}</PanelTitle>
           <ul className="mt-3 flex flex-wrap gap-1.5">
             {REQUIRED_COLUMNS.map((column) => (
-              <li key={column} className="mono rounded border border-line-strong bg-sunken px-2 py-0.5 text-[13px] text-ink">
+              <li key={column} className="mono rounded bg-sunken px-2 py-0.5 text-[13px] text-ink-2">
                 {column}
               </li>
             ))}

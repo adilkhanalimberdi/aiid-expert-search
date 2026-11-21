@@ -22,6 +22,7 @@ export const RECOMMENDED = 3
 
 const rank = (n: number) => String(n).padStart(2, '0')
 
+
 /** Выдача группами: рекомендованные (топ-3) и остальные. Строка выбирает эксперта для панели справа. */
 export function ResultList({ results, selectedId, onSelect, isWeak, showScore, hideTop = false }: ResultListProps) {
   const { t } = useI18n()
@@ -68,8 +69,8 @@ function Row({ expert, rank: position, isSelected, onSelect, showScore }: { expe
         isSelected ? 'bg-raised' : 'hover:bg-hover'
       }`}
     >
-      {isSelected && <span aria-hidden className="absolute inset-y-0 left-0 w-[2px] bg-action" />}
-      <span aria-hidden className={`mono w-5 text-xs ${isSelected ? 'text-action' : 'text-ink-3'}`}>
+      {isSelected && <span aria-hidden className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-ink-2" />}
+      <span aria-hidden className={`mono w-5 text-xs ${isSelected ? 'text-ink' : 'text-ink-3'}`}>
         {rank(position)}
       </span>
       {showScore ? (
@@ -86,7 +87,7 @@ function Row({ expert, rank: position, isSelected, onSelect, showScore }: { expe
       <span className="min-w-0">
         <span className={`block text-[15px] font-semibold [overflow-wrap:anywhere] ${expert.availability === 'busy' ? 'text-ink-2' : 'text-ink'}`}>{expert.full_name}</span>
         <span className="mt-0.5 block text-[13px] leading-snug text-ink-3">
-          {expert.matched.length > 0 && <span className="font-medium text-brand-deep">{expert.matched.join(', ')} · </span>}
+          {expert.matched.length > 0 && <span className="text-ink-2">{expert.matched.join(', ')} · </span>}
           {expert.position}
         </span>
         {/* на телефоне статус и город под именем: третьей колонке там нет места */}
@@ -134,7 +135,7 @@ export function TopCardsSkeleton() {
   return (
     <div className="grid gap-3 md:grid-cols-3">
       {Array.from({ length: 3 }, (_, index) => (
-        <div key={index} className="h-[244px] rounded-xl border border-line bg-surface p-5">
+        <div key={index} className="h-[236px] rounded-xl bg-surface p-5">
           <div className="flex justify-between">
             <div className="sk h-4 w-16" />
             <div className="sk h-6 w-12" />
@@ -170,7 +171,7 @@ export function TopCards({ results, selectedId, onSelect, showScore }: TopCardsP
   const { t } = useI18n()
   return (
     <section aria-labelledby="top-title" className="fade-in">
-      <h2 id="top-title" className="label mb-2.5 flex items-baseline gap-2 text-ink-2">
+      <h2 id="top-title" className="label mb-3 flex items-baseline gap-2 text-ink-2">
         {t.card.recommended}
         <span className="text-ink-3">{Math.min(RECOMMENDED, results.length)}</span>
       </h2>
@@ -178,65 +179,53 @@ export function TopCards({ results, selectedId, onSelect, showScore }: TopCardsP
         {results.slice(0, RECOMMENDED).map((expert, index) => {
           const isSelected = expert.id === selectedId
           const isBest = index === 0 && showScore
-          const skills = [...expert.matched, ...expert.related.filter((item) => !expert.matched.includes(item))].slice(0, 4)
+          const related = expert.related.filter((item) => !expert.matched.includes(item))
           return (
             <li key={expert.id} className="min-w-0">
               <button
                 type="button"
                 onClick={() => onSelect(expert.id)}
                 aria-current={isSelected ? 'true' : undefined}
-                className={`group relative flex h-full w-full flex-col rounded-xl border p-4 text-left transition-colors sm:p-5 ${
-                  isSelected ? 'border-line-strong bg-raised' : 'border-line bg-surface hover:border-line-strong hover:bg-raised'
+                className={`flex h-full w-full flex-col rounded-xl p-4 text-left transition-colors sm:p-5 ${
+                  isSelected ? 'bg-raised ring-1 ring-line-strong' : 'bg-surface hover:bg-raised'
                 }`}
               >
-                {isSelected && <span aria-hidden className="reticle pointer-events-none absolute -inset-[5px] rounded-xl" />}
-                {isBest && <span aria-hidden className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-action to-transparent" />}
                 <span className="flex items-start justify-between gap-3">
-                  <span className="mono flex items-center gap-2 text-xs">
-                    <span className={`rounded px-1.5 py-0.5 ${isBest ? 'bg-action font-semibold text-action-ink' : 'border border-line-strong text-ink-2'}`}>{rank(index + 1)}</span>
-                    {isBest && <span className="label text-action">{t.card.best}</span>}
+                  <span className="flex items-center gap-3">
+                    <Avatar name={expert.full_name} />
+                    <span className="min-w-0">
+                      <span className="block text-[16px] font-semibold leading-tight text-ink [overflow-wrap:anywhere]">{expert.full_name}</span>
+                      <span className="mt-0.5 block text-[13px] leading-snug text-ink-3">{expert.position}</span>
+                    </span>
                   </span>
                   {showScore ? (
                     <Score percent={expert.match_percent} />
                   ) : (
-                    <span className="mono text-right text-xl font-medium leading-none text-ink">
+                    <span className="display text-right text-xl font-semibold leading-none text-ink">
                       {expert.experience_years}
-                      <span className="block text-[11px] text-ink-3">{t.card.yearsShort}</span>
+                      <span className="block text-[11px] font-normal tracking-normal text-ink-3">{t.card.yearsShort}</span>
                     </span>
                   )}
                 </span>
-                <span className="mt-3 flex items-center gap-3">
-                  <Avatar name={expert.full_name} />
-                  <span className="min-w-0">
-                    <span className="block text-[17px] font-semibold leading-tight text-ink [overflow-wrap:anywhere]">{expert.full_name}</span>
-                    <span className="mt-0.5 block text-[13px] leading-snug text-ink-3">{expert.position}</span>
-                  </span>
-                </span>
-                <span className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-2">
+                <span className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-3">
+                  <span className={isBest ? 'font-medium text-action' : ''}>{isBest ? t.card.best : `№ ${index + 1}`}</span>
                   <Status availability={expert.availability} />
                   <span className="tnum">
                     {expert.city} · {t.years(expert.experience_years)}
                   </span>
                 </span>
-                {skills.length > 0 && (
-                  <span className="mt-3 flex flex-wrap gap-1.5">
-                    {skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className={`rounded border px-2 py-0.5 text-xs ${
-                          expert.matched.includes(skill) ? 'border-brand-soft bg-brand-tint font-medium text-brand-deep' : 'border-dashed border-brand-soft text-brand-deep'
-                        }`}
-                      >
-                        {skill}
-                      </span>
-                    ))}
+                {(expert.matched.length > 0 || related.length > 0) && (
+                  <span className="mt-3 block text-[13px] leading-relaxed">
+                    {expert.matched.length > 0 && <span className="text-ink">{expert.matched.join(' · ')}</span>}
+                    {expert.matched.length > 0 && related.length > 0 && <span className="text-ink-3"> · </span>}
+                    {related.length > 0 && <span className="text-ink-3">{related.slice(0, 3).join(' · ')}</span>}
                   </span>
                 )}
                 {expert.reasons.length > 0 && (
                   <span className="mt-3 block border-t border-line pt-3">
                     {expert.reasons.slice(0, 3).map((reason) => (
                       <span key={reason} className="flex items-start gap-1.5 py-0.5 text-[13px] leading-snug text-ink-2">
-                        <Icon name="check" size={14} strokeWidth={2.4} className="mt-0.5 text-brand" />
+                        <Icon name="check" size={14} strokeWidth={2.2} className="mt-0.5 text-ink-3" />
                         {reason}
                       </span>
                     ))}
@@ -244,10 +233,9 @@ export function TopCards({ results, selectedId, onSelect, showScore }: TopCardsP
                 )}
                 {expert.alternative && (
                   <span className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 text-xs text-ink-3">
-                    <Icon name="arrow-right" size={13} className="text-free" />
                     {t.card.altShort}:
-                    <span className="text-[13px] font-semibold text-ink-2">{expert.alternative.full_name}</span>
-                    <span className="mono">{expert.alternative.match_percent}%</span>
+                    <span className="text-[13px] font-medium text-ink-2">{expert.alternative.full_name}</span>
+                    <span>{expert.alternative.match_percent}%</span>
                   </span>
                 )}
               </button>

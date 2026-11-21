@@ -13,7 +13,7 @@ import { useAsync } from '../hooks/useAsync'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRecentQueries } from '../hooks/useRecentQueries'
 import { useSearch } from '../hooks/useSearch'
-import { api, type Health, type SearchResponse } from '../lib/api'
+import { api, type SearchResponse } from '../lib/api'
 import { EXAMPLE_QUERIES, type AnatomyKind, type ExampleHint } from '../lib/i18n'
 import { useI18n } from '../lib/useI18n'
 
@@ -27,7 +27,7 @@ interface SubmittedSearch {
 
 type View = 'candidates' | 'team'
 
-export function SearchPage({ health, catalogVersion }: { health: Health | null; catalogVersion: number }) {
+export function SearchPage({ catalogVersion }: { catalogVersion: number }) {
   const { t, lang } = useI18n()
   const [query, setQuery] = useState('')
   const [industry, setIndustry] = useState('')
@@ -88,7 +88,6 @@ export function SearchPage({ health, catalogVersion }: { health: Health | null; 
         if (value) setEmptyHint(false)
       }}
       onSubmit={submit}
-      isIdle={isIdle}
       recent={recent}
       emptyHint={emptyHint}
       filters={
@@ -114,12 +113,10 @@ export function SearchPage({ health, catalogVersion }: { health: Health | null; 
     <div className={CONTAINER}>
       <h1 className="sr-only">{t.search.h1}</h1>
       {isIdle ? (
-        <div className="fade-in grid gap-5 pb-6 pt-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:pt-8">
-          <div className="min-w-0">{queryCard}</div>
-          <CatalogPanel health={health} industries={industries.data?.length ?? null} />
-          <div className="lg:col-span-2">
-            <Anatomy />
-          </div>
+        <div className="fade-in mx-auto max-w-[960px] space-y-5 pb-6 pt-10 lg:pt-16">
+          {queryCard}
+          <Anatomy />
+          <Formula />
         </div>
       ) : (
         <div className="pt-5">{queryCard}</div>
@@ -171,18 +168,17 @@ interface QueryCardProps {
   query: string
   onQuery: (value: string) => void
   onSubmit: (value: string) => void
-  isIdle: boolean
   recent: string[]
   emptyHint: boolean
   filters: ReactNode
 }
 
 /**
- * Карточка запроса как командная строка: поле, кнопка, фильтры. Под полем палитра примеров
- * и недавних запросов (combobox + listbox): до первого поиска развёрнута прямо в карточке,
- * после поиска открывается при фокусе. Стрелки выбирают, Enter ищет, Esc закрывает.
+ * Карточка запроса: поле, кнопка, фильтры. Под полем при фокусе или по кнопке «Примеры» выпадает
+ * компактный список примеров и недавних запросов (combobox + listbox): у примера то, что он показывает,
+ * и язык. Стрелки выбирают, Enter ищет, Esc закрывает.
  */
-function QueryCard({ query, onQuery, onSubmit, isIdle, recent, emptyHint, filters }: QueryCardProps) {
+function QueryCard({ query, onQuery, onSubmit, recent, emptyHint, filters }: QueryCardProps) {
   const { t } = useI18n()
   const listId = useId()
   const [isFocused, setIsFocused] = useState(false)
@@ -200,8 +196,7 @@ function QueryCard({ query, onQuery, onSubmit, isIdle, recent, emptyHint, filter
     ]
   }, [query, recent])
 
-  const isOpen = options.length > 0 && !isDismissed && (isIdle || isFocused)
-  const isOverlay = !isIdle
+  const isOpen = options.length > 0 && !isDismissed && isFocused
   const activeOption = isOpen && active >= 0 ? options[active] : undefined
 
   function pick(option: PaletteOption) {
@@ -255,12 +250,10 @@ function QueryCard({ query, onQuery, onSubmit, isIdle, recent, emptyHint, filter
       onSubmit={submit}
       role="search"
       aria-label={t.search.queryLabel}
-      className="relative rounded-2xl border border-line-strong bg-surface transition-[border-color,box-shadow] focus-within:border-brand-soft focus-within:shadow-[0_0_0_3px_var(--color-brand-tint)]"
+      className="relative rounded-2xl border border-line bg-surface transition-colors focus-within:border-line-strong"
     >
       <div id="query-anchor" className="flex items-center gap-2 p-2 pl-4">
-        <span aria-hidden className="mono hidden text-[15px] font-medium text-action sm:block">
-          &gt;
-        </span>
+        <Icon name="search" size={19} className="hidden text-ink-3 sm:block" />
         <label htmlFor="query" className="sr-only">
           {t.search.queryLabel}
         </label>
@@ -296,10 +289,21 @@ function QueryCard({ query, onQuery, onSubmit, isIdle, recent, emptyHint, filter
           onKeyDown={onKeyDown}
           className="h-12 min-w-0 flex-1 bg-transparent text-[17px] text-ink outline-none placeholder:text-ink-3"
         />
-        {!query && (
-          <kbd aria-hidden className="hidden lg:inline-block">
-            /
-          </kbd>
+        {!query && !isOpen && (
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              setIsDismissed(false)
+              input.current?.focus()
+            }}
+            className="hidden h-9 flex-none items-center gap-1.5 rounded-md px-2.5 text-[13px] text-ink-3 hover:bg-hover hover:text-ink sm:flex"
+          >
+            {t.search.palette.examples}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
         )}
         {query && (
           <button
@@ -330,21 +334,18 @@ function QueryCard({ query, onQuery, onSubmit, isIdle, recent, emptyHint, filter
         </p>
       </div>
 
-      {/* listbox всегда в DOM: aria-controls указывает на существующий элемент; пустой скрыт */}
+      {/* listbox всегда в DOM: aria-controls указывает на существующий элемент; закрытый скрыт */}
       <div
         className={
           isOpen
-            ? isOverlay
-              ? 'absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-[min(60vh,460px)] overflow-y-auto rounded-xl border border-line-strong bg-raised py-1.5 shadow-[0_18px_40px_-12px_rgb(0_0_0/0.7)]'
-              : 'border-t border-line py-1.5'
+            ? 'absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-[min(55vh,360px)] overflow-y-auto rounded-xl border border-line bg-raised py-1 shadow-[0_16px_40px_-12px_rgb(0_0_0/0.75)]'
             : 'hidden'
         }
       >
         <div id={listId} role="listbox" aria-label={t.search.palette.label}>
           {groups.map(({ group, items }) => (
             <div key={group} role="group" aria-labelledby={`${listId}-${group}`}>
-              <p id={`${listId}-${group}`} className="label flex items-center gap-2 px-4 pb-1 pt-2 text-ink-3">
-                <Icon name={group === 'recent' ? 'clock' : 'skill'} size={13} />
+              <p id={`${listId}-${group}`} className="px-4 pb-1 pt-2.5 text-[12px] text-ink-3">
                 {group === 'recent' ? t.search.palette.recent : t.search.palette.examples}
               </p>
               {items.map((option) => {
@@ -359,80 +360,29 @@ function QueryCard({ query, onQuery, onSubmit, isIdle, recent, emptyHint, filter
                     onMouseDown={(event) => event.preventDefault()}
                     onMouseEnter={() => setActive(index)}
                     onClick={() => pick(option)}
-                    className={`relative mx-1.5 flex min-h-10 items-center gap-3 rounded-md px-2.5 py-1.5 ${isActive ? 'bg-hover' : ''}`}
+                    className={`mx-1 flex items-center gap-3 rounded-md px-3 py-1.5 ${isActive ? 'bg-hover' : ''}`}
                   >
-                    {isActive && <span aria-hidden className="absolute inset-y-1.5 left-0 w-[2px] rounded-full bg-action" />}
-                    <span className="mono w-7 flex-none rounded border border-line-strong py-px text-center text-[10px] font-medium text-ink-3">{option.lang}</span>
-                    {/* на телефоне подсказка второй строкой под запросом, на широком экране справа */}
-                    <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:gap-3">
-                      <span className={`min-w-0 flex-1 truncate text-[15px] ${isActive ? 'text-ink' : 'text-ink-2'}`}>{option.query}</span>
-                      {option.hint && <span className="flex-none text-[12px] text-ink-3">{t.search.hints[option.hint]}</span>}
+                    <span className={`min-w-0 flex-1 truncate text-[14px] ${isActive ? 'text-ink' : 'text-ink-2'}`}>{option.query}</span>
+                    <span className="flex-none text-[12px] text-ink-3">
+                      {option.hint ? `${t.search.hints[option.hint]} · ` : ''}
+                      {option.lang}
                     </span>
-                    <Icon name="arrow-right" size={15} className={isActive ? 'text-action' : 'text-transparent'} />
                   </div>
                 )
               })}
             </div>
           ))}
         </div>
-        <p aria-hidden className="mono mt-1 hidden items-center gap-3 border-t border-line px-4 pt-2 text-[11px] text-ink-3 sm:flex">
-          <span className="flex items-center gap-1.5">
-            <kbd>↑</kbd>
-            <kbd>↓</kbd>
-            {t.search.palette.keys}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <kbd>Enter</kbd>
-            {t.search.palette.run}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <kbd>Esc</kbd>
-            {t.search.palette.close}
-          </span>
-        </p>
       </div>
     </form>
   )
 }
 
-/** Каталог справа от запроса: сколько людей на «небе», сколько отраслей, какая модель, и формула. */
-function CatalogPanel({ health, industries }: { health: Health | null; industries: number | null }) {
-  const { t } = useI18n()
-  return (
-    <aside aria-labelledby="catalog-title" className="flex flex-col gap-3">
-      <Panel className="p-5">
-        <h2 id="catalog-title" className="label text-ink-3">
-          {t.search.catalogTitle}
-        </h2>
-        <dl className="mt-3 grid grid-cols-2 gap-4">
-          <div>
-            <dd className="display tnum text-[40px] font-semibold leading-none text-ink">{health ? health.experts : '—'}</dd>
-            <dt className="mt-1.5 text-[13px] text-ink-3">{health ? t.search.expertsWord(health.experts) : ''}</dt>
-          </div>
-          <div>
-            <dd className="display tnum text-[40px] font-semibold leading-none text-ink">{industries ?? '—'}</dd>
-            <dt className="mt-1.5 text-[13px] text-ink-3">{t.search.industriesWord(industries ?? 0)}</dt>
-          </div>
-        </dl>
-        <p className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3 text-[13px] text-ink-3">
-          {t.search.modelLabel}
-          <span className="mono text-xs text-ink-2">{health?.model.split('/').pop() ?? '—'}</span>
-        </p>
-        <p className="mt-2 flex items-center gap-2 text-[13px] text-free">
-          <Icon name="available" size={15} />
-          {t.search.offline}
-        </p>
-      </Panel>
-      <Formula />
-    </aside>
-  )
-}
-
 const ANATOMY_TONE: Record<AnatomyKind, string> = {
-  skill: 'text-brand-deep border-brand bg-brand-tint',
-  place: 'text-place border-place bg-place-tint',
-  condition: 'text-cond border-cond bg-cond-tint',
-  excluded: 'text-danger border-danger bg-danger-tint line-through decoration-danger',
+  skill: 'text-ink decoration-brand',
+  place: 'text-ink decoration-place',
+  condition: 'text-ink decoration-cond',
+  excluded: 'text-ink-3 line-through decoration-danger',
 }
 
 /**
@@ -448,17 +398,17 @@ function Anatomy() {
     excluded: t.readback.legendExcluded,
   }
   return (
-    <section aria-labelledby="anatomy-title" className="rounded-2xl border border-line bg-surface">
+    <section aria-labelledby="anatomy-title" className="rounded-2xl bg-surface">
       <div className="px-5 pb-6 pt-5 sm:px-7">
         <h2 id="anatomy-title" className="label text-ink-3">
           {t.search.anatomyTitle}
         </h2>
-        <p className="mt-4 text-[21px] font-light leading-[2.7] text-ink-2 sm:text-[27px]">
+        <p className="mt-3 text-[20px] font-light leading-[2.6] text-ink-3 sm:text-[25px]">
           {t.search.anatomy.map(([text, kind], index) =>
             kind ? (
               <span key={index} className="relative inline-block whitespace-nowrap">
-                <span className={`rounded-[4px] border-b-2 px-1.5 py-0.5 font-normal ${ANATOMY_TONE[kind]}`}>{text}</span>
-                <span className="label absolute left-1.5 top-full -mt-2.5 whitespace-nowrap !text-[10px] leading-none text-ink-3">{label[kind]}</span>
+                <span className={`font-normal underline decoration-2 underline-offset-[7px] ${ANATOMY_TONE[kind]}`}>{text}</span>
+                <span className="absolute left-0 top-full -mt-2 whitespace-nowrap text-[11px] leading-none text-ink-3">{label[kind]}</span>
               </span>
             ) : (
               <span key={index}>{text}</span>
@@ -467,10 +417,9 @@ function Anatomy() {
         </p>
       </div>
       <ol className="grid border-t border-line md:grid-cols-3">
-        {t.search.how.map((item, index) => (
+        {t.search.how.map((item) => (
           <li key={item.title} className="min-w-0 border-line px-5 py-4 max-md:border-t max-md:first:border-t-0 sm:px-7 md:border-l md:first:border-l-0">
-            <span className="mono text-xs text-action">{String(index + 1).padStart(2, '0')}</span>
-            <span className="mt-1.5 block text-[15px] font-semibold text-ink">{item.title}</span>
+            <span className="block text-[14px] font-semibold text-ink">{item.title}</span>
             <span className="mt-1 block text-[13px] leading-relaxed text-ink-3">{item.body}</span>
           </li>
         ))}
@@ -570,7 +519,7 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
               <Formula />
             </div>
             {isDesktop && (
-              <Panel className="sticky top-[72px] max-h-[calc(100vh-128px)] overflow-y-auto border-line-strong" aria-label={t.dialog.label}>
+              <Panel className="sticky top-[72px] max-h-[calc(100vh-112px)] overflow-y-auto" aria-label={t.dialog.label}>
                 {pane}
               </Panel>
             )}
@@ -588,7 +537,7 @@ function Notice({ tone, children }: { tone: 'weak' | 'info'; children: string })
     <p
       role="status"
       className={`mb-4 flex items-start gap-3 rounded-xl border p-4 text-[15px] font-medium ${
-        tone === 'weak' ? 'border-cond-soft bg-cond-tint text-cond' : 'border-place-soft bg-place-tint text-place'
+        tone === 'weak' ? 'border-transparent bg-cond-tint text-cond' : 'border-transparent bg-place-tint text-place'
       }`}
     >
       <Icon name="info" size={18} className="mt-0.5" />

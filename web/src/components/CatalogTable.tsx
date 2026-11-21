@@ -51,9 +51,9 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
       {page.data && (
         <>
           {view === 'cards' && (
-            <ul className="grid gap-3 border-t border-line bg-sunken p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3 xl:grid-cols-4">
+            <ul className="grid gap-3 bg-sunken p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3 xl:grid-cols-4">
               {page.data.items.map((expert) => (
-                <li key={expert.id} className="flex flex-col rounded-xl border border-line bg-surface p-4 transition-colors hover:border-line-strong">
+                <li key={expert.id} className="flex flex-col rounded-xl bg-surface p-4">
                   <div className="flex items-start gap-3">
                     <Avatar name={expert.full_name} />
                     <div className="min-w-0 flex-1">
@@ -64,14 +64,14 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
                   </div>
                   <ul className="mb-3 mt-3 flex flex-wrap gap-1">
                     {expert.competencies.slice(0, 4).map((skill) => (
-                      <li key={skill} className="rounded border border-line-strong px-2 py-0.5 text-xs text-ink-2">
+                      <li key={skill} className="rounded bg-raised px-2 py-0.5 text-xs text-ink-2">
                         {skill}
                       </li>
                     ))}
                     {expert.competencies.length > 4 && <li className="mono px-1 py-0.5 text-xs text-ink-3">+{expert.competencies.length - 4}</li>}
                   </ul>
                   <p className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-[13px] text-ink-2">
-                    <span className="rounded border border-place-soft bg-place-tint px-1.5 py-0.5 text-xs font-medium text-place">{expert.industry}</span>
+                    <span className="text-ink-3">{expert.industry}</span>
                     <span>{expert.city}</span>
                     <span className="tnum">{t.years(expert.experience_years)}</span>
                     <span className="ml-auto">
