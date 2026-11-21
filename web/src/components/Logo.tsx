@@ -1,6 +1,9 @@
+/** Облачко запроса: обычная фраза, с которой человек приходит в сервис. */
+const BUBBLE = 'M9 5.5h14a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H13.5l-5.2 4.2v-4.4A4 4 0 0 1 5 18.5v-9a4 4 0 0 1 4-4z'
+
 /**
- * Знак Sarap: шафрановая плитка, три строки картотеки, каждая короче предыдущей, и точка в конце:
- * из всего каталога остаётся один нужный человек. isDrawing: строки перебираются, пока идёт поиск.
+ * Знак Sarap: облачко реплики, внутри которого человек. Пишешь, кто нужен, обычными словами,
+ * и получаешь конкретного эксперта. isDrawing: человек «проявляется», пока идёт поиск.
  */
 export function SarapMark({ size = 32, isDrawing = false, label }: { size?: number; isDrawing?: boolean; label?: string }) {
   return (
@@ -14,12 +17,11 @@ export function SarapMark({ size = 32, isDrawing = false, label }: { size?: numb
       className={`flex-none ${isDrawing ? 'mark-draw' : ''}`}
     >
       <rect width="32" height="32" rx="7" fill="var(--color-action)" />
-      <g stroke="var(--color-action-ink)" strokeWidth="3" strokeLinecap="round">
-        <path className="bar" d="M8 10h16" />
-        <path className="bar" d="M8 16h11" />
-        <path className="bar" d="M8 22h5" />
+      <path d={BUBBLE} fill="var(--color-action-ink)" />
+      <g className="who" fill="var(--color-action)">
+        <circle cx="16" cy="11.6" r="2.9" />
+        <path d="M10.6 20.4a5.4 5.4 0 0 1 10.8 0z" />
       </g>
-      <circle cx="20" cy="22" r="2.6" fill="var(--color-action-ink)" />
     </svg>
   )
 }

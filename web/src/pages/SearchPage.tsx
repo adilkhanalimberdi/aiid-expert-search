@@ -4,7 +4,7 @@ import { ExpertPane, ExpertPaneSkeleton } from '../components/ExpertPane'
 import { Formula } from '../components/Formula'
 import { SarapMark } from '../components/Logo'
 import { Readback } from '../components/Readback'
-import { ResultList, ResultListSkeleton } from '../components/ResultList'
+import { RECOMMENDED, ResultList, ResultListSkeleton, TopCards } from '../components/ResultList'
 import { Icon } from '../components/Icon'
 import { CONTAINER } from '../components/Shell'
 import { TeamView } from '../components/TeamView'
@@ -14,6 +14,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRecentQueries } from '../hooks/useRecentQueries'
 import { useSearch } from '../hooks/useSearch'
 import { api, type SearchResponse } from '../lib/api'
+import type { AnatomyKind } from '../lib/i18n'
 import { useI18n } from '../lib/useI18n'
 
 const TOP_K = 8
@@ -272,6 +273,8 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
         )}
       </section>
 
+      <Anatomy />
+
       <ol className="grid gap-x-10 gap-y-6 border-t border-line pt-7 md:grid-cols-3">
         {t.search.how.map((item, index) => (
           <li key={item.title} className="min-w-0">
@@ -292,6 +295,48 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
   )
 }
 
+const ANATOMY_TONE: Record<AnatomyKind, string> = {
+  skill: 'bg-brand-tint text-brand-deep decoration-brand',
+  place: 'bg-place-tint text-place decoration-place',
+  condition: 'bg-cond-tint text-cond decoration-cond',
+  excluded: 'bg-danger-tint text-danger line-through decoration-danger',
+}
+
+/**
+ * Наглядный разбор: одна фраза, в которой навыки, город, условие и исключение подсвечены и подписаны.
+ * Это иллюстрация того, что потом показывает строка «Понято:», а не вызов движка.
+ */
+function Anatomy() {
+  const { t } = useI18n()
+  const label: Record<AnatomyKind, string> = {
+    skill: t.readback.legendSkill,
+    place: t.card.city,
+    condition: t.readback.legendCondition,
+    excluded: t.readback.legendExcluded,
+  }
+  return (
+    <section aria-labelledby="anatomy-title" className="rounded-2xl border border-line bg-surface px-5 pb-6 pt-5 sm:px-8">
+      <h2 id="anatomy-title" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-3">
+        {t.search.anatomyTitle}
+      </h2>
+      <p className="serif mt-4 text-[22px] leading-[2.6] text-ink sm:text-[28px]">
+        {t.search.anatomy.map(([text, kind], index) =>
+          kind ? (
+            <span key={index} className="relative inline-block whitespace-nowrap">
+              <span className={`rounded-md px-1.5 py-0.5 ${ANATOMY_TONE[kind]}`}>{text}</span>
+              <span className="mono absolute left-1.5 top-full -mt-2 whitespace-nowrap text-[10px] uppercase leading-none tracking-[0.08em] text-ink-3">
+                {label[kind]}
+              </span>
+            </span>
+          ) : (
+            <span key={index}>{text}</span>
+          ),
+        )}
+      </p>
+    </section>
+  )
+}
+
 function Results({ data, submitted, onReset }: { data: SearchResponse; submitted: SubmittedSearch; onReset: () => void }) {
   const { t } = useI18n()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
@@ -300,6 +345,8 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const results = data.results
   const showScore = !data.filter_only
+  // слабое совпадение не выдаём за рекомендацию: тогда только список «Ближайшие профили»
+  const showTopCards = !data.weak_match
   // по умолчанию открыт лучший; выбранный вне выдачи (участник команды) тоже допустим
   const selectedId = chosenId ?? results[0]?.id ?? null
   const selectedIndex = results.findIndex((item) => item.id === selectedId)
@@ -368,12 +415,19 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
               />
             </div>
           )}
+          {view === 'candidates' && showTopCards && (
+            <div className="mb-6">
+              <TopCards results={results} selectedId={selectedId} onSelect={open} showScore={showScore} />
+            </div>
+          )}
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
             <div className="min-w-0 space-y-4">
               {view === 'team' ? (
                 <TeamView query={submitted.query} industry={submitted.industry} hideBusy={submitted.hideBusy} onOpen={open} />
               ) : (
-                <ResultList results={results} selectedId={selectedId} onSelect={open} isWeak={data.weak_match} showScore={showScore} />
+                (!showTopCards || results.length > RECOMMENDED) && (
+                  <ResultList results={results} selectedId={selectedId} onSelect={open} isWeak={data.weak_match} showScore={showScore} hideTop={showTopCards} />
+                )
               )}
               <Formula />
             </div>

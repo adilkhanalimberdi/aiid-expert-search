@@ -139,24 +139,14 @@ textarea {
   }
 }
 
-/* Знак при загрузке: строки картотеки перебираются, как при отборе */
-.mark-draw .bar {
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: sift 0.9s ease-in-out infinite alternate;
+/* Знак при загрузке: человек в облачке проявляется и гаснет, пока идёт подбор */
+.mark-draw .who {
+  animation: reveal 0.8s ease-in-out infinite alternate;
 }
 
-.mark-draw .bar:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.mark-draw .bar:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-@keyframes sift {
-  to {
-    transform: scaleX(0.45);
+@keyframes reveal {
+  from {
+    opacity: 0.25;
   }
 }
 

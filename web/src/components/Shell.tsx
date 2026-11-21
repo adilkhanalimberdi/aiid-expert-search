@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react'
 import { LANGUAGES } from '../lib/i18n'
 import { TABS, type TabId } from '../lib/tabs'
-import { useAsync } from '../hooks/useAsync'
-import { api } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
 import { Brand, SarapMark } from './Logo'
 
@@ -66,7 +64,6 @@ interface ShellProps {
  */
 export function Shell({ tab, onTab, children }: ShellProps) {
   const { t } = useI18n()
-  const health = useAsync(() => api.health(), [])
 
   const tabs = (className: string) =>
     TABS.map((id) => (
@@ -117,12 +114,6 @@ export function Shell({ tab, onTab, children }: ShellProps) {
               <path d="M12 11v5M12 7.6v.01" />
             </svg>
             <span className="min-w-0 text-night-text">{t.synthetic}</span>
-            {health.data && (
-              <span className="mono ml-auto hidden items-center gap-2 whitespace-nowrap sm:flex">
-                <span aria-hidden className="size-1.5 rounded-full bg-brand-soft" />
-                {t.offline} · {health.data.model.split('/').pop()}
-              </span>
-            )}
           </p>
         </div>
       </header>
