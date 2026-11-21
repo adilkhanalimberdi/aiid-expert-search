@@ -94,3 +94,29 @@ IMAGE_PREFIX=ghcr.io/<владелец>/lodestar TAG=<sha предыдущего
 - **HTTPS.** Для адреса с замком нужен домен и обратный прокси (Caddy или nginx с Let's Encrypt). Для проверки с телефона достаточно `http`.
 - **Холодный старт** занимает около минуты: после деплоя первые 60 секунд сервис может отвечать 502.
 - Если репозиторий приватный, образы в GHCR тоже приватные. Деплой логинится на сервере временным токеном задачи, постоянный токен там не хранится.
+
+## Windows-ноутбук без Docker рядом с другим приложением
+
+Стенд: `C:\Users\adilkhan\Documents\Programming\Hackathon\aiid-expert-search`, порт **8610** (Saigak на 8501 не трогаем).
+Бэкенд с `WEB_DIST=../web/dist` отдаёт и API, и собранный фронт: один процесс, один порт, Node и nginx не нужны.
+
+- `serve.bat` (рядом с проектом, не в git): `uvicorn --host 0.0.0.0 --port 8610`, `PYTHONUTF8=1`, офлайн-переменные HF, лог в `serve.log`.
+- `restart.bat`: убивает только процесс, слушающий 8610, и запускает `serve.bat` через `wmic process call create` (переживает закрытие SSH). Модель грузится 30–60 с, процесс занимает ~2 ГБ RAM.
+- Файрвол: правило «Sarap 8610», `remoteip=localsubnet`.
+- Публичная ссылка: второй маршрут в существующем туннеле `cranio` → `http://localhost:8610`.
+
+Обновление (GitHub на ноутбуке недоступен):
+
+```sh
+# Mac
+git fetch && git bundle create up.bundle origin/master ^<коммит на ноутбуке>
+(cd web && npm run build) && COPYFILE_DISABLE=1 tar -czf dist.tgz -C web dist
+scp up.bundle dist.tgz adilkhan@<ip>:C:/Users/adilkhan/Documents/Programming/Hackathon/aiid-expert-search/
+```
+
+```bat
+rem ноутбук, cmd в папке проекта
+git fetch up.bundle master:refs/remotes/origin/master && git merge --ff-only origin/master
+rmdir /s /q web\dist & tar -xzf dist.tgz -C web & del up.bundle dist.tgz
+restart.bat
+```
