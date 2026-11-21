@@ -8,6 +8,7 @@ from time import perf_counter
 
 from fastapi import FastAPI, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from . import explain as explain_module
 from . import feedback as feedback_store
@@ -223,3 +224,8 @@ def feedback(req: FeedbackRequest) -> None:
 @app.get("/api/stats", response_model=StatsResponse)
 def stats() -> StatsResponse:
     return StatsResponse(**stats_store.summary())
+
+
+# Фронт последним: маршруты /api и /docs объявлены выше и имеют приоритет
+if settings.web_dist and settings.path(settings.web_dist).is_dir():
+    app.mount("/", StaticFiles(directory=settings.path(settings.web_dist), html=True), name="web")

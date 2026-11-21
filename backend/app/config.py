@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     api_host: str = "127.0.0.1"
     api_port: int = 8000
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Собранный фронт (web/dist). Если задан и существует, бэкенд отдаёт его сам: один порт на всё,
+    # без nginx и Node. Так приложение разворачивается на машине без Docker.
+    web_dist: str = ""
 
     def path(self, value: str) -> Path:
         """Путь из настроек относительно backend/."""
