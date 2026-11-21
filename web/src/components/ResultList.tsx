@@ -88,7 +88,8 @@ function Group({ title, items, offset, selectedId, onSelect, showScore }: GroupP
 /** Строка топ-3: крупнее обычной, с навыками и первым доводом; лучший подписан и отмечен полосой сигнала. */
 function TopRow({ expert, index, isSelected, onSelect, showScore }: { expert: SearchResult; index: number; isSelected: boolean; onSelect: (id: string) => void; showScore: boolean }) {
   const { t } = useI18n()
-  const isBest = index === 0 && showScore
+  // «Лучшее совпадение» только для настоящего совпадения: 27% первым в списке ещё не рекомендация
+  const isBest = index === 0 && showScore && strengthOf(expert.match_percent) !== 'weak'
   const strength = strengthOf(expert.match_percent)
   const reason = expert.reasons[0]
   return (

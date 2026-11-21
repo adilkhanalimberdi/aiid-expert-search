@@ -108,7 +108,8 @@ def fix_translit(query: str, vocabulary: Iterable[str] = ()) -> str:
 
     def translit_word(token: str, service: bool) -> str:
         lower = token.lower()
-        if token.isupper() or lower in known or lower in english:
+        # английские стоп-слова тоже не транслит: «make» не должно стать «мак»
+        if token.isupper() or lower in known or lower in english or lower in stopwords():
             return token
         converted = from_translit(lower)
         # мягкий знак латиницей обычно не пишут: kiberbezopasnost → кибербезопасность
