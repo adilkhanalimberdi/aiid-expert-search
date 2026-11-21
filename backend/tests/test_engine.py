@@ -418,6 +418,22 @@ def test_city_query_puts_matching_city_first() -> None:
     ]  # без города: процент × доступность
 
 
+def test_experience_query_puts_experienced_first() -> None:
+    from app.ranker import order_by_percent
+    from app.schemas import SearchResult
+
+    def card(i: str, percent: int, years: int) -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city="Астана", industry="", experience_years=years,
+            availability="available", match_percent=percent, matched=[], related=[], reasons=[],
+        )  # fmt: skip
+
+    # «BIM от 15 лет»: эксперт с 25 годами при чуть меньшем проценте выше тех, у кого стажа не хватает
+    results = [card("junior", 66, 13), card("middle", 66, 11), card("senior", 60, 25)]
+    assert [r.id for r in order_by_percent(results, min_experience=15)][0] == "senior"
+    assert [r.id for r in order_by_percent(results)][-1] == "senior"
+
+
 def test_typos_are_corrected_against_dictionary_words_and_stopwords() -> None:
     vocabulary = {"логистика": 1.0}
     assert correct_terms(["logidtics"], vocabulary) == ["logistics"]  # английское слово из словаря синонимов

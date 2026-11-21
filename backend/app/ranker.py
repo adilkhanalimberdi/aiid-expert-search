@@ -163,8 +163,9 @@ def order_by_percent(
     results: list[SearchResult],
     feedback_scores: dict[str, float] | None = None,
     city: str | None = None,
+    min_experience: int | None = None,
 ) -> list[SearchResult]:
-    """Окончательный порядок: процент × доступность × отзывы.
+    """Окончательный порядок: процент × доступность × опыт × отзывы.
 
     Без города состав топ-3 решает RRF (так он устойчивее на запросах без ограничений), а внутри групп
     порядок совпадает с процентом. С городом сортируются все кандидаты окна: сначала подходящие эксперты
@@ -174,18 +175,19 @@ def order_by_percent(
 
     def weight(result: SearchResult) -> float:
         availability = config.BOOST_AVAILABILITY[result.availability]
-        return -result.match_percent * availability * (feedback_scores or {}).get(result.id, 1.0)
+        # «от 15 лет»: эксперт с меньшим стажем не должен стоять выше подходящего по стажу при равном проценте
+        below = min_experience is not None and result.experience_years < min_experience
+        experience = config.BOOST_EXPERIENCE_BELOW if below else 1.0
+        return -result.match_percent * availability * experience * (feedback_scores or {}).get(result.id, 1.0)
 
-    if city:
+    if city or min_experience is not None:
+        # названные в запросе город и «от N лет» это прямые требования: сначала те, кто им отвечает
+        def fits(result: SearchResult) -> bool:
+            in_city = not city or canonical_city(result.city) == canonical_city(city)
+            enough = min_experience is None or result.experience_years >= min_experience
+            return in_city and enough and result.match_percent >= config.CITY_PRIORITY_MIN_PERCENT
 
-        def key(result: SearchResult) -> tuple[int, float]:
-            in_city = canonical_city(result.city) == canonical_city(city)
-            return (
-                0 if in_city and result.match_percent >= config.CITY_PRIORITY_MIN_PERCENT else 1,
-                weight(result),
-            )
-
-        return sorted(results, key=key)
+        return sorted(results, key=lambda result: (0 if fits(result) else 1, weight(result)))
     head = config.ORDER_GROUP_SIZE
     return sorted(results[:head], key=weight) + sorted(results[head:], key=weight)
 
@@ -336,7 +338,8 @@ def search(
             scores[i] *= config.BOOST_EXPERIENCE_BELOW
         scores[i] *= exclusion_boost(index, i, parsed)
         scores[i] *= (feedback_scores or {}).get(expert.id, 1.0)
-    window = max(req.top_k, config.RERANK_WINDOW_WITH_CITY) if mode == "hybrid" and parsed.city else req.top_k
+    has_constraint = mode == "hybrid" and (parsed.city or parsed.min_experience is not None)
+    window = max(req.top_k, config.RERANK_WINDOW_WITH_CITY) if has_constraint else req.top_k
     candidates = sorted(scores, key=lambda i: (-scores[i], i))[:window]
     bm_ranks = {i: rank for rank, i in enumerate(bm25, 1)}
     vec_ranks = {i: rank for rank, i in enumerate(vector, 1)}
@@ -345,7 +348,7 @@ def search(
         for i in candidates
     ]
     if mode == "hybrid":
-        results = order_by_percent(results, feedback_scores, parsed.city)[: req.top_k]
+        results = order_by_percent(results, feedback_scores, parsed.city, parsed.min_experience)[: req.top_k]
     position = {expert.id: i for i, expert in enumerate(index.experts)}
     best = [position[result.id] for result in results]
     is_weak = not eligible or float(max(cosines[i] for i in eligible)) < config.WEAK_MATCH_COS
