@@ -68,7 +68,7 @@ Keys: `/` focuses the query from any section, `1`–`3` switch sections (not whi
 - **Query card**: search icon, field (combobox), clear cross, "Try an example ▾" trigger, signal button; filters on a lower row.
 - **Examples**: a compact dropdown under the field (on focus or via the trigger), groups "Recent" and "Try an example", one line per query with what it demonstrates and the language in grey on the right. ↑↓ choose, Enter searches, Esc closes. Examples live in `EXAMPLE_QUERIES` (`lib/i18n.ts`), all checked on the demo catalogue.
 - Idle: one centred column (960 px): query card, "How Sarap reads a query" (skill, city, condition, exclusion underlined in their colours with a small caption), three points, the formula.
-- After a search: "Understood:" tags, count and timing, New search; Candidates / Team switch; top 3 as borderless cards (name and score first, "Best match" in signal text, matched skills as a plain line, reasons with grey checks; the selected card is lifted to `raised` with a hairline ring); "More candidates" list beside the sticky profile pane. Weak match: amber notice and only "Closest profiles". Loading: the mark scans, skeletons have the final heights.
+- After a search: "Understood:" tags, count and timing, New search; Candidates / Team switch; one list beside the sticky profile pane: group "Recommended" (top 3, engine order) and "More candidates"; a busy row carries a quiet "Free alternative" line. No separate top-3 cards: the reasoning lives in the pane. Weak match: amber notice and only "Closest profiles". Loading: the mark scans, skeletons have the final heights.
 - Phone: one column, profile in a sheet above the list (status bar stays visible).
 
 ## Score (`components/Score.tsx`)

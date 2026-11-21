@@ -50,34 +50,29 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
       {page.isLoading && !page.data && <Skeleton className="mx-5 mb-5 h-64" />}
       {page.data && (
         <>
+          {/* основной вид: список строк, как выдача поиска; таблица вторым видом для сверки полей */}
           {view === 'cards' && (
-            <ul className="grid gap-3 bg-sunken p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3 xl:grid-cols-4">
+            <ul>
               {page.data.items.map((expert) => (
-                <li key={expert.id} className="flex flex-col rounded-xl bg-surface p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar name={expert.full_name} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[15px] font-semibold leading-tight text-ink">{expert.full_name}</p>
-                      <p className="mt-0.5 text-[13px] leading-snug text-ink-3">{expert.position}</p>
-                    </div>
-                    <span className="mono text-[11px] text-ink-3">{expert.id}</span>
-                  </div>
-                  <ul className="mb-3 mt-3 flex flex-wrap gap-1">
-                    {expert.competencies.slice(0, 4).map((skill) => (
-                      <li key={skill} className="rounded bg-raised px-2 py-0.5 text-xs text-ink-2">
-                        {skill}
-                      </li>
-                    ))}
-                    {expert.competencies.length > 4 && <li className="mono px-1 py-0.5 text-xs text-ink-3">+{expert.competencies.length - 4}</li>}
-                  </ul>
-                  <p className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-[13px] text-ink-2">
-                    <span className="text-ink-3">{expert.industry}</span>
-                    <span>{expert.city}</span>
-                    <span className="tnum">{t.years(expert.experience_years)}</span>
-                    <span className="ml-auto">
-                      <Status availability={expert.availability} />
+                <li key={expert.id} className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 border-t border-line px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:px-5">
+                  <Avatar name={expert.full_name} />
+                  <span className="min-w-0">
+                    <span className="block text-[15px] font-semibold text-ink">{expert.full_name}</span>
+                    <span className="mt-0.5 block truncate text-[13px] text-ink-3">
+                      {expert.position} · {expert.competencies.slice(0, 3).join(', ')}
+                      {expert.competencies.length > 3 && ` +${expert.competencies.length - 3}`}
                     </span>
-                  </p>
+                    <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-ink-3 sm:hidden">
+                      <Status availability={expert.availability} />
+                      {expert.city} · {t.years(expert.experience_years)}
+                    </span>
+                  </span>
+                  <span className="hidden flex-col items-end gap-1 text-right sm:flex">
+                    <Status availability={expert.availability} />
+                    <span className="tnum whitespace-nowrap text-[13px] text-ink-3">
+                      {expert.industry} · {expert.city} · {t.years(expert.experience_years)}
+                    </span>
+                  </span>
                 </li>
               ))}
             </ul>

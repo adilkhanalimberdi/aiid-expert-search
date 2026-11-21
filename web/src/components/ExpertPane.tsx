@@ -418,7 +418,8 @@ function Conditions({ match, reading, constraints }: { match: SearchResult; read
     }
     if (source === t.card.status) return match.availability === 'available' ? undefined : constraints?.at(-1)
     const value = source ? values[source] : undefined
-    return value ? constraints?.find((item) => item.toLowerCase().includes(value.toLowerCase())) : undefined
+    // целым словом: отрасль «IT» не должна находиться внутри «city» в ограничении про город
+    return value ? constraints?.find((item) => mentions(item, value)) : undefined
   }
   return (
     <ul className="grid gap-1.5">
@@ -438,14 +439,20 @@ function Conditions({ match, reading, constraints }: { match: SearchResult; read
   )
 }
 
+/** Есть ли значение в тексте целым словом (без учёта регистра): «IT» не находится внутри «city». */
+function mentions(text: string, value: string): boolean {
+  const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}($|[^\\p{L}\\p{N}])`, 'iu').test(text)
+}
+
 /** Поле профиля, из которого взята причина: навыки, город, отрасль, стаж или статус. */
 function reasonSource(reason: string, match: SearchResult, t: Dict): string | null {
+  if ([...match.matched, ...match.related].some((skill) => mentions(reason, skill))) return t.card.skills
+  if (mentions(reason, match.position)) return t.card.skills
+  if (mentions(reason, match.city)) return t.card.city
+  if (mentions(reason, match.industry)) return t.card.industry
+  if (mentions(reason, String(match.experience_years))) return t.card.experience
   const lower = reason.toLowerCase()
-  if ([...match.matched, ...match.related].some((skill) => lower.includes(skill.toLowerCase()))) return t.card.skills
-  if (lower.includes(match.position.toLowerCase())) return t.card.skills
-  if (lower.includes(match.city.toLowerCase())) return t.card.city
-  if (lower.includes(match.industry.toLowerCase())) return t.card.industry
-  if (lower.includes(String(match.experience_years))) return t.card.experience
   if (Object.values(t.status).some((word) => lower.includes(word.toLowerCase().split(' ')[0]))) return t.card.status
   return null
 }
