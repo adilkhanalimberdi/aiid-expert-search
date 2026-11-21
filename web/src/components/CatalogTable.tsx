@@ -50,28 +50,24 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
       {page.isLoading && !page.data && <Skeleton className="mx-5 mb-5 h-64" />}
       {page.data && (
         <>
-          {/* основной вид: список строк, как выдача поиска; таблица вторым видом для сверки полей */}
+          {/* основной вид: лёгкие карточки (без плашек и рамок), таблица вторым видом для сверки полей */}
           {view === 'cards' && (
-            <ul>
+            <ul className="grid gap-2 px-3 pb-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {page.data.items.map((expert) => (
-                <li key={expert.id} className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 border-t border-line px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:px-5">
-                  <Avatar name={expert.full_name} />
-                  <span className="min-w-0">
-                    <span className="block text-[15px] font-semibold text-ink">{expert.full_name}</span>
-                    <span className="mt-0.5 block truncate text-[13px] text-ink-3">
-                      {expert.position} · {expert.competencies.slice(0, 3).join(', ')}
-                      {expert.competencies.length > 3 && ` +${expert.competencies.length - 3}`}
-                    </span>
-                    <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-ink-3 sm:hidden">
-                      <Status availability={expert.availability} />
-                      {expert.city} · {t.years(expert.experience_years)}
+                <li key={expert.id} className="flex flex-col rounded-lg bg-sunken p-4">
+                  <span className="flex items-center gap-3">
+                    <Avatar name={expert.full_name} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-[15px] font-semibold text-ink">{expert.full_name}</span>
+                      <span className="block truncate text-[13px] text-ink-3">{expert.position}</span>
                     </span>
                   </span>
-                  <span className="hidden flex-col items-end gap-1 text-right sm:flex">
-                    <Status availability={expert.availability} />
-                    <span className="tnum whitespace-nowrap text-[13px] text-ink-3">
-                      {expert.industry} · {expert.city} · {t.years(expert.experience_years)}
+                  <span className="mt-3 line-clamp-2 text-[13px] leading-relaxed text-ink-2">{expert.competencies.join(' · ')}</span>
+                  <span className="mt-auto flex items-center justify-between gap-2 pt-3 text-[13px] text-ink-3">
+                    <span className="tnum truncate">
+                      {expert.city} · {t.years(expert.experience_years)}
                     </span>
+                    <Status availability={expert.availability} />
                   </span>
                 </li>
               ))}
