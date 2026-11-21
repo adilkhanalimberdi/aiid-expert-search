@@ -5,7 +5,7 @@ import { Formula } from '../components/Formula'
 import { Icon } from '../components/Icon'
 import { SarapMark } from '../components/Logo'
 import { Readback } from '../components/Readback'
-import { RECOMMENDED, ResultList, ResultListSkeleton, TopCards, TopCardsSkeleton } from '../components/ResultList'
+import { ResultList, ResultListSkeleton } from '../components/ResultList'
 import { CONTAINER } from '../components/Shell'
 import { TeamView } from '../components/TeamView'
 import { Button, Checkbox, Panel, Segmented, Select } from '../components/ui'
@@ -129,7 +129,6 @@ export function SearchPage({ catalogVersion }: { catalogVersion: number }) {
               <SarapMark size={18} isScanning />
               {t.search.searching}
             </p>
-            <TopCardsSkeleton />
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
               <ResultListSkeleton />
               <Panel className="hidden lg:block">
@@ -436,8 +435,6 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const results = data.results
   const showScore = !data.filter_only
-  // слабое совпадение не выдаём за рекомендацию: тогда только список «Ближайшие профили»
-  const showTopCards = !data.weak_match
   // по умолчанию открыт лучший; выбранный вне выдачи (участник команды) тоже допустим
   const selectedId = chosenId ?? results[0]?.id ?? null
   const selectedIndex = results.findIndex((item) => item.id === selectedId)
@@ -502,21 +499,13 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
               />
             </div>
           )}
-          {view === 'candidates' && showTopCards && (
-            <div className="mb-5">
-              <TopCards results={results} selectedId={selectedId} onSelect={open} showScore={showScore} />
-            </div>
-          )}
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
             <div className="min-w-0 space-y-4">
               {view === 'team' ? (
                 <TeamView query={submitted.query} industry={submitted.industry} hideBusy={submitted.hideBusy} onOpen={open} />
               ) : (
-                (!showTopCards || results.length > RECOMMENDED) && (
-                  <ResultList results={results} selectedId={selectedId} onSelect={open} isWeak={data.weak_match} showScore={showScore} hideTop={showTopCards} />
-                )
+                <ResultList results={results} selectedId={selectedId} onSelect={open} isWeak={data.weak_match} showScore={showScore} />
               )}
-              <Formula />
             </div>
             {isDesktop && (
               <Panel className="sticky top-[72px] max-h-[calc(100vh-112px)] overflow-y-auto" aria-label={t.dialog.label}>

@@ -17,7 +17,6 @@ interface Star {
   vx: number
   vy: number
   r: number
-  a: number
 }
 
 const SIGNAL = '212, 243, 90'
@@ -68,13 +67,14 @@ export function Sky() {
     }
 
     function build() {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2)
+      // плотность не выше 1,5: на Retina в 2 раза дешевле, тонкие линии всё равно гладкие
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5)
       width = window.innerWidth
       height = window.innerHeight
       element.width = Math.round(width * ratio)
       element.height = Math.round(height * ratio)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
-      const limit = phone.matches ? 55 : 140
+      const limit = phone.matches ? 45 : 100
       const count = Math.max(40, Math.min(limit, state.experts || 110))
       const next = random(20261121)
       stars = Array.from({ length: count }, () => {
@@ -86,7 +86,6 @@ export function Sky() {
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           r: 0.8 + next() * 1.1,
-          a: 0.28 + next() * 0.4,
         }
       })
       pickLit()
@@ -135,7 +134,9 @@ export function Sky() {
       const reach = phone.matches ? 95 : 125
       const reach2 = reach * reach
 
+      // линии пачками по четырём уровням прозрачности: четыре stroke на кадр вместо сотен
       ctx.lineWidth = 1
+      const buckets: Path2D[] = [new Path2D(), new Path2D(), new Path2D(), new Path2D()]
       for (let i = 0; i < stars.length; i += 1) {
         const a = stars[i]
         for (let j = i + 1; j < stars.length; j += 1) {
@@ -144,34 +145,41 @@ export function Sky() {
           const dy = a.y - b.y
           const d2 = dx * dx + dy * dy
           if (d2 > reach2) continue
-          ctx.strokeStyle = `rgba(${DUST}, ${0.12 * (1 - Math.sqrt(d2) / reach)})`
-          ctx.beginPath()
-          ctx.moveTo(a.x, a.y)
-          ctx.lineTo(b.x, b.y)
-          ctx.stroke()
+          const level = Math.min(3, Math.floor((1 - Math.sqrt(d2) / reach) * 4))
+          buckets[level].moveTo(a.x, a.y)
+          buckets[level].lineTo(b.x, b.y)
         }
       }
+      buckets.forEach((path, level) => {
+        ctx.strokeStyle = `rgba(${DUST}, ${0.03 * (level + 1)})`
+        ctx.stroke(path)
+      })
 
-      // фонарик курсора: нити к ближайшим точкам
-      if (pointer.strength > 0.02) {
-        const radius = 170
-        for (const star of stars) {
-          const d = Math.hypot(star.x - pointer.x, star.y - pointer.y)
-          if (d > radius) continue
-          ctx.strokeStyle = `rgba(${DUST}, ${0.28 * (1 - d / radius) * pointer.strength})`
-          ctx.beginPath()
-          ctx.moveTo(pointer.x, pointer.y)
-          ctx.lineTo(star.x, star.y)
-          ctx.stroke()
-        }
-      }
-
+      // фонарик курсора: нити к ближайшим точкам, точки рядом ярче и крупнее
+      const radius = 170
+      const glow = new Path2D()
+      const threads = new Path2D()
+      const dots = new Path2D()
+      const active = pointer.strength > 0.02
       for (const star of stars) {
-        const near = pointer.strength > 0.02 ? Math.max(0, 1 - Math.hypot(star.x - pointer.x, star.y - pointer.y) / 170) * pointer.strength : 0
-        ctx.fillStyle = `rgba(${DUST}, ${Math.min(0.95, star.a + near * 0.5)})`
-        ctx.beginPath()
-        ctx.arc(star.x, star.y, star.r + near * 0.8, 0, Math.PI * 2)
-        ctx.fill()
+        const d = active ? Math.hypot(star.x - pointer.x, star.y - pointer.y) : radius
+        if (d < radius) {
+          threads.moveTo(pointer.x, pointer.y)
+          threads.lineTo(star.x, star.y)
+          glow.moveTo(star.x + star.r + 0.8, star.y)
+          glow.arc(star.x, star.y, star.r + 0.8, 0, Math.PI * 2)
+        } else {
+          dots.moveTo(star.x + star.r, star.y)
+          dots.arc(star.x, star.y, star.r, 0, Math.PI * 2)
+        }
+      }
+      ctx.fillStyle = `rgba(${DUST}, 0.45)`
+      ctx.fill(dots)
+      if (active) {
+        ctx.strokeStyle = `rgba(${DUST}, ${0.16 * pointer.strength})`
+        ctx.stroke(threads)
+        ctx.fillStyle = `rgba(${DUST}, ${0.45 + 0.45 * pointer.strength})`
+        ctx.fill(glow)
       }
 
       if (lit.length > 0) {
