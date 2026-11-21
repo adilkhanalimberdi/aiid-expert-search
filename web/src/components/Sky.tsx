@@ -12,8 +12,12 @@ import { getPulse, subscribePulse, type Pulse } from '../lib/pulse'
  */
 
 interface Star {
+  /** где точка живёт и дрейфует */
   x: number
   y: number
+  /** где её рисуем: со временным стягиванием к полю запроса */
+  px: number
+  py: number
   vx: number
   vy: number
   r: number
@@ -60,6 +64,8 @@ export function Sky() {
     let lit: number[] = []
     let anchor = { x: 0, y: 0 }
     const pointer = { x: -9999, y: -9999, strength: 0, target: 0 }
+    // доля стягивания к полю запроса: плавно растёт во время поиска до потолка и плавно спадает после
+    let gather = 0
 
     function readAnchor() {
       const box = document.getElementById('query-anchor')?.getBoundingClientRect()
@@ -80,9 +86,13 @@ export function Sky() {
       stars = Array.from({ length: count }, () => {
         const angle = next() * Math.PI * 2
         const speed = 0.06 + next() * 0.12
+        const x = next() * width
+        const y = next() * height
         return {
-          x: next() * width,
-          y: next() * height,
+          x,
+          y,
+          px: x,
+          py: y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           r: 0.8 + next() * 1.1,
@@ -100,8 +110,11 @@ export function Sky() {
       while (lit.length < wanted) lit.push(pool.splice(Math.floor(next() * pool.length), 1)[0])
     }
 
-    function step(dt: number) {
-      const pull = state.mode === 'searching' ? 0.0009 : 0
+    function step(dt: number, now: number) {
+      // стягивание не копится в позициях точек (иначе за долгий поиск небо сжималось в точку и пропадало):
+      // это временное смещение рисунка с потолком около трети пути, которое после ответа уходит в ноль
+      const target = state.mode === 'searching' ? 0.26 + 0.06 * Math.sin((now - changedAt) / 260) : 0
+      gather += (target - gather) * Math.min(1, dt * 0.006)
       for (const star of stars) {
         // курсор мягко раздвигает точки рядом
         const dx = star.x - pointer.x
@@ -112,10 +125,6 @@ export function Sky() {
           star.x += dx * push * dt * 0.06
           star.y += dy * push * dt * 0.06
         }
-        if (pull) {
-          star.x += (anchor.x - star.x) * pull * dt
-          star.y += (anchor.y - star.y) * pull * dt
-        }
         star.x += star.vx * dt * 0.06
         star.y += star.vy * dt * 0.06
         // за краем экрана точка появляется с другой стороны
@@ -123,6 +132,8 @@ export function Sky() {
         else if (star.x > width + 20) star.x = -20
         if (star.y < -20) star.y = height + 20
         else if (star.y > height + 20) star.y = -20
+        star.px = star.x + (anchor.x - star.x) * gather
+        star.py = star.y + (anchor.y - star.y) * gather
       }
       pointer.strength += (pointer.target - pointer.strength) * 0.08
     }
@@ -141,13 +152,13 @@ export function Sky() {
         const a = stars[i]
         for (let j = i + 1; j < stars.length; j += 1) {
           const b = stars[j]
-          const dx = a.x - b.x
-          const dy = a.y - b.y
+          const dx = a.px - b.px
+          const dy = a.py - b.py
           const d2 = dx * dx + dy * dy
           if (d2 > reach2) continue
           const level = Math.min(3, Math.floor((1 - Math.sqrt(d2) / reach) * 4))
-          buckets[level].moveTo(a.x, a.y)
-          buckets[level].lineTo(b.x, b.y)
+          buckets[level].moveTo(a.px, a.py)
+          buckets[level].lineTo(b.px, b.py)
         }
       }
       buckets.forEach((path, level) => {
@@ -162,15 +173,15 @@ export function Sky() {
       const dots = new Path2D()
       const active = pointer.strength > 0.02
       for (const star of stars) {
-        const d = active ? Math.hypot(star.x - pointer.x, star.y - pointer.y) : radius
+        const d = active ? Math.hypot(star.px - pointer.x, star.py - pointer.y) : radius
         if (d < radius) {
           threads.moveTo(pointer.x, pointer.y)
-          threads.lineTo(star.x, star.y)
-          glow.moveTo(star.x + star.r + 0.8, star.y)
-          glow.arc(star.x, star.y, star.r + 0.8, 0, Math.PI * 2)
+          threads.lineTo(star.px, star.py)
+          glow.moveTo(star.px + star.r + 0.8, star.py)
+          glow.arc(star.px, star.py, star.r + 0.8, 0, Math.PI * 2)
         } else {
-          dots.moveTo(star.x + star.r, star.y)
-          dots.arc(star.x, star.y, star.r, 0, Math.PI * 2)
+          dots.moveTo(star.px + star.r, star.py)
+          dots.arc(star.px, star.py, star.r, 0, Math.PI * 2)
         }
       }
       ctx.fillStyle = `rgba(${DUST}, 0.45)`
@@ -190,8 +201,8 @@ export function Sky() {
           const point = stars[index]
           const share = Math.max(0, Math.min(1, reveal * 1.6 - order * 0.08))
           if (share <= 0) return
-          const x = anchor.x + (point.x - anchor.x) * share
-          const y = anchor.y + (point.y - anchor.y) * share
+          const x = anchor.x + (point.px - anchor.x) * share
+          const y = anchor.y + (point.py - anchor.y) * share
           const gradient = ctx.createLinearGradient(anchor.x, anchor.y, x, y)
           gradient.addColorStop(0, `rgba(${color}, 0)`)
           gradient.addColorStop(1, `rgba(${color}, ${0.22 * fade})`)
@@ -203,7 +214,7 @@ export function Sky() {
           if (share >= 1) {
             ctx.fillStyle = `rgba(${color}, ${fade})`
             ctx.beginPath()
-            ctx.arc(point.x, point.y, 2, 0, Math.PI * 2)
+            ctx.arc(point.px, point.py, 2, 0, Math.PI * 2)
             ctx.fill()
           }
         })
@@ -217,7 +228,7 @@ export function Sky() {
       const dt = Math.min(50, now - (last || now))
       last = now
       if (Math.round(now / 16) % 10 === 0) readAnchor()
-      step(dt)
+      step(dt, now)
       draw(now)
     }
 
