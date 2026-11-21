@@ -158,8 +158,14 @@ export interface FeedbackRequest {
   verdict: 'fit' | 'not_fit'
 }
 
-// В dev запросы идут через прокси Vite (/api → :8000). VITE_API_URL нужен для сборки без прокси.
-const BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? '')
+// В dev запросы идут через прокси Vite (/api → :8000). В сборке по умолчанию тот же адрес, что у страницы
+// (бэкенд отдаёт фронт сам или nginx проксирует /api). VITE_API_URL нужен, только если API на другом хосте.
+// Адрес localhost из сборки игнорируется, когда страницу открыли не с localhost: иначе на проде браузер
+// посетителя стучится к себе на 127.0.0.1 («Cannot reach the server»).
+const CONFIGURED_API = import.meta.env.VITE_API_URL ?? ''
+const POINTS_TO_LOCALHOST = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(CONFIGURED_API)
+const PAGE_IS_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+const BASE = import.meta.env.DEV || (POINTS_TO_LOCALHOST && !PAGE_IS_LOCAL) ? '' : CONFIGURED_API
 
 // Язык обоснований (reasons, constraints) совпадает с языком интерфейса; меняется из I18nProvider
 let uiLanguage: Language = 'en'
