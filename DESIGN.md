@@ -1,47 +1,42 @@
 ---
 name: Sarap
-description: Offline expert search for AIID — "card index": dark leather top bar, saffron action, steppe green for matches, warm paper.
+description: Offline expert search for AIID — "Observatory": dark-only graphite layers, one luminous signal (chartreuse) for action and "found", sky blue for place, amber for conditions; the catalogue drawn as a night sky.
 colors:
-  night: "#221c17"
-  night-2: "#2e2620"
-  night-line: "#47392e"
-  night-text: "#efe6da"
-  night-dim: "#bba993"
-  action: "#f2a93b"
-  action-hover: "#f6bb5e"
-  action-ink: "#241600"
-  brand: "#1e6b4c"
-  brand-hover: "#185a40"
-  brand-deep: "#155238"
-  brand-tint: "#e3efe6"
-  brand-soft: "#8fc3a8"
-  ground: "#f3efe7"
-  surface: "#fffdf9"
-  sunken: "#f7f3ec"
-  hover: "#f9f4e9"
-  line: "#e4dccf"
-  line-strong: "#cbbfad"
-  ink: "#1f1a15"
-  ink-2: "#4c4339"
-  ink-3: "#6f6355"
-  medium: "#955600"
-  medium-bar: "#dc9a2c"
-  weak: "#776c5f"
-  free: "#2b7a4b"
-  partial: "#bf8300"
-  busy: "#9a8f80"
-  place: "#33508a"
-  place-tint: "#e7ecf5"
-  cond: "#875100"
-  cond-tint: "#fbefd9"
-  danger: "#b3261e"
-  danger-tint: "#fae6e1"
+  ground: "#0a0d10"
+  sunken: "#0e1216"
+  surface: "#12161b"
+  raised: "#181d23"
+  hover: "#1d232b"
+  line: "#232a33"
+  line-strong: "#343d48"
+  ink: "#eceff3"
+  ink-2: "#b0b9c3"
+  ink-3: "#8a95a1"
+  action: "#d4f35a"
+  action-hover: "#e2f88a"
+  action-ink: "#121705"
+  brand: "#d4f35a"
+  brand-deep: "#dcf27e"
+  brand-tint: "#1f2610"
+  brand-soft: "#56662a"
+  medium: "#f5b455"
+  medium-bar: "#e09a3c"
+  weak: "#97a1ac"
+  free: "#7ce0a3"
+  partial: "#f5b455"
+  busy: "#8a95a1"
+  place: "#8db8ff"
+  place-tint: "#16213a"
+  cond: "#f5b455"
+  cond-tint: "#2b2112"
+  danger: "#ff8473"
+  danger-tint: "#33181a"
 fonts:
-  serif: "Literata Variable (headings, expert names, hero score)"
-  sans: "IBM Plex Sans 400–700 (interface text)"
-  mono: "IBM Plex Mono 400/500 (ranks, scores in lists, counts, ids, timing)"
+  sans: "Commissioner Variable (interface, expert names)"
+  display: "Tektur Variable (wordmark, page titles, hero score, big counts)"
+  mono: "Fira Code Variable, ligatures off (labels, ranks, scores in lists, ids, timing, kbd)"
 radius:
-  control: 8px
+  control: 6px
   panel: 12px
   query: 16px
 ---
@@ -52,56 +47,56 @@ Source of truth for tokens: `web/src/index.css` (`@theme`). This file explains h
 
 ## Idea
 
-Sarap is a card index of people. The shell is dark leather, the workspace warm paper, names are set in a book serif like entries in a register, and everything countable (rank, score, ids, timing) is in a monospace like a typed index card. One saffron colour for every action; steppe green for what matched; slate blue for place. Depth comes from 1 px borders, not shadows. Hover lights an element up (warm `hover` tint, green text or border); nothing turns dark on hover.
+"Observatory". The catalogue is a night sky: every expert is a point, the query is a viewfinder that locks onto some of them and explains why. A working tool, not a landing page: no slogans, the screen opens straight on the query.
 
-All fonts carry the Kazakh letters (checked with fontTools: Cyrillic + Cyrillic-ext subsets together cover ә ғ қ ң ө ұ ү һ і).
+- One luminous signal (chartreuse `action`) means "act" and "found": the main button, the active section, focus rings, the mark, strong scores, matched skills.
+- Place (city, industry) is sky blue, conditions and medium scores amber, exclusions and errors red.
+- Depth is graphite layers (`ground` → `sunken` → `surface` → `raised` → `hover`) and 1 px lines, no shadows except under the floating palette. Hover lightens, never darkens.
+- Dark only (`color-scheme: dark`). Every text pair is WCAG AA or better: weakest is `ink-3` on `hover`, 5.2:1.
 
-## Layout
+All fonts carry the Kazakh letters ә ғ қ ң ө ұ ү һ і (checked with fontTools over the cyrillic and cyrillic-ext subsets; Wix Madefor, JetBrains Mono, Manrope, Martian Mono and Unbounded fail this check).
 
-- **Shell** (`components/Shell.tsx`). A sticky dark top bar: the Sarap | AIID lock-up on the left (saffron mark, serif wordmark), the sections as centred tabs with a saffron underline on the active one, the EN/RU/KK switch on the right. On phones the tabs move to a second row. Under the bar a thin strip carries the synthetic-data notice (info icon + text, nothing else). Content sits in one centred container (`CONTAINER`, max 1280 px).
-- **Search** (`pages/SearchPage.tsx`). Before the first search: a large serif question, the catalogue size in mono with a saffron rule, the query card (field, `/` shortcut hint, button; filters on a dashed lower row), example queries as index cards in a 3-column grid with a mono language tag, "How Sarap reads a query" (one sample sentence in serif with skill, city, condition and exclusion highlighted in their readback colours and labelled underneath; an illustration, not an engine call), three numbered "how it works" points (saffron mono numerals 01–03) and the formula. `/` anywhere focuses the query. After a search: query card on top, the readback ("Understood:" in serif italic, tags with icons, result count and timing in mono), underline tabs Candidates / Team, then the top 3 as large cards (rank, score, name, status, matched skills solid and related dashed, the first three server reasons with checks; the best one carries a saffron 01 and "Best match"), and below them "More candidates" as a list beside the sticky profile pane. A weak match shows no cards, only the "Closest profiles" list. On a phone the profile opens as a sheet.
-- **Data** and **Analytics**: serif page header and paper panels in the same container.
+## Shell (`components/Shell.tsx`)
 
-## Colour roles
+- **Command bar** (top, sticky, 56 px): mark + wordmark, a hairline, then the sections left-aligned with their keys (`1`, `2`, `3`) and a signal underline on the active one. On Data and Analytics a "Find an expert /" field-button jumps back to the query. Language switch EN/RU/KK in mono on the right. On a phone the sections are icons only.
+- **Status bar** (bottom, fixed, above everything including the phone sheet): the synthetic-data notice on the left, always visible; on the right `● offline` (or red "no connection"), catalogue size, model, last query time.
+- **Sky** (`components/Sky.tsx`): one canvas behind the content. Points = experts in the catalogue (capped at 170, 60 on phones), faint links between neighbours like a competency graph. While searching the sky pulls towards the query field; when results arrive as many points as results light up in signal and are joined to the field (amber and dim for a weak match). Paused when the tab is hidden, 30 fps on phones, a single static frame under `prefers-reduced-motion`. State comes from `lib/pulse.ts`.
 
-| Role | Token |
-| --- | --- |
-| Top bar | `night`, `night-2`, `night-line`, text `night-text` / `night-dim` |
-| Primary action (dark text on saffron), active tab underline, logo tile, numerals of "how it works", text selection | `action` / `action-hover`, text `action-ink` |
-| Selection (tint + 3 px green edge), strong match, skill tags, links, active view tab | `brand`, `brand-deep`, `brand-tint`, `brand-soft` |
-| Hover | `hover` background, `brand-soft` border, `brand-deep` text |
-| City and industry | `place` on `place-tint` |
-| Conditions, weak-match notice | `cond` on `cond-tint` |
-| Excluded, errors, busy as a limit | `danger` on `danger-tint` |
-| Workspace | `ground` paper, `surface` panels, `sunken` inner blocks, `line` borders |
+Keys: `/` focuses the query from any section, `1`–`3` switch sections (not while typing or with a dialog open).
 
-## Score
+## Search (`pages/SearchPage.tsx`)
 
-`components/Score.tsx`. In lists a mono number plus a 4 px meter. In the profile a large serif number, a meter with ticks at 40 and 70, and the strength word. Colour only from `strengthOf`: ≥70 green, ≥40 amber, below grey.
+- **Query card** like a command line: `>` prompt, field (combobox), clear cross, signal button; filters (industry, hide busy) on a lower row.
+- **Palette** of examples and recent queries (listbox under the field): groups "Recent" and "Try an example"; every row has a mono language tag (RU/KK/EN) and what it demonstrates (city, typo, Kazakh, years of experience, exclusion, wrong layout, transliteration, no topic). Before the first search it is open inside the card; after that it floats under the field on focus. ↑↓ choose, Enter searches, Esc closes. Examples live in `EXAMPLE_QUERIES` (`lib/i18n.ts`), all checked on the demo catalogue.
+- Idle, beside the card: **Catalogue** panel (experts and industries in Tektur, model, offline) and the formula. Below: **How Sarap reads a query** (one sentence with skill, city, condition and exclusion highlighted and labelled) and three numbered points.
+- After a search: "Understood:" tags, count and timing, New search; Candidates / Team switch; top 3 as cards (best one with a signal hairline and "Best match"; the selected card is locked by viewfinder corners, `.reticle`); "More candidates" list beside the sticky profile pane. Weak match: amber notice and only "Closest profiles". Loading: the mark scans, skeletons have the final heights.
+- Phone: one column, profile in a sheet above the list (status bar stays visible).
 
-## Details
+## Score (`components/Score.tsx`)
 
-- Rank numerals 01, 02… in mono in front of every row.
-- Profile badge in mono caps with a green dot; section titles small caps with a hairline rule.
-- "Why not them?" blocks carry a 3 px left edge: green confirmed, red missing, amber constraints.
-- Similar experts show similarity as a tiny bar.
-- Email has a copy button that says "Copied" for 1.4 s.
-- The mark animates while searching: the two circles meet and the overlap fills.
-- The profile pane has three underline tabs (Reasoning, Profile, Similar) under the facts row, sticky inside the pane. Reasoning: "Your query → their profile" (each term chip → the competency that confirms it, with `exact` / `≈ by meaning 0,83` / missing), "How N% adds up" (a two-tone bar for meaning and coverage, then the arithmetic in mono with city factors as chips), "Conditions of the query" (checks, or amber when the server reports a limit), an optional dashed "Free alternative" line, feedback.
-- A busy top-3 card ends with a quiet line "Free alternative: name, %" — a hint, never a highlight.
-- Data: experts as cards (avatar, serif name, id, four skills, industry chip, city, years, status) in a 3-column grid; a Cards / Table switch keeps the table as the secondary view.
+Colour only from `strengthOf`: ≥70 signal, ≥40 amber, below grey, always with a number and in the profile with the strength word. Lists: mono number + 3 px bar. Profile: a signal-level meter of 20 segments (5% each) with ticks at 40 and 70 and a large Tektur number.
+
+## Profile (`components/ExpertPane.tsx`)
+
+Header (initials tile, name, position, label chip, score), facts row, tabs Reasoning / Profile / Similar with a signal underline. `/explain` loads only for the Reasoning tab (or for a profile reached through "Similar", which needs it for the score), `/similar` only when its tab is open. Reasoning: query term → competency (`exact`, `≈ by meaning 0.83`, missing in red), "How N% adds up" (two-tone bar and arithmetic with city chips), conditions, free alternative (dashed), feedback.
+
+## Status, avatars, chips
+
+- Status: dot (available, mint), ring (partial, amber), dash (busy, grey) plus the word.
+- Avatars: initials in mono on a square tile, tone from the name (signal, place, amber, neutral).
+- Chips: tint background + `-soft` border + bright text of the role colour; related skills dashed.
 
 ## Logo
 
-`SarapMark`: saffron tile with two outlined circles — the query and the expert — and their overlap filled in. The overlap is the match the service finds and explains (score, matched skills, reasons). While searching the circles drift apart and together and the overlap fades in. Wordmark "Sarap" in Literata. `AiidLogo` is the original white AIID logo, unchanged, only on the dark bar.
+`SarapMark`: four viewfinder corners around a filled dot, all in signal. The dot is an expert on the sky, the corners are the query that locked onto it. While searching the corners contract and the dot pulses (`.mark-scan`). Wordmark "Sarap" in Tektur. No partner logos.
 
 ## Motion
 
-`fade-in` for new results, `sheet-in` for the phone sheet, shimmer for skeletons, `ring-a`, `ring-b`, `lens` for the mark while loading. All disabled under `prefers-reduced-motion`.
+`fade-in` for new results, `sheet-in` for the phone sheet, shimmer skeletons, `mark-scan`, the status beacon, the sky. All disabled or frozen under `prefers-reduced-motion`.
 
 ## Rules
 
-- Keep the synthetic-data notice visible on every screen.
-- Never alter the AIID logo; place it only on the dark top bar.
-- Score colour only from `strengthOf`; pair every colour with a word or number.
-- No dark hover states; no shadows; icons only from `components/Icon.tsx`.
+- The synthetic-data notice stays in the status bar on every screen.
+- Score colour only from `strengthOf`; pair every colour with a word, shape or number.
+- No dark hover states; icons only from `components/Icon.tsx`; no HEX in JSX.
+- New text only through `lib/i18n.ts` (three dictionaries of one type).

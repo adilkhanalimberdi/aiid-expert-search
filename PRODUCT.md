@@ -35,7 +35,7 @@ Demo from a team laptop through Docker (`start.sh` / `start.ps1`), possibly on a
 ## Brand Commitments
 
 - Name: Sarap (from "сарапшы", expert).
-- Logo lock-up "Sarap | AIID": the original AIID logo (`web/public/brand/aiid-white.png`, provided by the team, rights belong to AIID) placed unchanged next to Sarap's own mark.
+- Own mark only (viewfinder corners around a dot); the AIID logo is no longer shown in the interface (user decision, 2026-11-21).
 - Everything else in the visual identity (palette, type, mark, forms) is open for replacement (user decision, 2026-11-21).
 
 ## Evidence on Hand
