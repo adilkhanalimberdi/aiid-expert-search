@@ -418,6 +418,22 @@ def test_city_query_puts_matching_city_first() -> None:
     ]  # без города: процент × доступность
 
 
+def test_experience_query_puts_experienced_first() -> None:
+    from app.ranker import order_by_percent
+    from app.schemas import SearchResult
+
+    def card(i: str, percent: int, years: int) -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city="Астана", industry="", experience_years=years,
+            availability="available", match_percent=percent, matched=[], related=[], reasons=[],
+        )  # fmt: skip
+
+    # «BIM от 15 лет»: эксперт с 25 годами при чуть меньшем проценте выше тех, у кого стажа не хватает
+    results = [card("junior", 66, 13), card("middle", 66, 11), card("senior", 60, 25)]
+    assert [r.id for r in order_by_percent(results, min_experience=15)][0] == "senior"
+    assert [r.id for r in order_by_percent(results)][-1] == "senior"
+
+
 def test_typos_are_corrected_against_dictionary_words_and_stopwords() -> None:
     vocabulary = {"логистика": 1.0}
     assert correct_terms(["logidtics"], vocabulary) == ["logistics"]  # английское слово из словаря синонимов
@@ -464,3 +480,33 @@ def test_translit_service_words_only_with_translit_content() -> None:
     assert fix_translit("data scientist to do machine learning") == "data scientist to do machine learning"
     assert fix_translit("ekspert po GMP") == "эксперт по GMP"
     assert fix_translit("GMP in Almaty") == "GMP in алматы"
+
+
+def test_busy_candidate_gets_free_alternative_with_shared_terms() -> None:
+    from app.ranker import with_alternatives
+    from app.schemas import SearchResult, TermEvidence
+
+    def card(i: str, percent: int, availability: str, terms: list[str]) -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city="", industry="", experience_years=5,
+            availability=availability, match_percent=percent, matched=[], related=[], reasons=[],
+            evidence=[TermEvidence(term=t, kind="exact", credit=1.0) for t in terms],
+        )  # fmt: skip
+
+    results = [
+        card("busy", 90, "busy", ["gmp"]),
+        card("a", 80, "available", ["gmp"]),
+        card("b", 75, "available", ["gmp"]),
+        card("other", 70, "available", ["bim"]),
+        card("free", 60, "available", ["gmp"]),
+    ]
+    updated = with_alternatives(results)
+    assert updated[0].alternative is not None
+    assert updated[0].alternative.id == "free"  # не из топ-3 и с общим термином
+    assert updated[0].alternative.shared_terms == ["gmp"]
+    assert updated[1].alternative is None
+    assert [r.id for r in updated] == [r.id for r in results]  # порядок не меняется
+    # «от 10 лет»: у замены стажа меньше, поэтому её не предлагаем
+    from app.schemas import ParsedQuery
+
+    assert with_alternatives(results, ParsedQuery(min_experience=10))[0].alternative is None

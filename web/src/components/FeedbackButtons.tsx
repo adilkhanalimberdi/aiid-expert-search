@@ -6,91 +6,57 @@ import { Button } from './ui'
 
 type Verdict = 'fit' | 'not_fit'
 
-interface FeedbackButtonsProps {
-  query: string
-  expertId: string
-  onDark?: boolean
-  /** icons: два квадратных значка для строк списка, чтобы отзыв не перебивал имя и оценку */
-  variant?: 'buttons' | 'icons'
-}
-
-function VerdictIcon({ verdict }: { verdict: Verdict }) {
+function Icon({ verdict }: { verdict: Verdict }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square" aria-hidden>
-      {verdict === 'fit' ? <path d="M4 12.5l5.5 5.5L20 7" /> : <path d="M6 6l12 12M18 6L6 18" />}
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {verdict === 'fit' ? <path d="M5 12.5l4.5 4.5L19 7.5" /> : <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />}
     </svg>
   )
 }
 
-export function FeedbackButtons({ query, expertId, onDark = false, variant = 'buttons' }: FeedbackButtonsProps) {
+/** «Подошёл / не подошёл» по эксперту и запросу; после ответа сервера показывает подтверждение. */
+export function FeedbackButtons({ query, expertId }: { query: string; expertId: string }) {
   const { t } = useI18n()
   const [verdict, setVerdict] = useState<Verdict | null>(null)
+  const [pending, setPending] = useState<Verdict | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function send(next: Verdict) {
+    setPending(next)
     setError(null)
     try {
       await api.feedback(query, expertId, next)
       setVerdict(next)
     } catch (e) {
       setError((e as Error).message)
+    } finally {
+      setPending(null)
     }
-  }
-
-  const thanks = verdict === 'fit' ? t.card.thanksFit : t.card.thanksNotFit
-  const errorNote = error && (
-    <span role="alert" className={`self-center text-sm ${onDark ? 'text-ochre-soft' : 'text-terracotta'}`}>
-      {errorText(error, t)}
-    </span>
-  )
-
-  if (variant === 'icons') {
-    if (verdict) {
-      return (
-        <p role="status" title={thanks} className="flex min-h-11 items-center gap-2 text-sm font-semibold text-turquoise-deep">
-          <VerdictIcon verdict={verdict} />
-          {t.card.noted}
-          <span className="sr-only">{thanks}</span>
-        </p>
-      )
-    }
-    const base =
-      'grid size-11 cursor-pointer place-items-center border-2 border-grout/20 bg-plaster text-grout transition-colors duration-150'
-    return (
-      <div className="flex gap-1.5">
-        <button type="button" aria-label={t.card.fit} title={t.card.fit} onClick={() => send('fit')} className={`${base} hover:border-turquoise hover:bg-turquoise hover:text-white`}>
-          <VerdictIcon verdict="fit" />
-        </button>
-        <button
-          type="button"
-          aria-label={t.card.notFit}
-          title={t.card.notFit}
-          onClick={() => send('not_fit')}
-          className={`${base} hover:border-terracotta hover:bg-terracotta hover:text-white`}
-        >
-          <VerdictIcon verdict="not_fit" />
-        </button>
-        {errorNote}
-      </div>
-    )
   }
 
   if (verdict) {
     return (
-      <p role="status" className={`min-h-11 content-center text-[15px] font-medium ${onDark ? 'text-turquoise-glow' : 'text-turquoise-deep'}`}>
-        {thanks}
+      <p role="status" className="flex min-h-11 items-center gap-2 rounded-lg bg-brand-tint px-3 text-sm font-semibold text-brand-deep">
+        <Icon verdict={verdict} />
+        {verdict === 'fit' ? t.card.thanksFit : t.card.thanksNotFit}
       </p>
     )
   }
   return (
-    <>
-      <Button variant={onDark ? 'primary' : 'dark'} onClick={() => send('fit')}>
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="positive" onClick={() => send('fit')} disabled={pending !== null}>
+        <Icon verdict="fit" />
         {t.card.fit}
       </Button>
-      <Button variant={onDark ? 'outline-dark' : 'outline'} onClick={() => send('not_fit')}>
+      <Button onClick={() => send('not_fit')} disabled={pending !== null}>
+        <Icon verdict="not_fit" />
         {t.card.notFit}
       </Button>
-      {errorNote}
-    </>
+      {error && (
+        <span role="alert" className="text-sm font-medium text-danger">
+          {errorText(error, t)}
+        </span>
+      )}
+    </div>
   )
 }

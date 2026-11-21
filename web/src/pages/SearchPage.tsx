@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { ErrorBox } from '../components/ErrorBox'
-import { AlsoFit, BestMatch, CandidateRow } from '../components/ExpertCards'
-import { ExpertDialog } from '../components/ExpertDialog'
+import { ExpertPane, ExpertPaneSkeleton } from '../components/ExpertPane'
 import { Formula } from '../components/Formula'
-import { HeroBand } from '../components/HeroBand'
+import { SarapMark } from '../components/Logo'
 import { Readback } from '../components/Readback'
-import { ResultsSkeleton } from '../components/Skeleton'
-import { TeamPanel } from '../components/TeamPanel'
-import { ArrowRight, Button, Checkbox, Select } from '../components/ui'
+import { RECOMMENDED, ResultList, ResultListSkeleton, TopCards } from '../components/ResultList'
+import { Icon } from '../components/Icon'
+import { CONTAINER } from '../components/Shell'
+import { TeamView } from '../components/TeamView'
+import { Button, Checkbox, Panel, Segmented, Select } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRecentQueries } from '../hooks/useRecentQueries'
 import { useSearch } from '../hooks/useSearch'
 import { api, type SearchResponse } from '../lib/api'
+import type { AnatomyKind } from '../lib/i18n'
 import { useI18n } from '../lib/useI18n'
 
 const TOP_K = 8
@@ -22,27 +25,39 @@ interface SubmittedSearch {
   hideBusy: boolean
 }
 
-export function SearchPage({ nav }: { nav: ReactNode }) {
+type View = 'candidates' | 'team'
+
+export function SearchPage() {
   const { t, lang } = useI18n()
   const [query, setQuery] = useState('')
   const [industry, setIndustry] = useState('')
   const [hideBusy, setHideBusy] = useState(false)
   const [submitted, setSubmitted] = useState<SubmittedSearch | null>(null)
   const [emptyHint, setEmptyHint] = useState(false)
-  const [isTeamOpen, setIsTeamOpen] = useState(false)
-  const [openExpertId, setOpenExpertId] = useState<string | null>(null)
   const industries = useAsync(() => api.industries(), [])
   const catalog = useAsync(() => api.health(), [])
-  const { state, run } = useSearch()
+  const { state, run, reset } = useSearch()
   const { recent, remember } = useRecentQueries()
   const previousLang = useRef(lang)
+  const input = useRef<HTMLTextAreaElement>(null)
 
   function start(next: SubmittedSearch) {
     setSubmitted(next)
     remember(next.query)
-    setIsTeamOpen(false)
     run({ query: next.query, industry: next.industry, hide_busy: next.hideBusy, top_k: TOP_K })
   }
+
+  // «/» с любого места страницы ставит курсор в поле запроса, как в привычных поисковиках
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || target.closest('input, textarea, select, [contenteditable]')) return
+      event.preventDefault()
+      input.current?.focus()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // Обоснования приходят с сервера на языке интерфейса: при смене языка перезапрашиваем текущий поиск
   useEffect(() => {
@@ -57,6 +72,7 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
     const trimmed = query.trim()
     setEmptyHint(!trimmed)
     if (trimmed) start({ query: trimmed, industry: industry || null, hideBusy })
+    else input.current?.focus()
   }
 
   function applyExample(example: string) {
@@ -71,87 +87,96 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
     if (submitted) start({ ...submitted, industry: nextIndustry || null, hideBusy: nextHideBusy })
   }
 
+  const isIdle = state.status === 'idle'
+
+  // «Новый поиск»: пустое поле, стартовый экран и фокус в поле; фильтры остаются, их видно в карточке запроса
+  function startOver() {
+    setQuery('')
+    setSubmitted(null)
+    setEmptyHint(false)
+    reset()
+    input.current?.focus()
+  }
+
   return (
-    <>
-      <HeroBand nav={nav}>
-        <div className="pt-14 text-center sm:pt-[72px]">
-          <h1 className="font-display text-[38px] font-light leading-[1.02] tracking-[-0.035em] text-balance sm:text-[76px]">
-            {t.search.h1}
-          </h1>
-          <p className="mx-auto mt-6 max-w-[560px] text-lg leading-relaxed text-white/90">{t.search.sub}</p>
+    <div className={CONTAINER}>
+      {/* крупный заголовок только до первого поиска: потом место отдаётся выдаче */}
+      {isIdle ? (
+        <div className="grid gap-x-10 gap-y-4 pb-6 pt-9 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:pt-14">
+          <div className="min-w-0">
+            <h1 className="serif max-w-[18ch] text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-ink sm:text-[52px]">{t.search.h1}</h1>
+            <p className="mt-3 max-w-[56ch] text-pretty text-base text-ink-2">{t.search.sub}</p>
+          </div>
           {catalog.data && industries.data && (
-            <p className="tnum mt-3 text-sm text-white/75">
-              {t.search.experts(catalog.data.experts)} · {t.search.industriesCount(industries.data.length)}
-            </p>
+            <dl className="flex gap-8 border-l-2 border-action pl-5">
+              <div>
+                <dd className="mono text-[28px] font-medium leading-none text-ink">{catalog.data.experts}</dd>
+                <dt className="mt-1.5 text-[13px] text-ink-3">{t.search.expertsWord(catalog.data.experts)}</dt>
+              </div>
+              <div>
+                <dd className="mono text-[28px] font-medium leading-none text-ink">{industries.data.length}</dd>
+                <dt className="mt-1.5 text-[13px] text-ink-3">{t.search.industriesWord(industries.data.length)}</dt>
+              </div>
+            </dl>
           )}
         </div>
-
-        <form onSubmit={submit} role="search" className="mx-auto mt-11 flex max-w-[920px] flex-col items-center gap-7">
-          <div className="w-full shadow-[0_22px_44px_-18px_rgb(8_12_40/0.7)]">
-            <label htmlFor="query" className="sr-only">
-              {t.search.queryLabel}
-            </label>
-            {/* поле растёт по тексту: длинный запрос виден целиком и на телефоне; Enter ищет, Shift+Enter переносит */}
-            <textarea
-              id="query"
-              rows={1}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
-                  event.preventDefault()
-                  event.currentTarget.form?.requestSubmit()
-                }
-              }}
-              maxLength={500}
-              placeholder={t.search.placeholder}
-              className="block min-h-[68px] w-full resize-none rounded-none border-b-[6px] border-ochre bg-plaster px-4 py-[19px] text-lg leading-snug text-grout outline-none [field-sizing:content] placeholder:font-display placeholder:font-light placeholder:tracking-[-0.02em] placeholder:text-stone focus:border-turquoise sm:min-h-[88px] sm:px-8 sm:py-[24px] sm:text-[24px]"
-            />
-          </div>
-          <Button type="submit" variant="primary" size="lg" className="w-full sm:w-auto">
-            {t.search.submit}
-            <ArrowRight />
-          </Button>
-          <p className="-mt-3 min-h-5 text-sm text-ochre-soft" aria-live="polite">
-            {emptyHint && t.search.emptyQuery}
-          </p>
-        </form>
-
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-7 gap-y-1">
-          <span className="text-sm text-white/80">{t.search.tryLabel}</span>
-          {t.search.examples.map((example, index) => (
+      ) : (
+        <h1 className="sr-only">{t.search.h1}</h1>
+      )}
+      <form onSubmit={submit} role="search" aria-label={t.search.queryLabel} className={`${isIdle ? '' : 'mt-6'} rounded-2xl border border-line-strong bg-surface transition-[border-color,box-shadow] focus-within:border-brand focus-within:shadow-[0_0_0_4px_var(--color-brand-tint)]`}>
+        <div className="flex items-end gap-2 p-2 pl-4 sm:pl-5">
+          <label htmlFor="query" className="sr-only">
+            {t.search.queryLabel}
+          </label>
+          <Icon name="search" size={20} className="mb-[15px] hidden text-ink-3 sm:block" />
+          {/* поле растёт по тексту; Enter ищет, Shift+Enter переносит строку */}
+          <textarea
+            ref={input}
+            id="query"
+            rows={1}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault()
+                event.currentTarget.form?.requestSubmit()
+              }
+            }}
+            maxLength={500}
+            placeholder={t.search.placeholder}
+            aria-describedby="query-hint"
+            className="min-h-12 flex-1 resize-none self-center bg-transparent py-3 text-[17px] leading-snug text-ink outline-none [field-sizing:content] placeholder:text-ink-3 sm:text-lg"
+          />
+          {!query && (
+            <span aria-hidden className="mb-[15px] hidden items-center gap-1.5 text-xs text-ink-3 lg:flex">
+              <kbd>/</kbd>
+              {t.focusHint}
+            </span>
+          )}
+          {query && (
             <button
-              key={example}
               type="button"
-              onClick={() => applyExample(example)}
-              // на телефоне три примера: остальные отодвигали результаты на второй экран
-              className={`${index >= 3 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-[15px] font-medium text-white underline decoration-white/45 decoration-[1.5px] underline-offset-[5px] hover:decoration-ochre`}
+              onClick={() => {
+                setQuery('')
+                input.current?.focus()
+              }}
+              aria-label={t.search.clear}
+              title={t.search.clear}
+              className="mb-1.5 grid size-9 flex-none place-items-center rounded-lg text-ink-3 hover:bg-hover hover:text-brand-deep"
             >
-              {example}
+              <Icon name="x" size={18} />
             </button>
-          ))}
+          )}
+          <Button type="submit" variant="primary" size="lg" className="flex-none !rounded-xl">
+            <span className="hidden sm:inline">{t.search.submit}</span>
+            <Icon name="arrow-right" strokeWidth={2.4} />
+            <span className="sr-only sm:hidden">{t.search.submit}</span>
+          </Button>
         </div>
-
-        {recent.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1" aria-label={t.search.recent}>
-            <span className="text-sm text-white/80">{t.search.recent}</span>
-            {recent.map((item, index) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => applyExample(item)}
-                className={`${index >= 1 ? 'hidden sm:inline' : ''} min-h-11 cursor-pointer text-sm text-white/90 underline decoration-white/35 decoration-1 underline-offset-[5px] hover:decoration-ochre`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 pb-14">
-          <label className="flex items-center gap-3.5 text-[15px] font-medium">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-b-2xl border-t border-dashed border-line bg-sunken px-4 py-2 sm:px-5">
+          <label className="flex items-center gap-2 text-sm font-medium text-ink-2">
             {t.search.industry}
-            <Select tone="dark" value={industry} onChange={(event) => changeFilters(event.target.value, hideBusy)}>
+            <Select value={industry} onChange={(event) => changeFilters(event.target.value, hideBusy)}>
               <option value="">{t.search.anyIndustry}</option>
               {industries.data?.map((item) => (
                 <option key={item} value={item}>
@@ -160,158 +185,315 @@ export function SearchPage({ nav }: { nav: ReactNode }) {
               ))}
             </Select>
           </label>
-          <Checkbox
-            tone="dark"
-            checked={hideBusy}
-            onChange={(event) => changeFilters(industry, event.target.checked)}
-            label={t.search.hideBusy}
-          />
+          <Checkbox checked={hideBusy} onChange={(event) => changeFilters(industry, event.target.checked)} label={t.search.hideBusy} />
+          <p id="query-hint" className="text-sm font-medium text-danger" aria-live="polite">
+            {emptyHint && t.search.emptyQuery}
+          </p>
         </div>
-      </HeroBand>
+      </form>
 
-      <section className="mx-auto max-w-[1120px] px-4 pb-6 pt-16 sm:px-6" aria-live="polite">
-        {state.status === 'idle' && (
-          <div className="flex flex-col items-center gap-5 border-2 border-dashed border-seam px-6 py-12 text-center text-slate">
-            <span aria-hidden className="flex gap-0.5">
-              {['bg-turquoise', 'bg-ochre', 'bg-smalt', 'bg-seam', 'bg-seam'].map((tone, index) => (
-                <span key={index} className={`size-4 ${tone}`} />
-              ))}
-            </span>
-            <p className="max-w-[46ch]">{t.search.idle}</p>
+      <div className="pb-6 pt-6" aria-live="polite" aria-busy={state.status === 'loading'}>
+        {isIdle && <Welcome recent={recent} onPick={applyExample} />}
+
+        {state.status === 'loading' && (
+          <div role="status" aria-label={t.search.searching}>
+            <p className="mb-3 flex items-center gap-2.5 text-sm font-semibold text-ink-2">
+              <SarapMark size={20} isDrawing />
+              {t.search.searching}
+            </p>
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+              <ResultListSkeleton />
+              <Panel className="hidden lg:block">
+                <ExpertPaneSkeleton />
+              </Panel>
+            </div>
           </div>
         )}
-        {state.status === 'loading' && <ResultsSkeleton />}
-        {state.status === 'error' && (
-          <ErrorBox message={state.message} onRetry={submitted ? () => start(submitted) : undefined} />
-        )}
+
+        {state.status === 'error' && <ErrorBox message={state.message} onRetry={submitted ? () => start(submitted) : undefined} />}
+
         {state.status === 'done' && submitted && (
-          <Results
-            data={state.data}
-            submitted={submitted}
-            isTeamOpen={isTeamOpen}
-            onToggleTeam={() => setIsTeamOpen((value) => !value)}
-            onOpen={setOpenExpertId}
-          />
+          <Results key={`${submitted.query}|${submitted.industry}|${submitted.hideBusy}`} data={state.data} submitted={submitted} onReset={startOver} />
         )}
-        <Formula />
-      </section>
-
-      {openExpertId && (
-        <ExpertDialog expertId={openExpertId} query={submitted?.query ?? ''} onClose={() => setOpenExpertId(null)} />
-      )}
-    </>
+      </div>
+    </div>
   )
 }
 
-interface ResultsProps {
-  data: SearchResponse
-  submitted: SubmittedSearch
-  isTeamOpen: boolean
-  onToggleTeam: () => void
-  onOpen: (expertId: string) => void
+/** Язык примера по буквам: казахские буквы, кириллица или латиница. Показывает, что поиск понимает все три. */
+function languageOf(text: string): string {
+  if (/[әғқңөұүһі]/i.test(text)) return 'KK'
+  if (/[а-яё]/i.test(text)) return 'RU'
+  return 'EN'
 }
 
-function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="mb-5 mt-16 font-display text-[26px] font-light leading-[1.1] tracking-[-0.025em] sm:text-[32px]">{children}</h2>
-  )
-}
-
-function Results({ data, submitted, isTeamOpen, onToggleTeam, onOpen }: ResultsProps) {
+/** Пустое состояние: примеры запросов карточками картотеки и три коротких пункта о том, как работает поиск. */
+function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string) => void }) {
   const { t } = useI18n()
-  const [best, ...rest] = data.results
-  const alsoFit = rest.slice(0, 2)
-  const others = rest.slice(2)
-
   return (
-    <div>
-      <Readback parsed={data.parsed} tookMs={data.took_ms} count={data.results.length} />
-
-      {data.weak_match && (
-        <p role="status" className="mt-8 flex items-start gap-3 border-2 border-ochre-deep bg-ochre-soft/60 p-4 font-medium">
-          <span aria-hidden className="mt-1 size-3 flex-none bg-ochre-deep" />
-          <span>{t.search.weak}</span>
-        </p>
-      )}
-
-      {data.filter_only && (
-        <p role="status" className="mt-8 flex items-start gap-3 border-2 border-smalt bg-plaster p-4 font-medium">
-          <span aria-hidden className="mt-1 size-3 flex-none bg-smalt" />
-          <span>{t.search.filterOnly([data.parsed.city, data.parsed.industry].filter(Boolean).join(', '))}</span>
-        </p>
-      )}
-
-      {!best && <p className="mt-8 border-2 border-dashed border-seam p-10 text-center text-slate">{t.search.nobody}</p>}
-
-      {best && data.weak_match && (
-        // слабое совпадение не получает чёрную панель «лучшего»: это ближайшие профили, а не рекомендация
-        <>
-          <SectionTitle>{t.card.closest}</SectionTitle>
-          <div className="border-t-2 border-grout">
-            {data.results.map((expert) => (
-              <CandidateRow key={expert.id} expert={expert} query={submitted.query} onOpen={onOpen} />
+    <div className="fade-in space-y-10">
+      <section aria-labelledby="examples-title">
+        <h2 id="examples-title" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-3">
+          {t.search.tryLabel}
+        </h2>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {t.search.examples.map((example) => (
+            <li key={example} className="min-w-0">
+              <button
+                type="button"
+                onClick={() => onPick(example)}
+                className="group flex h-full w-full items-start gap-3 rounded-xl border border-line bg-surface p-3.5 text-left transition-colors hover:border-brand-soft hover:bg-hover"
+              >
+                <span className="mono mt-0.5 flex-none rounded border border-line px-1.5 py-0.5 text-[11px] text-ink-3 group-hover:border-brand-soft group-hover:text-brand-deep">
+                  {languageOf(example)}
+                </span>
+                <span className="min-w-0 flex-1 text-[15px] leading-snug text-ink">{example}</span>
+                <Icon name="arrow-right" size={16} className="mt-0.5 text-line-strong transition-[transform,color] group-hover:translate-x-0.5 group-hover:text-brand" />
+              </button>
+            </li>
+          ))}
+        </ul>
+        {recent.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="flex items-center gap-1.5 font-medium text-ink-3">
+              <Icon name="clock" size={15} />
+              {t.search.recent}
+            </span>
+            {recent.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onPick(item)}
+                className="max-w-full truncate rounded-md px-2 py-1 font-medium text-ink-2 underline decoration-line-strong decoration-dashed underline-offset-4 hover:bg-hover hover:text-brand-deep hover:decoration-brand"
+              >
+                {item}
+              </button>
             ))}
           </div>
-        </>
+        )}
+      </section>
+
+      <Anatomy />
+
+      <ol className="grid gap-x-10 gap-y-6 border-t border-line pt-7 md:grid-cols-3">
+        {t.search.how.map((item, index) => (
+          <li key={item.title} className="min-w-0">
+            <span className="mono flex items-center gap-3 text-xs text-ink-3">
+              <span className="text-action-ink">
+                <span className="rounded bg-action px-1.5 py-0.5">{String(index + 1).padStart(2, '0')}</span>
+              </span>
+              <span aria-hidden className="h-px flex-1 bg-line" />
+            </span>
+            <span className="serif mt-3 block text-lg font-semibold text-ink">{item.title}</span>
+            <span className="mt-1.5 block text-sm leading-relaxed text-ink-2">{item.body}</span>
+          </li>
+        ))}
+      </ol>
+
+      <Formula />
+    </div>
+  )
+}
+
+const ANATOMY_TONE: Record<AnatomyKind, string> = {
+  skill: 'bg-brand-tint text-brand-deep decoration-brand',
+  place: 'bg-place-tint text-place decoration-place',
+  condition: 'bg-cond-tint text-cond decoration-cond',
+  excluded: 'bg-danger-tint text-danger line-through decoration-danger',
+}
+
+/**
+ * Наглядный разбор: одна фраза, в которой навыки, город, условие и исключение подсвечены и подписаны.
+ * Это иллюстрация того, что потом показывает строка «Понято:», а не вызов движка.
+ */
+function Anatomy() {
+  const { t } = useI18n()
+  const label: Record<AnatomyKind, string> = {
+    skill: t.readback.legendSkill,
+    place: t.card.city,
+    condition: t.readback.legendCondition,
+    excluded: t.readback.legendExcluded,
+  }
+  return (
+    <section aria-labelledby="anatomy-title" className="rounded-2xl border border-line bg-surface px-5 pb-6 pt-5 sm:px-8">
+      <h2 id="anatomy-title" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-3">
+        {t.search.anatomyTitle}
+      </h2>
+      <p className="serif mt-4 text-[22px] leading-[2.6] text-ink sm:text-[28px]">
+        {t.search.anatomy.map(([text, kind], index) =>
+          kind ? (
+            <span key={index} className="relative inline-block whitespace-nowrap">
+              <span className={`rounded-md px-1.5 py-0.5 ${ANATOMY_TONE[kind]}`}>{text}</span>
+              <span className="mono absolute left-1.5 top-full -mt-2 whitespace-nowrap text-[10px] uppercase leading-none tracking-[0.08em] text-ink-3">
+                {label[kind]}
+              </span>
+            </span>
+          ) : (
+            <span key={index}>{text}</span>
+          ),
+        )}
+      </p>
+    </section>
+  )
+}
+
+function Results({ data, submitted, onReset }: { data: SearchResponse; submitted: SubmittedSearch; onReset: () => void }) {
+  const { t } = useI18n()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const [view, setView] = useState<View>('candidates')
+  const [chosenId, setChosenId] = useState<string | null>(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const results = data.results
+  const showScore = !data.filter_only
+  // слабое совпадение не выдаём за рекомендацию: тогда только список «Ближайшие профили»
+  const showTopCards = !data.weak_match
+  // по умолчанию открыт лучший; выбранный вне выдачи (участник команды) тоже допустим
+  const selectedId = chosenId ?? results[0]?.id ?? null
+  const selectedIndex = results.findIndex((item) => item.id === selectedId)
+  const selected = selectedIndex >= 0 ? results[selectedIndex] : undefined
+
+  function open(expertId: string) {
+    setChosenId(expertId)
+    if (!isDesktop) setIsSheetOpen(true)
+  }
+
+  function labelFor(): string {
+    if (selectedIndex < 0) return t.card.profile
+    if (data.weak_match) return t.card.closestOne
+    if (selectedIndex === 0 && showScore) return t.card.best
+    return t.card.rank(selectedIndex + 1)
+  }
+
+  const pane = selectedId && (
+    <ExpertPane
+      key={`${selectedId}-${data.took_ms}`}
+      expertId={selectedId}
+      result={selected}
+      label={labelFor()}
+      query={submitted.query}
+      showScore={showScore && (selected !== undefined || data.parsed.terms.length > 0)}
+      parsed={data.parsed}
+      isWeak={data.weak_match}
+      onClose={isDesktop ? undefined : () => setIsSheetOpen(false)}
+    />
+  )
+
+  return (
+    <div className="fade-in">
+      <div className="mb-3">
+        <Readback parsed={data.parsed} count={results.length} tookMs={data.took_ms}>
+          <Button variant="quiet" size="sm" onClick={onReset}>
+            <Icon name="reset" size={16} />
+            {t.search.newSearch}
+          </Button>
+        </Readback>
+      </div>
+
+      {data.weak_match && (
+        <Notice tone="weak">{t.search.weak}</Notice>
+      )}
+      {data.filter_only && (
+        <Notice tone="info">{t.search.filterOnly([data.parsed.city, data.parsed.industry].filter(Boolean).join(', '))}</Notice>
       )}
 
-      {best && !data.weak_match && (
+      {results.length === 0 ? (
+        <Panel className="p-8 text-center">
+          <p className="mx-auto max-w-[48ch] text-[15px] text-ink-2">{t.search.nobody}</p>
+        </Panel>
+      ) : (
         <>
-          <div className="mt-12">
-            <BestMatch expert={best} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
-          </div>
-
-          {alsoFit.length > 0 && (
-            <>
-              <SectionTitle>{t.card.also}</SectionTitle>
-              <div className="grid gap-0.5 bg-seam p-0.5 md:grid-cols-2">
-                {alsoFit.map((expert) => (
-                  <div key={expert.id}>
-                    <AlsoFit expert={expert} query={submitted.query} onOpen={onOpen} showScore={!data.filter_only} />
-                  </div>
-                ))}
-              </div>
-            </>
+          {!data.weak_match && !data.filter_only && (
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <Segmented
+                label={t.search.viewLabel}
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: 'candidates', label: t.search.viewCandidates },
+                  { value: 'team', label: t.search.viewTeam },
+                ]}
+              />
+            </div>
           )}
-
-          {others.length > 0 && (
-            <>
-              <SectionTitle>{t.card.others}</SectionTitle>
-              <div className="border-t-2 border-grout">
-                {others.map((expert) => (
-                  <CandidateRow
-                    key={expert.id}
-                    expert={expert}
-                    query={submitted.query}
-                    onOpen={onOpen}
-                    showScore={!data.filter_only}
-                  />
-                ))}
-              </div>
-            </>
+          {view === 'candidates' && showTopCards && (
+            <div className="mb-6">
+              <TopCards results={results} selectedId={selectedId} onSelect={open} showScore={showScore} />
+            </div>
           )}
-        </>
-      )}
-
-      {best && !data.weak_match && (
-        <>
-          <div className="mt-14 flex flex-col items-center">
-            <Button variant="outline" onClick={onToggleTeam} aria-expanded={isTeamOpen}>
-              {isTeamOpen ? t.card.hideTeam : t.card.buildTeam}
-            </Button>
-            {isTeamOpen && (
-              <div className="mt-6 w-full">
-                <TeamPanel
-                  query={submitted.query}
-                  industry={submitted.industry}
-                  hideBusy={submitted.hideBusy}
-                  onOpen={onOpen}
-                />
-              </div>
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div className="min-w-0 space-y-4">
+              {view === 'team' ? (
+                <TeamView query={submitted.query} industry={submitted.industry} hideBusy={submitted.hideBusy} onOpen={open} />
+              ) : (
+                (!showTopCards || results.length > RECOMMENDED) && (
+                  <ResultList results={results} selectedId={selectedId} onSelect={open} isWeak={data.weak_match} showScore={showScore} hideTop={showTopCards} />
+                )
+              )}
+              <Formula />
+            </div>
+            {isDesktop && (
+              <Panel className="sticky top-[124px] max-h-[calc(100vh-140px)] overflow-y-auto border-line-strong" aria-label={t.dialog.label}>
+                {pane}
+              </Panel>
             )}
           </div>
         </>
       )}
+
+      {!isDesktop && isSheetOpen && pane && <Sheet onClose={() => setIsSheetOpen(false)}>{pane}</Sheet>}
+    </div>
+  )
+}
+
+function Notice({ tone, children }: { tone: 'weak' | 'info'; children: string }) {
+  return (
+    <p
+      role="status"
+      className={`mb-4 flex items-start gap-3 rounded-xl border p-4 text-[15px] font-medium ${
+        tone === 'weak' ? 'border-medium-bar/50 bg-cond-tint text-cond' : 'border-place/20 bg-place-tint text-place'
+      }`}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className="mt-0.5 flex-none">
+        <circle cx="12" cy="12" r="9.5" />
+        <path d="M12 11v5.5M12 7.5v.01" />
+      </svg>
+      <span>{children}</span>
+    </p>
+  )
+}
+
+/** Профиль на телефоне: окно на весь экран поверх выдачи, Esc и «К списку» закрывают, фокус возвращается. */
+function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const { t } = useI18n()
+  const box = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    box.current?.focus()
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = overflow
+      previous?.focus()
+    }
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-40 bg-night/50 backdrop-blur-[2px]" onClick={onClose}>
+      <div
+        ref={box}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.dialog.label}
+        tabIndex={-1}
+        onClick={(event) => event.stopPropagation()}
+        className="sheet-in absolute inset-x-0 bottom-0 top-3 overflow-y-auto rounded-t-2xl bg-surface outline-none"
+      >
+        {children}
+      </div>
     </div>
   )
 }

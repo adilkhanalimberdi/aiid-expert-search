@@ -9,7 +9,18 @@ from . import feedback as feedback_store
 from .explain import explain
 from .index import SearchIndex, encode_queries, encode_query, encode_terms
 from .query_parser import canonical_city, parse, split_negation
-from .schemas import Expert, Language, ParsedQuery, SearchRequest, SearchResponse, SearchResult
+from .schemas import (
+    Alternative,
+    Expert,
+    Language,
+    ParsedQuery,
+    ScoreBreakdown,
+    ScoreFactor,
+    SearchRequest,
+    SearchResponse,
+    SearchResult,
+    TermEvidence,
+)
 from .text import (
     contains_stem,
     covered_terms,
@@ -91,6 +102,67 @@ def match_score(
     return percent * location_boost(index.experts[i], parsed) * exclusion_boost(index, i, parsed)
 
 
+def breakdown_for(
+    index: SearchIndex, i: int, parsed: ParsedQuery, query_vec: np.ndarray, credits: np.ndarray
+) -> ScoreBreakdown:
+    """Те же величины, что в match_score, по отдельности: чтобы процент можно было пересчитать руками."""
+    expert = index.experts[i]
+    cosine = float(index.expert_vecs[i] @ query_vec)
+    factors = []
+    if parsed.city:
+        same = canonical_city(expert.city) == canonical_city(parsed.city)
+        factors.append(
+            ScoreFactor(
+                kind="city_match" if same else "city_mismatch",
+                value=config.BOOST_CITY_MATCH if same else config.BOOST_CITY_MISMATCH,
+            )
+        )
+    if exclusion_boost(index, i, parsed) != 1.0:
+        factors.append(ScoreFactor(kind="excluded", value=config.BOOST_EXCLUDED_TERM))
+    return ScoreBreakdown(
+        semantic=float(np.clip((cosine - config.COS_FLOOR) / (config.COS_CEIL - config.COS_FLOOR), 0, 1)),
+        coverage=coverage_of(index, i, parsed, credits),
+        w_semantic=config.W_SEMANTIC,
+        w_coverage=config.W_COVERAGE,
+        factors=[factor for factor in factors if factor.value != 1.0],
+        capped=match_score(index, i, parsed, query_vec, credits) > config.PERCENT_CAP,
+    )
+
+
+def evidence_for(index: SearchIndex, i: int, parsed: ParsedQuery, credits: np.ndarray) -> list[TermEvidence]:
+    """По каждому термину запроса: какая компетенция или должность эксперта его подтверждает и как.
+
+    Точное совпадение ищется по словам и синонимам, смысловое по тем же косинусам, что идут в покрытие,
+    поэтому строка «клинические испытания ≈ клинические исследования» и процент не расходятся.
+    """
+    expert = index.experts[i]
+    targets = [*expert.competencies, expert.position]
+    exact = covered_terms(parsed.terms, index.texts[i])
+    rows = None
+    if index.target_matrix is not None and index.target_offsets is not None and parsed.terms:
+        start = int(index.target_offsets[i])
+        rows = index.target_matrix[start : start + len(targets)] @ encode_terms(parsed.terms).T
+    evidence = []
+    for k, term in enumerate(parsed.terms):
+        if term in exact:
+            source = next((text for text in targets if covered_terms([term], text)), None)
+            evidence.append(TermEvidence(term=term, kind="exact", source=source, credit=1.0))
+        elif rows is not None and float(credits[i, k]) > 0:
+            j = int(np.argmax(rows[:, k]))
+            evidence.append(
+                TermEvidence(
+                    term=term,
+                    kind="semantic",
+                    source=targets[j],
+                    similarity=round(float(rows[j, k]), 2),
+                    credit=round(float(credits[i, k]), 2),
+                )
+            )
+        else:
+            evidence.append(TermEvidence(term=term, kind="missing"))
+    return evidence
+
+
 def result_for(
     index: SearchIndex,
     i: int,
@@ -117,6 +189,8 @@ def result_for(
         matched=matched,
         related=related,
         reasons=reasons,
+        evidence=evidence_for(index, i, parsed, credits),
+        breakdown=breakdown_for(index, i, parsed, query_vec, credits),
         debug={"bm25_rank": bm25_rank, "vec_rank": vec_rank, "cosine": cosine},
     )
 
@@ -163,8 +237,9 @@ def order_by_percent(
     results: list[SearchResult],
     feedback_scores: dict[str, float] | None = None,
     city: str | None = None,
+    min_experience: int | None = None,
 ) -> list[SearchResult]:
-    """Окончательный порядок: процент × доступность × отзывы.
+    """Окончательный порядок: процент × доступность × опыт × отзывы.
 
     Без города состав топ-3 решает RRF (так он устойчивее на запросах без ограничений), а внутри групп
     порядок совпадает с процентом. С городом сортируются все кандидаты окна: сначала подходящие эксперты
@@ -174,20 +249,70 @@ def order_by_percent(
 
     def weight(result: SearchResult) -> float:
         availability = config.BOOST_AVAILABILITY[result.availability]
-        return -result.match_percent * availability * (feedback_scores or {}).get(result.id, 1.0)
+        # «от 15 лет»: эксперт с меньшим стажем не должен стоять выше подходящего по стажу при равном проценте
+        below = min_experience is not None and result.experience_years < min_experience
+        experience = config.BOOST_EXPERIENCE_BELOW if below else 1.0
+        return -result.match_percent * availability * experience * (feedback_scores or {}).get(result.id, 1.0)
 
-    if city:
+    if city or min_experience is not None:
+        # названные в запросе город и «от N лет» это прямые требования: сначала те, кто им отвечает
+        def fits(result: SearchResult) -> bool:
+            in_city = not city or canonical_city(result.city) == canonical_city(city)
+            enough = min_experience is None or result.experience_years >= min_experience
+            return in_city and enough and result.match_percent >= config.CITY_PRIORITY_MIN_PERCENT
 
-        def key(result: SearchResult) -> tuple[int, float]:
-            in_city = canonical_city(result.city) == canonical_city(city)
-            return (
-                0 if in_city and result.match_percent >= config.CITY_PRIORITY_MIN_PERCENT else 1,
-                weight(result),
-            )
-
-        return sorted(results, key=key)
+        return sorted(results, key=lambda result: (0 if fits(result) else 1, weight(result)))
     head = config.ORDER_GROUP_SIZE
     return sorted(results[:head], key=weight) + sorted(results[head:], key=weight)
+
+
+def meets_conditions(result: SearchResult, parsed: ParsedQuery | None) -> bool:
+    """Эксперт отвечает названным в запросе городу и минимальному стажу."""
+    if parsed is None:
+        return True
+    if parsed.city and canonical_city(result.city) != canonical_city(parsed.city):
+        return False
+    return parsed.min_experience is None or result.experience_years >= parsed.min_experience
+
+
+def with_alternatives(results: list[SearchResult], parsed: ParsedQuery | None = None) -> list[SearchResult]:
+    """Занятым и частично занятым в топ-3 подбирает свободную замену из остальной выдачи.
+
+    Замена берётся только среди уже найденных: она не меняет порядок и состав топ-3, это подсказка.
+    Общие термины считаются по доказательствам (evidence), а не по тексту, поэтому их можно проверить.
+    Замена отвечает тем же условиям запроса, что и топ: названный город и «от N лет».
+    """
+    head = config.ORDER_GROUP_SIZE
+    top_ids = {result.id for result in results[:head]}
+
+    def confirmed(result: SearchResult) -> list[str]:
+        return [item.term for item in result.evidence if item.kind != "missing"]
+
+    updated = []
+    for result in results[:head]:
+        if result.availability == "available":
+            updated.append(result)
+            continue
+        needed = confirmed(result)
+        for other in results:
+            shared = [term for term in confirmed(other) if term in needed]
+            if (
+                other.id not in top_ids
+                and other.availability == "available"
+                and other.match_percent >= config.ALTERNATIVE_MIN_PERCENT
+                and meets_conditions(other, parsed)
+                and (shared or not needed)
+            ):
+                alternative = Alternative(
+                    id=other.id,
+                    full_name=other.full_name,
+                    match_percent=other.match_percent,
+                    shared_terms=shared,
+                )
+                result = result.model_copy(update={"alternative": alternative})
+                break
+        updated.append(result)
+    return updated + results[head:]
 
 
 def is_without_evidence(
@@ -336,7 +461,8 @@ def search(
             scores[i] *= config.BOOST_EXPERIENCE_BELOW
         scores[i] *= exclusion_boost(index, i, parsed)
         scores[i] *= (feedback_scores or {}).get(expert.id, 1.0)
-    window = max(req.top_k, config.RERANK_WINDOW_WITH_CITY) if mode == "hybrid" and parsed.city else req.top_k
+    has_constraint = mode == "hybrid" and (parsed.city or parsed.min_experience is not None)
+    window = max(req.top_k, config.RERANK_WINDOW_WITH_CITY) if has_constraint else req.top_k
     candidates = sorted(scores, key=lambda i: (-scores[i], i))[:window]
     bm_ranks = {i: rank for rank, i in enumerate(bm25, 1)}
     vec_ranks = {i: rank for rank, i in enumerate(vector, 1)}
@@ -345,7 +471,10 @@ def search(
         for i in candidates
     ]
     if mode == "hybrid":
-        results = order_by_percent(results, feedback_scores, parsed.city)[: req.top_k]
+        results = with_alternatives(
+            order_by_percent(results, feedback_scores, parsed.city, parsed.min_experience)[: req.top_k],
+            parsed,
+        )
     position = {expert.id: i for i, expert in enumerate(index.experts)}
     best = [position[result.id] for result in results]
     is_weak = not eligible or float(max(cosines[i] for i in eligible)) < config.WEAK_MATCH_COS

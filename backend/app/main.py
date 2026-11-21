@@ -8,6 +8,7 @@ from time import perf_counter
 
 from fastapi import FastAPI, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from . import explain as explain_module
 from . import feedback as feedback_store
@@ -26,6 +27,7 @@ from .schemas import (
     ParsedQuery,
     SearchRequest,
     SearchResponse,
+    SearchResult,
     SimilarExpert,
     StatsResponse,
     TeamRequest,
@@ -82,6 +84,11 @@ def shown_parsed(parsed: ParsedQuery, show: Callable[[str], str]) -> ParsedQuery
     )
 
 
+def shown_result(result: SearchResult, show: Callable[[str], str]) -> SearchResult:
+    evidence = [item.model_copy(update={"term": show(item.term)}) for item in result.evidence]
+    return result.model_copy(update={"evidence": evidence})
+
+
 @app.get("/api/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(status="ok", experts=len(app.state.index.experts), model=settings.model_path)
@@ -91,7 +98,13 @@ def health() -> HealthResponse:
 def search(req: SearchRequest) -> SearchResponse:
     snapshot = app.state.index
     response = ranker.search(snapshot, req, feedback_votes=feedback_store.votes())
-    response = response.model_copy(update={"parsed": shown_parsed(response.parsed, shown(req.query))})
+    show = shown(req.query)
+    response = response.model_copy(
+        update={
+            "parsed": shown_parsed(response.parsed, show),
+            "results": [shown_result(result, show) for result in response.results],
+        }
+    )
     stats_store.log_query(response.parsed.terms, response.took_ms, response.weak_match)
     return response
 
@@ -169,9 +182,13 @@ def explain_expert(
     expert = snapshot.experts[candidate]
     confirmed = covered_terms(parsed.terms, "; ".join(expert.competencies))
     show = shown(query)
+    vector = ranker.query_vector(query, parsed)
     return ExpertExplanation(
         parsed=shown_parsed(parsed, show),
-        expert=ranker.result_for(snapshot, candidate, parsed, ranker.query_vector(query, parsed), lang=lang),
+        expert=shown_result(
+            ranker.result_for(snapshot, candidate, parsed, vector, lang=lang),
+            show,
+        ),
         missing_terms=list(dict.fromkeys(show(term) for term in parsed.terms if term not in confirmed)),
         constraints=explain_module.constraints(expert, parsed, lang),
     )
@@ -207,3 +224,8 @@ def feedback(req: FeedbackRequest) -> None:
 @app.get("/api/stats", response_model=StatsResponse)
 def stats() -> StatsResponse:
     return StatsResponse(**stats_store.summary())
+
+
+# Фронт последним: маршруты /api и /docs объявлены выше и имеют приоритет
+if settings.web_dist and settings.path(settings.web_dist).is_dir():
+    app.mount("/", StaticFiles(directory=settings.path(settings.web_dist), html=True), name="web")

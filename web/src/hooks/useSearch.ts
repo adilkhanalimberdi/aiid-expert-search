@@ -22,5 +22,11 @@ export function useSearch() {
     }
   }, [])
 
-  return { state, run }
+  /** Сброс к пустому экрану; ответ запроса, который ещё летит, будет проигнорирован. */
+  const reset = useCallback(() => {
+    lastRequest.current += 1
+    setState({ status: 'idle' })
+  }, [])
+
+  return { state, run, reset }
 }

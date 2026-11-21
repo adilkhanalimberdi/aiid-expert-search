@@ -1,54 +1,56 @@
+import type { ReactNode } from 'react'
 import type { ParsedQuery } from '../lib/api'
-import { readbackPieces, type Kind } from '../lib/readback'
 import { useI18n } from '../lib/useI18n'
+import { Icon, type IconName } from './Icon'
 
-// Запрос, прочитанный движком, выложен плитками: каждый понятый элемент это тессера своего цвета.
-const STYLE: Record<Kind, string> = {
-  plain: '',
-  skill: 'tile bg-turquoise px-[0.32em] py-[0.06em] text-white',
-  place: 'tile bg-ochre px-[0.32em] py-[0.06em] text-grout',
-  condition: 'tile bg-smalt px-[0.32em] py-[0.06em] text-white',
-  excluded: 'bg-terracotta-soft px-[0.32em] py-[0.06em] text-terracotta line-through decoration-2',
+type Kind = 'skill' | 'place' | 'condition' | 'excluded'
+
+const TONE: Record<Kind, string> = {
+  skill: 'bg-brand-tint text-brand-deep',
+  place: 'bg-place-tint text-place',
+  condition: 'bg-cond-tint text-cond',
+  excluded: 'bg-danger-tint text-danger line-through decoration-[1.5px]',
 }
 
-const LEGEND: { kind: Kind; swatch: string }[] = [
-  { kind: 'skill', swatch: 'bg-turquoise' },
-  { kind: 'place', swatch: 'bg-ochre' },
-  { kind: 'condition', swatch: 'bg-smalt' },
-  { kind: 'excluded', swatch: 'bg-terracotta' },
-]
-
-export function Readback({ parsed, tookMs, count }: { parsed: ParsedQuery; tookMs: number; count: number }) {
+/** Как движок прочитал запрос: каждое поле разбора своим цветом, исключённое зачёркнуто. */
+export function Readback({ parsed, count, tookMs, children }: { parsed: ParsedQuery; count: number; tookMs: number; children?: ReactNode }) {
   const { t } = useI18n()
-  const pieces = readbackPieces(parsed, t)
-  const labels: Record<Kind, string> = {
-    plain: '',
-    skill: t.readback.legendSkill,
-    place: t.readback.legendPlace,
-    condition: t.readback.legendCondition,
-    excluded: t.readback.legendExcluded,
-  }
-  const present = new Set(pieces.map((item) => item.kind))
+  const r = t.readback
+  const tokens: { kind: Kind; text: string; hint: string; icon: IconName }[] = [
+    ...parsed.terms.map((text) => ({ kind: 'skill' as const, text, hint: r.legendSkill, icon: 'skill' as const })),
+    ...(parsed.city ? [{ kind: 'place' as const, text: parsed.city, hint: t.card.city, icon: 'pin' as const }] : []),
+    ...(parsed.industry ? [{ kind: 'place' as const, text: parsed.industry, hint: t.card.industry, icon: 'industry' as const }] : []),
+    ...(parsed.min_experience !== null
+      ? [{ kind: 'condition' as const, text: r.experienceShort(parsed.min_experience), hint: r.legendCondition, icon: 'clock' as const }]
+      : []),
+    ...(parsed.available_only ? [{ kind: 'condition' as const, text: r.availableShort, hint: r.legendCondition, icon: 'available' as const }] : []),
+    ...parsed.excluded_terms.map((text) => ({ kind: 'excluded' as const, text, hint: r.legendExcluded, icon: 'ban' as const })),
+  ]
+
   return (
-    <div>
-      <p className="max-w-[1000px] font-display text-[24px] font-light leading-[1.6] tracking-[-0.02em] text-pretty sm:text-[34px] sm:leading-[1.55]">
-        {pieces.map((item, index) => (
-          <span key={index} className={`box-decoration-clone ${STYLE[item.kind]}`}>
-            {item.text}
-          </span>
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+      <span className="serif mr-1.5 text-base font-semibold italic text-ink-2">{r.label}</span>
+      {tokens.length === 0 && <span className="text-sm text-ink-2">{r.noTerms}</span>}
+      <ul className="contents">
+        {tokens.map((token, index) => (
+          <li key={`${token.kind}-${token.text}-${index}`} className={`inline-flex items-center gap-1.5 rounded-md border border-current/15 py-1 pl-2 pr-2.5 text-[13px] font-medium ${TONE[token.kind]}`}>
+            <Icon name={token.icon} size={14} />
+            <span className="sr-only">{token.hint}: </span>
+            {token.text}
+          </li>
         ))}
-      </p>
-      <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-t-2 border-grout pt-3 text-sm text-slate">
-        {LEGEND.filter((item) => item.kind !== 'excluded' || present.has('excluded')).map((item) => (
-          <span key={item.kind} className="inline-flex items-center gap-2">
-            <span aria-hidden className={`size-3 ${item.swatch}`} />
-            {labels[item.kind]}
+      </ul>
+      <span className="ml-auto flex items-center gap-3 pl-3">
+        <span className="mono flex items-center gap-2 text-xs text-ink-3">
+          {t.results(count)}
+          <span aria-hidden className="h-3 w-px bg-line-strong" />
+          <span className="flex items-center gap-1">
+            <Icon name="clock" size={13} />
+            {t.took(tookMs)}
           </span>
-        ))}
-        <span className="tnum ml-auto text-pebble">
-          {t.results(count)} · {t.took(tookMs)}
         </span>
-      </div>
+        {children}
+      </span>
     </div>
   )
 }

@@ -1,17 +1,15 @@
-import { useRef, useState, type DragEvent, type ReactNode } from 'react'
+import { useRef, useState, type DragEvent } from 'react'
 import { CatalogTable } from '../components/CatalogTable'
 import { ErrorBox } from '../components/ErrorBox'
-import { HeroBand, PageTitle } from '../components/HeroBand'
-import { Section } from '../components/Section'
-import { Skeleton } from '../components/Skeleton'
-import { Button } from '../components/ui'
+import { CONTAINER, PageHeader } from '../components/Shell'
+import { Button, PanelTitle, Panel, Skeleton } from '../components/ui'
 import { useAsync } from '../hooks/useAsync'
 import { api, type UploadResponse } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
 
 const REQUIRED_COLUMNS = ['id', 'full_name', 'position', 'industry', 'competencies', 'city', 'experience_years', 'availability']
 
-export function DataPage({ nav }: { nav: ReactNode }) {
+export function DataPage() {
   const { t } = useI18n()
   const [reloadKey, setReloadKey] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -44,54 +42,65 @@ export function DataPage({ nav }: { nav: ReactNode }) {
   }
 
   return (
-    <>
-      <HeroBand nav={nav}>
-        <PageTitle>{t.data.title}</PageTitle>
-      </HeroBand>
-      <div className="mx-auto max-w-[1120px] space-y-[72px] px-4 py-14 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-12">
-          <Section id="current-title" title={t.data.current}>
-            {health.isLoading && <Skeleton className="mt-5 h-24 w-56" />}
+    <div className={CONTAINER}>
+      <PageHeader title={t.data.title} subtitle={t.data.subtitle} />
+      <div className="space-y-6 pb-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+          <Panel className="p-5 sm:p-6" aria-labelledby="current-title">
+            <PanelTitle id="current-title">{t.data.current}</PanelTitle>
+            {health.isLoading && <Skeleton className="mt-4 h-28 w-full" />}
             {health.error && (
-              <div className="mt-5">
+              <div className="mt-4">
                 <ErrorBox message={health.error} />
               </div>
             )}
             {health.data && (
-              <div className="pt-6">
-                <p className="tnum font-display text-[76px] font-light leading-[0.9] tracking-[-0.04em] text-smalt sm:text-[96px]">
-                  {health.data.experts}
-                </p>
-                <p className="mt-3 text-[15px] font-medium">{t.data.experts}</p>
+              <>
+                <dl className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-lg bg-sunken p-4">
+                    <dd className="mono text-[40px] font-medium leading-none tracking-[-0.03em] text-brand-deep">{health.data.experts}</dd>
+                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.expertsWord(health.data.experts)}</dt>
+                  </div>
+                  <div className="rounded-lg bg-sunken p-4">
+                    <dd className="mono text-[40px] font-medium leading-none tracking-[-0.03em] text-ink">{industries.data?.length ?? '—'}</dd>
+                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.industriesWord(industries.data?.length ?? 0)}</dt>
+                  </div>
+                </dl>
                 {industries.data && (
-                  <p className="mt-6 border-t border-seam pt-4 text-[15px] leading-relaxed text-slate">
-                    <span className="inline-block font-medium text-grout first-letter:uppercase">{t.data.industries}:</span> {industries.data.join(', ')}
-                  </p>
+                  <ul className="mt-4 flex flex-wrap gap-1.5">
+                    {industries.data.map((item) => (
+                      <li key={item} className="rounded-md bg-place-tint px-2.5 py-1 text-[13px] font-semibold text-place">
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 )}
-                <p className="mt-3 border-t border-seam pt-4 text-sm text-pebble first-letter:uppercase">
-                  {t.data.model} {health.data.model}
+                <p className="mt-4 border-t border-line pt-3 text-sm text-ink-3">
+                  {t.data.model}: <span className="mono text-xs text-ink-2">{health.data.model}</span>
                 </p>
-              </div>
+              </>
             )}
-          </Section>
+          </Panel>
 
           <section
+            aria-label={t.data.upload}
             onDragOver={(event) => {
               event.preventDefault()
               setIsDragging(true)
             }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={drop}
-            className={`flex min-h-72 flex-col items-center justify-center border-2 border-dashed p-8 text-center transition-colors sm:p-10 ${
-              isDragging ? 'border-turquoise bg-turquoise/10' : 'border-grout/40 bg-plaster'
+            className={`flex min-h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors sm:p-8 ${
+              isDragging ? 'border-brand bg-brand-tint' : 'border-line-strong bg-surface hover:border-brand-soft'
             }`}
-            aria-label={t.data.upload}
           >
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" aria-hidden className="text-turquoise">
-              <path d="M12 16V4M7 9l5-5 5 5M4 15v5h16v-5" />
-            </svg>
-            <p className="mt-5 font-display text-[22px] font-light leading-tight tracking-[-0.02em] sm:text-[26px]">{t.data.dropTitle}</p>
-            <p className="mt-2 max-w-[44ch] text-sm text-slate">{t.data.dropHint}</p>
+            <span className="grid size-14 place-items-center rounded-xl bg-brand-tint text-brand-deep">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+              </svg>
+            </span>
+            <p className="serif mt-4 text-[22px] font-semibold">{t.data.dropTitle}</p>
+            <p className="mt-1.5 max-w-[46ch] text-sm text-ink-2">{t.data.dropHint}</p>
             <input
               ref={fileInput}
               type="file"
@@ -103,7 +112,7 @@ export function DataPage({ nav }: { nav: ReactNode }) {
                 event.target.value = ''
               }}
             />
-            <Button variant="primary" className="mt-7" onClick={() => fileInput.current?.click()} disabled={isUploading}>
+            <Button variant="primary" className="mt-5" onClick={() => fileInput.current?.click()} disabled={isUploading}>
               {isUploading ? t.data.uploading : t.data.upload}
             </Button>
           </section>
@@ -112,38 +121,42 @@ export function DataPage({ nav }: { nav: ReactNode }) {
         {error && <ErrorBox message={error} />}
 
         {report && (
-          <div role="status">
-            <Section id="report-title" title={t.data.result}>
-              <p className="pt-5 text-[17px]">
-                {t.data.loaded}: <strong className="tnum font-semibold text-turquoise-deep">{report.loaded}</strong> ·{' '}
-                {t.data.skipped}: <strong className="tnum font-semibold">{report.skipped}</strong>
-              </p>
-              {report.errors.length > 0 && (
-                <ul className="mt-3 max-h-48 list-disc space-y-1 overflow-y-auto pl-5 text-sm text-slate">
-                  {report.errors.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              )}
-            </Section>
-          </div>
+          <Panel role="status" className="p-5 sm:p-6" aria-labelledby="report-title">
+            <PanelTitle id="report-title">{t.data.result}</PanelTitle>
+            <p className="tnum mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[15px]">
+              <span>
+                {t.data.loaded}: <strong className="text-lg font-bold text-free">{report.loaded}</strong>
+              </span>
+              <span>
+                {t.data.skipped}: <strong className="text-lg font-bold">{report.skipped}</strong>
+              </span>
+            </p>
+            {report.errors.length > 0 && (
+              <ul className="mt-3 max-h-48 list-disc space-y-1 overflow-y-auto rounded-lg bg-sunken py-3 pl-8 pr-3 text-sm text-ink-2">
+                {report.errors.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+          </Panel>
         )}
 
         <CatalogTable reloadKey={reloadKey} />
 
-        <Section id="format-title" title={t.data.formatTitle}>
-          <ul className="flex flex-wrap gap-2 pt-5">
+        <Panel className="p-5 sm:p-6" aria-labelledby="format-title">
+          <PanelTitle id="format-title">{t.data.formatTitle}</PanelTitle>
+          <ul className="mt-3 flex flex-wrap gap-1.5">
             {REQUIRED_COLUMNS.map((column) => (
-              <li key={column} className="tile bg-grout px-3 py-1.5 text-sm font-medium text-white">
+              <li key={column} className="rounded-md border border-line bg-sunken px-2.5 py-1 font-mono text-[13px] text-ink">
                 {column}
               </li>
             ))}
           </ul>
-          <p className="mt-4 max-w-[75ch] text-[15px] leading-relaxed text-slate">
-            {t.data.formatBody(REQUIRED_COLUMNS.map((column) => `“${column}”`).join(', '))}
+          <p className="mt-3 max-w-[80ch] text-[15px] leading-relaxed text-ink-2">
+            {t.data.formatBody(REQUIRED_COLUMNS.join(', '))}
           </p>
-        </Section>
+        </Panel>
       </div>
-    </>
+    </div>
   )
 }

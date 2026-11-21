@@ -60,6 +60,43 @@ class ParsedQuery(BaseModel):
     excluded_terms: list[str] = Field(default_factory=list)  # «не нужен GMP», «без GMP»: такие эксперты ниже
 
 
+class TermEvidence(BaseModel):
+    """Чем профиль подтверждает один термин запроса: какая компетенция (или должность) и как."""
+
+    term: str
+    # exact: слово или синоним есть в профиле; semantic: близкая по смыслу компетенция;
+    # missing: подтвердить нечем
+    kind: Literal["exact", "semantic", "missing"]
+    source: str | None = None  # компетенция или должность эксперта, дословно из CSV
+    similarity: float | None = None  # косинус термина с source для смыслового совпадения
+    credit: float = 0.0  # вклад термина в покрытие: 1 точно, 0–1 по смыслу
+
+
+class ScoreFactor(BaseModel):
+    kind: Literal["city_match", "city_mismatch", "excluded"]
+    value: float
+
+
+class ScoreBreakdown(BaseModel):
+    """Из чего сложился процент: смысл и покрытие с весами, затем множители города и исключений."""
+
+    semantic: float  # 0–1, косинус профиля с запросом, растянутый между COS_FLOOR и COS_CEIL
+    coverage: float  # 0–1, доля подтверждённых терминов
+    w_semantic: float
+    w_coverage: float
+    factors: list[ScoreFactor] = Field(default_factory=list)
+    capped: bool = False  # процент упёрся в потолок PERCENT_CAP
+
+
+class Alternative(BaseModel):
+    """Свободный эксперт из той же выдачи, который подтверждает те же термины, что и занятый."""
+
+    id: str
+    full_name: str
+    match_percent: int
+    shared_terms: list[str]
+
+
 class SearchResult(BaseModel):
     id: str
     full_name: str
@@ -73,6 +110,9 @@ class SearchResult(BaseModel):
     matched: list[str]
     related: list[str]
     reasons: list[str]
+    evidence: list[TermEvidence] = Field(default_factory=list)
+    breakdown: ScoreBreakdown | None = None
+    alternative: Alternative | None = None  # только у занятых и частично занятых в топ-3
     debug: dict = Field(default_factory=dict)
 
 
