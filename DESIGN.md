@@ -58,8 +58,8 @@ All fonts carry the Kazakh letters (checked with fontTools: Cyrillic + Cyrillic-
 
 ## Layout
 
-- **Shell** (`components/Shell.tsx`). A sticky dark top bar: the Sarap | AIID lock-up on the left (saffron mark, serif wordmark), the sections as centred tabs with a saffron underline on the active one, the EN/RU/KK switch on the right. On phones the tabs move to a second row. Under the bar a thin strip carries the synthetic-data notice (info icon + text, no tag) and, on the right, "Offline · bge-m3" from `/api/health`. Content sits in one centred container (`CONTAINER`, max 1280 px).
-- **Search** (`pages/SearchPage.tsx`). Before the first search: a large serif question, the catalogue size in mono with a saffron rule, the query card (field, `/` shortcut hint, button; filters on a dashed lower row), example queries as index cards in a 3-column grid with a mono language tag, three numbered "how it works" points (saffron mono numerals 01–03) and the formula. `/` anywhere focuses the query. After a search: query card on top, the readback ("Understood:" in serif italic, tags with icons, result count and timing in mono), underline tabs Candidates / Team, then the list and the sticky profile pane. On a phone the profile opens as a sheet.
+- **Shell** (`components/Shell.tsx`). A sticky dark top bar: the Sarap | AIID lock-up on the left (saffron mark, serif wordmark), the sections as centred tabs with a saffron underline on the active one, the EN/RU/KK switch on the right. On phones the tabs move to a second row. Under the bar a thin strip carries the synthetic-data notice (info icon + text, nothing else). Content sits in one centred container (`CONTAINER`, max 1280 px).
+- **Search** (`pages/SearchPage.tsx`). Before the first search: a large serif question, the catalogue size in mono with a saffron rule, the query card (field, `/` shortcut hint, button; filters on a dashed lower row), example queries as index cards in a 3-column grid with a mono language tag, "How Sarap reads a query" (one sample sentence in serif with skill, city, condition and exclusion highlighted in their readback colours and labelled underneath; an illustration, not an engine call), three numbered "how it works" points (saffron mono numerals 01–03) and the formula. `/` anywhere focuses the query. After a search: query card on top, the readback ("Understood:" in serif italic, tags with icons, result count and timing in mono), underline tabs Candidates / Team, then the top 3 as large cards (rank, score, name, status, matched skills solid and related dashed, the first three server reasons with checks; the best one carries a saffron 01 and "Best match"), and below them "More candidates" as a list beside the sticky profile pane. A weak match shows no cards, only the "Closest profiles" list. On a phone the profile opens as a sheet.
 - **Data** and **Analytics**: serif page header and paper panels in the same container.
 
 ## Colour roles
@@ -86,15 +86,15 @@ All fonts carry the Kazakh letters (checked with fontTools: Cyrillic + Cyrillic-
 - "Why not them?" blocks carry a 3 px left edge: green confirmed, red missing, amber constraints.
 - Similar experts show similarity as a tiny bar.
 - Email has a copy button that says "Copied" for 1.4 s.
-- The mark animates while searching: its three index lines shrink and grow in turn.
+- The mark animates while searching: the person in the bubble fades in and out.
 
 ## Logo
 
-`SarapMark`: saffron tile, three index lines, each shorter than the one above, and a dot at the end of the last — the whole catalogue narrowed to one person. Wordmark "Sarap" in Literata. `AiidLogo` is the original white AIID logo, unchanged, only on the dark bar.
+`SarapMark`: saffron tile with a dark speech bubble and a person cut out of it: you say in plain words who you need and get a specific person. While searching the person fades in and out. Wordmark "Sarap" in Literata. `AiidLogo` is the original white AIID logo, unchanged, only on the dark bar.
 
 ## Motion
 
-`fade-in` for new results, `sheet-in` for the phone sheet, shimmer for skeletons, `sift` for the mark while loading. All disabled under `prefers-reduced-motion`.
+`fade-in` for new results, `sheet-in` for the phone sheet, shimmer for skeletons, `reveal` for the mark while loading. All disabled under `prefers-reduced-motion`.
 
 ## Rules
 
