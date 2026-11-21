@@ -52,13 +52,8 @@ export function ExpertPane({ expertId, result, label, query, showScore, parsed, 
   return (
     <div ref={top} className="scroll-mt-40">
       {(onClose || !isRoot) && (
-        // на телефоне полоса прилипает к верху окна и несёт плашку о данных: окно закрывает шапку
+        // на телефоне полоса прилипает к верху окна; пометка о данных видна в строке состояния под окном
         <div className={onClose ? 'sticky top-0 z-10 bg-surface' : ''}>
-          {onClose && (
-            <p className="flex items-center gap-2 bg-night px-4 py-1.5 text-xs text-night-text">
-              <span className="min-w-0">{t.synthetic}</span>
-            </p>
-          )}
         <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
           {!isRoot ? (
             <Button variant="ghost" size="sm" onClick={() => setTrail((path) => path.slice(0, -1))}>
@@ -106,9 +101,12 @@ type Tab = 'reasoning' | 'profile' | 'similar'
 function Profile({ expertId, result, label, query, showScore, parsed, isWeak, onOpen }: ProfileProps) {
   const { t, lang } = useI18n()
   const [tab, setTab] = useState<Tab>(query ? 'reasoning' : 'profile')
-  const expert = useAsync(() => api.expert(expertId), [expertId])
-  const explanation = useAsync(query ? () => api.explain(expertId, query) : null, [expertId, query, lang])
-  const similar = useAsync(() => api.similar(expertId, 4), [expertId])
+  // сверка с запросом нужна вкладке «Обоснование», а профилю из цепочки ещё и для процента в шапке;
+  // похожие грузятся, только когда их вкладку открыли: скрытые вкладки сервер не дёргают
+  const needsExplain = Boolean(query) && (tab === 'reasoning' || !result)
+  const expert = useAsync((signal) => api.expert(expertId, signal), [expertId])
+  const explanation = useAsync(needsExplain ? (signal) => api.explain(expertId, query, signal) : null, [expertId, query, lang, needsExplain])
+  const similar = useAsync(tab === 'similar' ? (signal) => api.similar(expertId, 4, signal) : null, [expertId, tab === 'similar'])
   // у профиля из цепочки строки выдачи нет: процент и доводы берём из сверки с запросом
   const match = result ?? explanation.data?.expert
   const profile = expert.data
@@ -134,20 +132,20 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
           )}
           <div className="min-w-0">
             {name ? (
-              <h2 id={`expert-${expertId}`} className="serif mt-0.5 text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] [overflow-wrap:anywhere] sm:text-[30px]">
+              <h2 id={`expert-${expertId}`} className="mt-0.5 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink [overflow-wrap:anywhere]">
                 {name}
               </h2>
             ) : (
               <Skeleton className="mt-2 h-8 w-3/4" />
             )}
             {position && (
-              <p className="mt-1.5 text-[15px] text-ink-2">
+              <p className="mt-1.5 text-[14px] text-ink-2">
                 {position}
                 {organization && ` · ${organization}`}
               </p>
             )}
             <p className="mt-3">
-              <span className="mono inline-flex items-center gap-1.5 rounded border border-brand-soft bg-brand-tint px-2 py-0.5 text-[11px] uppercase tracking-[0.06em] text-brand-deep">
+              <span className="label inline-flex items-center gap-1.5 rounded border border-brand-soft bg-brand-tint px-2 py-0.5 text-brand-deep">
                 <span aria-hidden className="size-1.5 rounded-full bg-brand" />
                 {label}
               </span>
@@ -158,7 +156,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
       </header>
 
       {(profile || match) && (
-        <dl className="flex flex-wrap gap-x-6 gap-y-2 border-y border-line bg-sunken px-5 py-3 text-sm sm:px-6">
+        <dl className="flex flex-wrap gap-x-6 gap-y-2 border-y border-line bg-sunken px-5 py-2.5 text-sm sm:px-6">
           <Fact label={t.card.city}>{profile?.city ?? match?.city}</Fact>
           <Fact label={t.card.industry}>{profile?.industry ?? match?.industry}</Fact>
           <Fact label={t.card.experience}>
@@ -182,11 +180,10 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
             aria-selected={tab === item.id}
             onClick={() => setTab(item.id)}
             className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-sm font-semibold transition-colors ${
-              tab === item.id ? 'border-brand text-brand-deep' : 'border-transparent text-ink-3 hover:text-brand-deep'
+              tab === item.id ? 'border-action text-ink' : 'border-transparent text-ink-3 hover:text-ink'
             }`}
           >
             {item.label}
-            {item.id === 'similar' && similar.data && <span className="mono text-xs font-normal text-ink-3">{similar.data.length}</span>}
           </button>
         ))}
       </div>
@@ -216,9 +213,9 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
             </Section>
           )}
           {match?.alternative && (
-            <div className="mx-5 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-dashed border-brand-soft px-3.5 py-2.5 text-sm sm:mx-6">
-              <span className="font-semibold text-brand-deep">{t.dialog.altTitle}:</span>
-              <span className="serif font-semibold text-ink">{match.alternative.full_name}</span>
+            <div className="mx-5 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-dashed border-line-strong px-3.5 py-2.5 text-sm sm:mx-6">
+              <span className="font-semibold text-free">{t.dialog.altTitle}:</span>
+              <span className="font-semibold text-ink">{match.alternative.full_name}</span>
               <span className="mono text-xs text-ink-3">{match.alternative.match_percent}%</span>
               {match.alternative.shared_terms.length > 0 && (
                 <span className="text-ink-2">{t.dialog.altShared(match.alternative.shared_terms.join(', '))}</span>
@@ -251,7 +248,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
                           ? 'border-brand-soft bg-brand-tint font-semibold text-brand-deep'
                           : isNear
                             ? 'border-dashed border-brand-soft text-brand-deep'
-                            : 'border-line bg-surface text-ink-2'
+                            : 'border-line bg-sunken text-ink-2'
                       }`}
                     >
                       {skill}
@@ -265,7 +262,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
                 {profile.email && (
                   <>
                     {' · '}
-                    <a href={`mailto:${profile.email}`} className="font-medium text-brand-deep underline decoration-brand/30 underline-offset-2 hover:decoration-brand">
+                    <a href={`mailto:${profile.email}`} className="font-medium text-brand-deep underline decoration-brand-soft underline-offset-2 hover:decoration-brand">
                       {profile.email}
                     </a>
                     <CopyButton text={profile.email} />
@@ -287,13 +284,13 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
                 <button
                   type="button"
                   onClick={() => onOpen(item.id)}
-                  className="group flex h-full w-full flex-col rounded-lg border border-line p-3 text-left transition-colors hover:border-brand-soft hover:bg-hover"
+                  className="group flex h-full w-full flex-col rounded-lg border border-line bg-sunken p-3 text-left transition-colors hover:border-line-strong hover:bg-hover"
                 >
-                  <span className="serif font-semibold text-ink group-hover:text-brand-deep">{item.full_name}</span>
+                  <span className="font-semibold text-ink">{item.full_name}</span>
                   <span className="text-[13px] text-ink-2">
                     {item.position}, {item.city}
                   </span>
-                  <span className="mono mt-2 flex items-center gap-2 text-[11px] text-brand-deep">
+                  <span className="mono mt-2 flex items-center gap-2 text-[11px] text-ink-2">
                     <span aria-hidden className="h-1 w-12 overflow-hidden rounded-full bg-line">
                       <span className="block h-full bg-brand" style={{ width: `${Math.round(cosine * 100)}%` }} />
                     </span>
@@ -321,7 +318,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="px-5 pb-1 pt-4 sm:px-6">
-      <h3 className="mb-2.5 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-3">
+      <h3 className="label mb-2.5 flex items-center gap-3 text-ink-3">
         {title}
         <span aria-hidden className="h-px flex-1 bg-line" />
       </h3>
@@ -338,10 +335,10 @@ function Evidence({ items }: { items: TermEvidence[] }) {
     <ul className="divide-y divide-dashed divide-line">
       {items.map((item) => (
         <li key={item.term} className="grid grid-cols-[minmax(0,auto)_16px_minmax(0,1fr)] items-center gap-x-2.5 py-2 text-[15px] sm:grid-cols-[minmax(0,10rem)_16px_minmax(0,1fr)_auto]">
-          <span className={`justify-self-start truncate rounded-md px-2 py-0.5 text-[13px] font-medium ${item.kind === 'missing' ? 'bg-danger-tint text-danger' : 'bg-brand-tint text-brand-deep'}`}>
+          <span className={`justify-self-start truncate rounded-md border px-2 py-0.5 text-[13px] font-medium ${item.kind === 'missing' ? 'border-danger-soft bg-danger-tint text-danger' : 'border-brand-soft bg-brand-tint text-brand-deep'}`}>
             {item.term}
           </span>
-          <Icon name="arrow-right" size={15} className="text-line-strong" />
+          <Icon name="arrow-right" size={15} className="text-ink-3" />
           <span className={`min-w-0 ${item.kind === 'missing' ? 'text-ink-3' : 'text-ink'}`}>
             {item.kind === 'missing' ? t.dialog.missingTerm : (item.source ?? t.dialog.inBio)}
           </span>
@@ -490,7 +487,7 @@ function CopyButton({ text }: { text: string }) {
           window.setTimeout(() => setIsCopied(false), 1400)
         })
       }}
-      className="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-ink-3 hover:bg-hover hover:text-brand-deep"
+      className="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-ink-3 hover:bg-hover hover:text-ink"
     >
       <Icon name={isCopied ? 'check' : 'copy'} size={13} />
       <span aria-live="polite">{isCopied ? t.copied : t.copy}</span>

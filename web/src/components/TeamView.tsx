@@ -16,13 +16,13 @@ interface TeamViewProps {
 /** Команда под запрос: участники строками, термины запроса столбцами, в клетке «покрывает / нет». */
 export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
   const { t, lang } = useI18n()
-  const team = useAsync(() => api.team({ query, industry, hide_busy: hideBusy }), [query, industry, hideBusy, lang])
+  const team = useAsync((signal) => api.team({ query, industry, hide_busy: hideBusy }, signal), [query, industry, hideBusy, lang])
   const coverage = team.data?.coverage ?? []
   const terms = Object.keys(coverage[0]?.terms ?? {})
 
   return (
     <Panel className="fade-in p-5 sm:p-6" aria-labelledby="team-title">
-      <h2 id="team-title" className="serif text-[22px] font-semibold tracking-[-0.01em]">
+      <h2 id="team-title" className="label text-ink-2">
         {t.team.title}
       </h2>
       {team.isLoading && <Skeleton className="mt-4 h-40 w-full" />}
@@ -44,7 +44,7 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
             <div className="mt-5 overflow-x-auto">
               <table className="w-full text-left text-sm" style={{ minWidth: 240 + terms.length * 96 }}>
                 <thead>
-                  <tr className="border-b border-line-strong text-ink-3">
+                  <tr className="border-b border-line-strong text-[13px] text-ink-3">
                     <th scope="col" className="py-2 pr-4 font-semibold">
                       {t.team.expert}
                     </th>
@@ -64,7 +64,7 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
                           <button
                             type="button"
                             onClick={() => onOpen(member.id)}
-                            className="serif text-left text-base font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:text-brand-deep hover:decoration-brand"
+                            className="text-left text-[15px] font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:decoration-action"
                           >
                             {member.full_name}
                           </button>
@@ -81,7 +81,7 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
                                 role="img"
                                 aria-label={`${term}: ${covers ? t.team.covers : t.team.notCovers}`}
                                 className={`inline-grid size-7 place-items-center rounded-full text-sm font-bold ${
-                                  covers ? 'bg-brand text-surface' : 'border border-dashed border-line-strong text-ink-3'
+                                  covers ? 'bg-brand text-action-ink' : 'border border-dashed border-line-strong text-ink-3'
                                 }`}
                               >
                                 <Icon name={covers ? 'check' : 'x'} size={14} strokeWidth={covers ? 2.6 : 2} />

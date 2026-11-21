@@ -1,12 +1,11 @@
 import { initials } from '../lib/format'
 
-// Мягкие тона из палитры: цвет выбирается по имени и не меняется между экранами
+// Тона из палитры: цвет выбирается по имени и не меняется между экранами
 const TONES = [
-  'bg-brand-tint text-brand-deep',
-  'bg-place-tint text-place',
-  'bg-cond-tint text-cond',
-  'bg-[#f3e4dc] text-[#8a3d22]',
-  'bg-[#ece6da] text-ink-2',
+  'bg-brand-tint text-brand-deep border-brand-soft',
+  'bg-place-tint text-place border-place-soft',
+  'bg-cond-tint text-cond border-cond-soft',
+  'bg-raised text-ink-2 border-line-strong',
 ]
 
 function toneOf(name: string): string {
@@ -15,11 +14,11 @@ function toneOf(name: string): string {
   return TONES[hash % TONES.length]
 }
 
-/** Кружок с инициалами: у синтетических экспертов фото нет, а список людей не должен выглядеть таблицей. */
+/** Инициалы в квадрате: у синтетических экспертов фото нет, а список людей не должен выглядеть таблицей. */
 export function Avatar({ name, size = 'md' }: { name: string; size?: 'md' | 'lg' }) {
-  const box = size === 'lg' ? 'size-14 text-lg' : 'size-10 text-sm'
+  const box = size === 'lg' ? 'size-14 text-base rounded-lg' : 'size-9 text-[12px] rounded-md'
   return (
-    <span aria-hidden className={`grid flex-none place-items-center rounded-full serif font-semibold ${box} ${toneOf(name)}`}>
+    <span aria-hidden className={`mono grid flex-none place-items-center border font-medium ${box} ${toneOf(name)}`}>
       {initials(name)}
     </span>
   )

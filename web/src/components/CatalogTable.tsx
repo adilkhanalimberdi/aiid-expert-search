@@ -20,7 +20,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
   const { t } = useI18n()
   const [offsetState, setOffsetState] = useState({ key: reloadKey, offset: 0 })
   const offset = offsetState.key === reloadKey ? offsetState.offset : 0
-  const page = useAsync(() => api.experts(offset, PAGE_SIZE), [offset, reloadKey])
+  const page = useAsync((signal) => api.experts(offset, PAGE_SIZE, signal), [offset, reloadKey])
   const total = page.data?.total ?? 0
   const c = t.data.columns
   const [view, setView] = useState<View>('cards')
@@ -51,27 +51,27 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
       {page.data && (
         <>
           {view === 'cards' && (
-            <ul className="grid gap-3 border-t border-line bg-sunken p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+            <ul className="grid gap-3 border-t border-line bg-sunken p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3 xl:grid-cols-4">
               {page.data.items.map((expert) => (
-                <li key={expert.id} className="flex flex-col rounded-xl border border-line bg-surface p-4">
+                <li key={expert.id} className="flex flex-col rounded-xl border border-line bg-surface p-4 transition-colors hover:border-line-strong">
                   <div className="flex items-start gap-3">
                     <Avatar name={expert.full_name} />
                     <div className="min-w-0 flex-1">
-                      <p className="serif text-[17px] font-semibold leading-tight text-ink">{expert.full_name}</p>
-                      <p className="mt-0.5 text-[13px] leading-snug text-ink-2">{expert.position}</p>
+                      <p className="text-[15px] font-semibold leading-tight text-ink">{expert.full_name}</p>
+                      <p className="mt-0.5 text-[13px] leading-snug text-ink-3">{expert.position}</p>
                     </div>
                     <span className="mono text-[11px] text-ink-3">{expert.id}</span>
                   </div>
                   <ul className="mb-3 mt-3 flex flex-wrap gap-1">
                     {expert.competencies.slice(0, 4).map((skill) => (
-                      <li key={skill} className="rounded-md border border-line px-2 py-0.5 text-xs text-ink-2">
+                      <li key={skill} className="rounded border border-line-strong px-2 py-0.5 text-xs text-ink-2">
                         {skill}
                       </li>
                     ))}
                     {expert.competencies.length > 4 && <li className="mono px-1 py-0.5 text-xs text-ink-3">+{expert.competencies.length - 4}</li>}
                   </ul>
-                  <p className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-dashed border-line pt-3 text-[13px] text-ink-2">
-                    <span className="rounded bg-place-tint px-1.5 py-0.5 text-xs font-medium text-place">{expert.industry}</span>
+                  <p className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-[13px] text-ink-2">
+                    <span className="rounded border border-place-soft bg-place-tint px-1.5 py-0.5 text-xs font-medium text-place">{expert.industry}</span>
                     <span>{expert.city}</span>
                     <span className="tnum">{t.years(expert.experience_years)}</span>
                     <span className="ml-auto">
@@ -101,7 +101,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
           <div className={view === 'table' ? 'hidden overflow-x-auto sm:block' : 'hidden'}>
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
-                <tr className="border-y border-line bg-sunken text-[13px] text-ink-3">
+                <tr className="label border-y border-line bg-sunken text-ink-3">
                   {[c.id, c.name, c.position, c.industry, c.city, c.experience, c.status].map((label) => (
                     <th key={label} scope="col" className="px-3 py-2.5 font-medium first:pl-6 last:pr-6">
                       {label}
@@ -113,7 +113,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
                 {page.data.items.map((expert) => (
                   <tr key={expert.id} className="border-b border-line last:border-0 hover:bg-hover">
                     <td className="mono py-3 pl-6 pr-3 text-xs text-ink-3">{expert.id}</td>
-                    <td className="serif px-3 py-3 font-semibold">{expert.full_name}</td>
+                    <td className="px-3 py-3 font-semibold text-ink">{expert.full_name}</td>
                     <td className="px-3 py-3 text-ink-2">{expert.position}</td>
                     <td className="px-3 py-3 text-ink-2">{expert.industry}</td>
                     <td className="px-3 py-3 text-ink-2">{expert.city}</td>

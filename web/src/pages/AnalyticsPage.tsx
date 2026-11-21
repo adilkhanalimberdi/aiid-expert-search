@@ -12,12 +12,12 @@ interface TermCount {
 
 export function AnalyticsPage({ isActive }: { isActive: boolean }) {
   const { t } = useI18n()
-  const stats = useAsync(isActive ? () => api.stats() : null, [isActive])
+  const stats = useAsync(isActive ? (signal) => api.stats(signal) : null, [isActive])
 
   return (
     <div className={CONTAINER}>
       <PageHeader title={t.analytics.title} subtitle={t.analytics.subtitle} />
-      <div className="space-y-6 pb-6">
+      <div className="space-y-5 pb-6">
         {stats.isLoading && !stats.data && (
           <div className="grid gap-4 sm:grid-cols-3" role="status" aria-label={t.dialog.loading}>
             <Skeleton className="h-32" />
@@ -65,11 +65,11 @@ export function AnalyticsPage({ isActive }: { isActive: boolean }) {
 function Metric({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="flex flex-col-reverse justify-end gap-1.5 p-5 sm:p-6">
-      <dt className="text-sm text-ink-2">
+      <dt className="text-sm text-ink-3">
         {label}
         {note && <span className="block text-ink-3">{note}</span>}
       </dt>
-      <dd className="mono text-[34px] font-medium leading-none tracking-[-0.03em] text-ink">{value}</dd>
+      <dd className="display tnum text-[38px] font-semibold leading-none text-ink">{value}</dd>
     </div>
   )
 }
@@ -85,7 +85,7 @@ function Bars({ id, title, hint, items, empty, tone }: { id: string; title: stri
         {items.map((item, index) => (
           <li key={item.term} className="border-t border-line py-3 first:border-t-0">
             <div className="flex items-baseline justify-between gap-4">
-              <span className="flex min-w-0 items-baseline gap-3 text-[15px] font-semibold">
+              <span className="flex min-w-0 items-baseline gap-3 text-[15px] font-medium text-ink">
                 <span className="mono w-5 text-xs text-ink-3">{String(index + 1).padStart(2, '0')}</span>
                 <span className="[overflow-wrap:anywhere]">{item.term}</span>
               </span>
@@ -115,7 +115,7 @@ function EvalTable({ runs }: { runs: EvalRun[] }) {
     <div className="mt-4 overflow-x-auto">
       <table className="w-full text-left text-[15px] sm:min-w-[560px]">
         <thead>
-          <tr className="border-b border-line-strong text-[13px] text-ink-3">
+          <tr className="label border-b border-line-strong text-ink-3">
             <th scope="col" className="py-2.5 pr-3 font-medium">
               {t.analytics.dataset}
             </th>
@@ -134,7 +134,7 @@ function EvalTable({ runs }: { runs: EvalRun[] }) {
             const hybrid = find(dataset, 'hybrid')
             return (
               <tr key={dataset} className="border-b border-line last:border-0">
-                <th scope="row" className="py-3.5 pr-3 font-semibold">
+                <th scope="row" className="py-3.5 pr-3 font-medium text-ink">
                   {t.analytics.datasets[dataset] ?? dataset}
                 </th>
                 {MODES.map((mode) => {
