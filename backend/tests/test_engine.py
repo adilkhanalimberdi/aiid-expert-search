@@ -480,3 +480,29 @@ def test_translit_service_words_only_with_translit_content() -> None:
     assert fix_translit("data scientist to do machine learning") == "data scientist to do machine learning"
     assert fix_translit("ekspert po GMP") == "эксперт по GMP"
     assert fix_translit("GMP in Almaty") == "GMP in алматы"
+
+
+def test_busy_candidate_gets_free_alternative_with_shared_terms() -> None:
+    from app.ranker import with_alternatives
+    from app.schemas import SearchResult, TermEvidence
+
+    def card(i: str, percent: int, availability: str, terms: list[str]) -> SearchResult:
+        return SearchResult(
+            id=i, full_name=i, position="", city="", industry="", experience_years=5,
+            availability=availability, match_percent=percent, matched=[], related=[], reasons=[],
+            evidence=[TermEvidence(term=t, kind="exact", credit=1.0) for t in terms],
+        )  # fmt: skip
+
+    results = [
+        card("busy", 90, "busy", ["gmp"]),
+        card("a", 80, "available", ["gmp"]),
+        card("b", 75, "available", ["gmp"]),
+        card("other", 70, "available", ["bim"]),
+        card("free", 60, "available", ["gmp"]),
+    ]
+    updated = with_alternatives(results)
+    assert updated[0].alternative is not None
+    assert updated[0].alternative.id == "free"  # не из топ-3 и с общим термином
+    assert updated[0].alternative.shared_terms == ["gmp"]
+    assert updated[1].alternative is None
+    assert [r.id for r in updated] == [r.id for r in results]  # порядок не меняется
