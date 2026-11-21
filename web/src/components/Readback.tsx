@@ -29,11 +29,11 @@ export function Readback({ parsed, count, tookMs, children }: { parsed: ParsedQu
 
   return (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
-      <span className="mr-1 text-sm font-semibold text-ink-3">{r.label}</span>
+      <span className="serif mr-1.5 text-base font-semibold italic text-ink-2">{r.label}</span>
       {tokens.length === 0 && <span className="text-sm text-ink-2">{r.noTerms}</span>}
       <ul className="contents">
         {tokens.map((token, index) => (
-          <li key={`${token.kind}-${token.text}-${index}`} className={`inline-flex items-center gap-1.5 rounded-md py-1 pl-2 pr-2.5 text-[13px] font-medium ${TONE[token.kind]}`}>
+          <li key={`${token.kind}-${token.text}-${index}`} className={`inline-flex items-center gap-1.5 rounded-md border border-current/15 py-1 pl-2 pr-2.5 text-[13px] font-medium ${TONE[token.kind]}`}>
             <Icon name={token.icon} size={14} />
             <span className="sr-only">{token.hint}: </span>
             {token.text}
@@ -41,8 +41,13 @@ export function Readback({ parsed, count, tookMs, children }: { parsed: ParsedQu
         ))}
       </ul>
       <span className="ml-auto flex items-center gap-3 pl-3">
-        <span className="tnum text-sm text-ink-3">
-          {t.results(count)} · {t.took(tookMs)}
+        <span className="mono flex items-center gap-2 text-xs text-ink-3">
+          {t.results(count)}
+          <span aria-hidden className="h-3 w-px bg-line-strong" />
+          <span className="flex items-center gap-1">
+            <Icon name="clock" size={13} />
+            {t.took(tookMs)}
+          </span>
         </span>
         {children}
       </span>

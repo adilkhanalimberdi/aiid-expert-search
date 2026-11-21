@@ -1,60 +1,59 @@
 @import 'tailwindcss';
 
 /*
- * Sarap: петрольная шапка, коралловое действие, бирюза для сильного совпадения, индиго для места.
- * Два тёплых-холодных полюса (петроль и коралл) дают контраст; всё остальное нейтральное с оттенком петроля.
- * Глубина рамками, а не тенями.
+ * Sarap: «картотека». Шапка цвета тёмной кожи, шафран для действия, степная зелень для совпадения,
+ * тёплая бумага вместо холодного серого. Глубина рамками, без теней; наведение подсвечивает, а не затемняет.
  */
 @theme {
   /* шапка */
-  --color-night: #0d2b31;
-  --color-night-2: #153b43;
-  --color-night-line: #24525b;
-  --color-night-text: #d5e5e7;
-  --color-night-dim: #9dbcc1;
+  --color-night: #221c17;
+  --color-night-2: #2e2620;
+  --color-night-line: #47392e;
+  --color-night-text: #efe6da;
+  --color-night-dim: #bba993;
 
-  /* действие: коралл, текст на нём тёмный (белый не проходит по контрасту) */
-  --color-action: #ff6a4d;
-  --color-action-hover: #ff8166;
-  --color-action-ink: #1c0c08;
-  --color-spark: #ff6a4d;
+  /* действие: шафран, текст на нём тёмный */
+  --color-action: #f2a93b;
+  --color-action-hover: #f6bb5e;
+  --color-action-ink: #241600;
+  --color-spark: #f2a93b;
 
-  /* бирюза: выбор, сильное совпадение, навыки, ссылки */
-  --color-brand: #0e8079;
-  --color-brand-hover: #0b6a64;
-  --color-brand-deep: #0a5f59;
-  --color-brand-tint: #e0f1ef;
-  --color-brand-soft: #7cc8c0;
+  /* степная зелень: выбор, сильное совпадение, навыки, ссылки */
+  --color-brand: #1e6b4c;
+  --color-brand-hover: #185a40;
+  --color-brand-deep: #155238;
+  --color-brand-tint: #e3efe6;
+  --color-brand-soft: #8fc3a8;
 
-  /* поверхности и текст */
-  --color-ground: #eef2f2;
-  --color-surface: #ffffff;
-  --color-sunken: #f5f8f8;
-  --color-line: #d9e2e3;
-  --color-line-strong: #bfcccf;
-  --color-ink: #0f1a1d;
-  --color-ink-2: #3f4f54;
-  --color-ink-3: #5c6c71;
+  /* бумага и чернила */
+  --color-ground: #f3efe7;
+  --color-surface: #fffdf9;
+  --color-sunken: #f7f3ec;
+  --color-hover: #f9f4e9;
+  --color-line: #e4dccf;
+  --color-line-strong: #cbbfad;
+  --color-ink: #1f1a15;
+  --color-ink-2: #4c4339;
+  --color-ink-3: #6f6355;
 
   /* смысловые */
-  --color-medium: #a95c00;
-  --color-medium-bar: #f0a020;
-  --color-weak: #73848a;
-  --color-weak-bar: #c6d1d3;
-  --color-free: #15804f;
-  --color-partial: #c98000;
-  --color-busy: #8c989b;
-  --color-place: #353b99;
-  --color-place-tint: #e8e9f8;
-  --color-cond: #8a5300;
-  --color-cond-tint: #fdf0d8;
+  --color-medium: #955600;
+  --color-medium-bar: #dc9a2c;
+  --color-weak: #776c5f;
+  --color-weak-bar: #d6ccbd;
+  --color-free: #2b7a4b;
+  --color-partial: #bf8300;
+  --color-busy: #9a8f80;
+  --color-place: #33508a;
+  --color-place-tint: #e7ecf5;
+  --color-cond: #875100;
+  --color-cond-tint: #fbefd9;
   --color-danger: #b3261e;
-  --color-danger-tint: #fbe7e4;
+  --color-danger-tint: #fae6e1;
 
-  --font-sans: 'Rubik', system-ui, sans-serif;
-
-  --shadow-panel: 0 0 0 0 transparent;
-  --shadow-raised: 0 16px 40px -16px rgb(13 43 49 / 0.35);
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-serif: 'Literata Variable', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 html {
@@ -118,14 +117,14 @@ textarea {
 
 .check:checked {
   background: var(--color-brand)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fffdf9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
     center / 14px no-repeat;
   border-color: var(--color-brand);
 }
 
 /* Заглушки загрузки: мягкое мерцание, без анимации при reduced motion */
 .sk {
-  background: linear-gradient(90deg, #e3eaeb 0%, #f2f6f6 50%, #e3eaeb 100%);
+  background: linear-gradient(90deg, #ebe4d8 0%, #f7f2ea 50%, #ebe4d8 100%);
   background-size: 200% 100%;
   border-radius: 6px;
   animation: shimmer 1.4s ease-in-out infinite;
@@ -140,16 +139,55 @@ textarea {
   }
 }
 
-/* Знак при загрузке: линия S прорисовывается заново */
-.mark-draw path {
-  stroke-dasharray: 44;
-  animation: draw 1.1s ease-in-out infinite alternate;
+/* Знак при загрузке: строки картотеки перебираются, как при отборе */
+.mark-draw .bar {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: sift 0.9s ease-in-out infinite alternate;
 }
 
-@keyframes draw {
-  from {
-    stroke-dashoffset: 44;
+.mark-draw .bar:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.mark-draw .bar:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes sift {
+  to {
+    transform: scaleX(0.45);
   }
+}
+
+/* Номер в выдаче и другие служебные числа: моноширинные, как в картотеке */
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'zero' 0;
+}
+
+.serif {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+}
+
+/* Клавиша-подсказка */
+kbd {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  padding: 3px 6px;
+  border: 1px solid var(--color-line-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  color: var(--color-ink-3);
+  background: var(--color-surface);
+}
+
+/* Тонкая разлиновка карточки запроса: бумага каталожной карточки */
+.ruled {
+  background-image: linear-gradient(to bottom, transparent calc(100% - 1px), var(--color-line) 0);
+  background-size: 100% 28px;
 }
 
 /* Панель профиля на телефоне выезжает снизу */

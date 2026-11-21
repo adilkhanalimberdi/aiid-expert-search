@@ -5,8 +5,8 @@ const TONES = [
   'bg-brand-tint text-brand-deep',
   'bg-place-tint text-place',
   'bg-cond-tint text-cond',
-  'bg-danger-tint text-danger',
-  'bg-sunken text-ink-2',
+  'bg-[#f3e4dc] text-[#8a3d22]',
+  'bg-[#ece6da] text-ink-2',
 ]
 
 function toneOf(name: string): string {
@@ -19,7 +19,7 @@ function toneOf(name: string): string {
 export function Avatar({ name, size = 'md' }: { name: string; size?: 'md' | 'lg' }) {
   const box = size === 'lg' ? 'size-14 text-lg' : 'size-10 text-sm'
   return (
-    <span aria-hidden className={`grid flex-none place-items-center rounded-full font-semibold ${box} ${toneOf(name)}`}>
+    <span aria-hidden className={`grid flex-none place-items-center rounded-full serif font-semibold ${box} ${toneOf(name)}`}>
       {initials(name)}
     </span>
   )

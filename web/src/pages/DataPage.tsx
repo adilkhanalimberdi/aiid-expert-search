@@ -58,11 +58,11 @@ export function DataPage() {
               <>
                 <dl className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-lg bg-sunken p-4">
-                    <dd className="tnum text-[40px] font-bold leading-none tracking-[-0.04em] text-brand-deep">{health.data.experts}</dd>
+                    <dd className="mono text-[40px] font-medium leading-none tracking-[-0.03em] text-brand-deep">{health.data.experts}</dd>
                     <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.expertsWord(health.data.experts)}</dt>
                   </div>
                   <div className="rounded-lg bg-sunken p-4">
-                    <dd className="tnum text-[40px] font-bold leading-none tracking-[-0.04em] text-ink">{industries.data?.length ?? '—'}</dd>
+                    <dd className="mono text-[40px] font-medium leading-none tracking-[-0.03em] text-ink">{industries.data?.length ?? '—'}</dd>
                     <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.industriesWord(industries.data?.length ?? 0)}</dt>
                   </div>
                 </dl>
@@ -76,7 +76,7 @@ export function DataPage() {
                   </ul>
                 )}
                 <p className="mt-4 border-t border-line pt-3 text-sm text-ink-3">
-                  {t.data.model}: <span className="font-semibold text-ink-2">{health.data.model}</span>
+                  {t.data.model}: <span className="mono text-xs text-ink-2">{health.data.model}</span>
                 </p>
               </>
             )}
@@ -91,7 +91,7 @@ export function DataPage() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={drop}
             className={`flex min-h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors sm:p-8 ${
-              isDragging ? 'border-brand bg-brand-tint' : 'border-line-strong bg-surface'
+              isDragging ? 'border-brand bg-brand-tint' : 'border-line-strong bg-surface hover:border-brand-soft'
             }`}
           >
             <span className="grid size-14 place-items-center rounded-xl bg-brand-tint text-brand-deep">
@@ -99,7 +99,7 @@ export function DataPage() {
                 <path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
               </svg>
             </span>
-            <p className="mt-4 text-xl font-bold tracking-[-0.02em]">{t.data.dropTitle}</p>
+            <p className="serif mt-4 text-[22px] font-semibold">{t.data.dropTitle}</p>
             <p className="mt-1.5 max-w-[46ch] text-sm text-ink-2">{t.data.dropHint}</p>
             <input
               ref={fileInput}

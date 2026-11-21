@@ -55,7 +55,6 @@ export function ExpertPane({ expertId, result, label, query, showScore, parsed, 
         <div className={onClose ? 'sticky top-0 z-10 bg-surface' : ''}>
           {onClose && (
             <p className="flex items-center gap-2 bg-night px-4 py-1.5 text-xs text-night-text">
-              <span className="flex-none rounded-[4px] border border-action/60 px-1.5 py-px text-[11px] font-medium text-action-hover">{t.syntheticTag}</span>
               <span className="min-w-0">{t.synthetic}</span>
             </p>
           )}
@@ -127,7 +126,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
           )}
           <div className="min-w-0">
           {name ? (
-            <h2 id={`expert-${expertId}`} className="mt-0.5 text-[26px] font-bold leading-[1.12] tracking-[-0.03em] [overflow-wrap:anywhere] sm:text-[30px]">
+            <h2 id={`expert-${expertId}`} className="serif mt-0.5 text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] [overflow-wrap:anywhere] sm:text-[32px]">
               {name}
             </h2>
           ) : (
@@ -140,7 +139,10 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
             </p>
           )}
           <p className="mt-3">
-            <span className="inline-flex rounded-full bg-brand-tint px-2.5 py-1 text-xs font-semibold text-brand-deep">{label}</span>
+            <span className="mono inline-flex items-center gap-1.5 rounded border border-brand-soft bg-brand-tint px-2 py-0.5 text-[11px] uppercase tracking-[0.06em] text-brand-deep">
+              <span aria-hidden className="size-1.5 rounded-full bg-brand" />
+              {label}
+            </span>
           </p>
           </div>
         </div>
@@ -148,7 +150,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
       </header>
 
       {(profile || match) && (
-        <dl className="flex flex-wrap gap-x-6 gap-y-2 border-b border-line px-5 py-3.5 text-sm sm:px-6">
+        <dl className="flex flex-wrap gap-x-6 gap-y-2 border-b border-line bg-sunken px-5 py-3 text-sm sm:px-6">
           <Fact label={t.card.city}>{profile?.city ?? match?.city}</Fact>
           <Fact label={t.card.industry}>{profile?.industry ?? match?.industry}</Fact>
           <Fact label={t.card.experience}>
@@ -206,7 +208,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
                 return (
                   <li
                     key={skill}
-                    className={`rounded-md px-2.5 py-1 text-[13px] ${isHit ? 'bg-brand-tint font-semibold text-brand-deep' : 'border border-line text-ink-2'}`}
+                    className={`rounded-md border px-2.5 py-1 text-[13px] ${isHit ? 'border-brand-soft bg-brand-tint font-semibold text-brand-deep' : 'border-line bg-surface text-ink-2'}`}
                   >
                     {skill}
                   </li>
@@ -222,6 +224,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
                   <a href={`mailto:${profile.email}`} className="font-medium text-brand-deep underline decoration-brand/30 underline-offset-2 hover:decoration-brand">
                     {profile.email}
                   </a>
+                  <CopyButton text={profile.email} />
                 </>
               )}
             </p>
@@ -244,13 +247,18 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
               <button
                 type="button"
                 onClick={() => onOpen(item.id)}
-                className="flex h-full w-full flex-col rounded-lg border border-line p-3 text-left transition-colors hover:border-brand-soft hover:bg-brand-tint/40"
+                className="group flex h-full w-full flex-col rounded-lg border border-line p-3 text-left transition-colors hover:border-brand-soft hover:bg-hover"
               >
-                <span className="font-bold text-ink">{item.full_name}</span>
+                <span className="serif font-semibold text-ink group-hover:text-brand-deep">{item.full_name}</span>
                 <span className="text-[13px] text-ink-2">
                   {item.position}, {item.city}
                 </span>
-                <span className="tnum mt-1 text-xs font-semibold text-brand-deep">{t.dialog.similarity(Math.round(cosine * 100))}</span>
+                <span className="mono mt-2 flex items-center gap-2 text-[11px] text-brand-deep">
+                  <span aria-hidden className="h-1 w-12 overflow-hidden rounded-full bg-line">
+                    <span className="block h-full bg-brand" style={{ width: `${Math.round(cosine * 100)}%` }} />
+                  </span>
+                  {t.dialog.similarity(Math.round(cosine * 100))}
+                </span>
               </button>
             </li>
           ))}
@@ -272,7 +280,10 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 function Section({ title, children, last = false }: { title: string; children: ReactNode; last?: boolean }) {
   return (
     <section className={`px-5 py-4 sm:px-6 ${last ? '' : 'border-b border-line'}`}>
-      <h3 className="mb-3 text-[15px] font-semibold text-ink">{title}</h3>
+      <h3 className="mb-3 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-3">
+        {title}
+        <span aria-hidden className="h-px flex-1 bg-line" />
+      </h3>
       {children}
     </section>
   )
@@ -326,8 +337,8 @@ function Check({ title, items, empty, tone }: { title: string; items: string[]; 
   const mark = { ok: 'text-free', miss: 'text-danger', note: 'text-cond' }[tone]
   const symbol = ({ ok: 'check', miss: 'x', note: 'info' } as const)[tone]
   return (
-    <div className="rounded-lg bg-sunken px-3.5 py-2.5">
-      <dt className="font-bold text-ink">{title}</dt>
+    <div className={`rounded-lg border-l-[3px] bg-sunken px-3.5 py-2.5 ${{ ok: 'border-free', miss: 'border-danger', note: 'border-cond' }[tone]}`}>
+      <dt className="font-semibold text-ink">{title}</dt>
       <dd className="mt-1 text-ink-2">
         {items.length === 0 ? (
           empty
@@ -355,5 +366,26 @@ export function ExpertPaneSkeleton() {
       <Skeleton className="mt-6 h-24 w-full" />
       <Skeleton className="h-16 w-full" />
     </div>
+  )
+}
+
+/** Копирует адрес в буфер и на секунду с небольшим подтверждает это словом. */
+function CopyButton({ text }: { text: string }) {
+  const { t } = useI18n()
+  const [isCopied, setIsCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard?.writeText(text).then(() => {
+          setIsCopied(true)
+          window.setTimeout(() => setIsCopied(false), 1400)
+        })
+      }}
+      className="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-ink-3 hover:bg-hover hover:text-brand-deep"
+    >
+      <Icon name={isCopied ? 'check' : 'copy'} size={13} />
+      <span aria-live="polite">{isCopied ? t.copied : t.copy}</span>
+    </button>
   )
 }

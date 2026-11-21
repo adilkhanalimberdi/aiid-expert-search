@@ -22,7 +22,7 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
     <Panel aria-labelledby="catalog-title" className="overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-3 pt-5 sm:px-6">
         <PanelTitle id="catalog-title">{t.data.catalog}</PanelTitle>
-        {page.data && <span className="tnum text-sm text-ink-3">{t.data.range(offset + 1, Math.min(offset + PAGE_SIZE, total), total)}</span>}
+        {page.data && <span className="mono text-xs text-ink-3">{t.data.range(offset + 1, Math.min(offset + PAGE_SIZE, total), total)}</span>}
       </div>
       {page.error && (
         <div className="px-5 pb-5">
@@ -61,9 +61,9 @@ export function CatalogTable({ reloadKey }: { reloadKey: number }) {
               </thead>
               <tbody>
                 {page.data.items.map((expert) => (
-                  <tr key={expert.id} className="border-b border-line last:border-0 hover:bg-sunken">
-                    <td className="tnum py-3 pl-6 pr-3 text-ink-3">{expert.id}</td>
-                    <td className="px-3 py-3 font-bold">{expert.full_name}</td>
+                  <tr key={expert.id} className="border-b border-line last:border-0 hover:bg-hover">
+                    <td className="mono py-3 pl-6 pr-3 text-xs text-ink-3">{expert.id}</td>
+                    <td className="serif px-3 py-3 font-semibold">{expert.full_name}</td>
                     <td className="px-3 py-3 text-ink-2">{expert.position}</td>
                     <td className="px-3 py-3 text-ink-2">{expert.industry}</td>
                     <td className="px-3 py-3 text-ink-2">{expert.city}</td>

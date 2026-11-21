@@ -22,7 +22,7 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
 
   return (
     <Panel className="fade-in p-5 sm:p-6" aria-labelledby="team-title">
-      <h2 id="team-title" className="text-xl font-bold tracking-[-0.02em]">
+      <h2 id="team-title" className="serif text-[22px] font-semibold tracking-[-0.01em]">
         {t.team.title}
       </h2>
       {team.isLoading && <Skeleton className="mt-4 h-40 w-full" />}
@@ -64,7 +64,7 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
                           <button
                             type="button"
                             onClick={() => onOpen(member.id)}
-                            className="text-left text-[15px] font-bold text-ink underline decoration-line-strong underline-offset-4 hover:decoration-brand"
+                            className="serif text-left text-base font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:text-brand-deep hover:decoration-brand"
                           >
                             {member.full_name}
                           </button>
@@ -81,7 +81,7 @@ export function TeamView({ query, industry, hideBusy, onOpen }: TeamViewProps) {
                                 role="img"
                                 aria-label={`${term}: ${covers ? t.team.covers : t.team.notCovers}`}
                                 className={`inline-grid size-7 place-items-center rounded-full text-sm font-bold ${
-                                  covers ? 'bg-brand text-white' : 'bg-sunken text-ink-3'
+                                  covers ? 'bg-brand text-surface' : 'border border-dashed border-line-strong text-ink-3'
                                 }`}
                               >
                                 <Icon name={covers ? 'check' : 'x'} size={14} strokeWidth={covers ? 2.6 : 2} />

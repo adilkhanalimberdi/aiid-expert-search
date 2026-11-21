@@ -1,6 +1,6 @@
 /**
- * Знак Sarap: коралловая плитка и буква S из двух полукругов с ровными концами,
- * две половины, запрос и эксперт, состыкованные в одну линию. isDrawing: линия прорисовывается, пока идёт поиск.
+ * Знак Sarap: шафрановая плитка, три строки картотеки, каждая короче предыдущей, и точка в конце:
+ * из всего каталога остаётся один нужный человек. isDrawing: строки перебираются, пока идёт поиск.
  */
 export function SarapMark({ size = 32, isDrawing = false, label }: { size?: number; isDrawing?: boolean; label?: string }) {
   return (
@@ -13,15 +13,13 @@ export function SarapMark({ size = 32, isDrawing = false, label }: { size?: numb
       aria-hidden={label ? undefined : true}
       className={`flex-none ${isDrawing ? 'mark-draw' : ''}`}
     >
-      <rect width="32" height="32" rx="8" fill="var(--color-action)" />
-      <path
-        d="M21.5 8.5H14.25a3.75 3.75 0 0 0 0 7.5h3.5a3.75 3.75 0 0 1 0 7.5H10.5"
-        fill="none"
-        stroke="var(--color-action-ink)"
-        strokeWidth="3.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <rect width="32" height="32" rx="7" fill="var(--color-action)" />
+      <g stroke="var(--color-action-ink)" strokeWidth="3" strokeLinecap="round">
+        <path className="bar" d="M8 10h16" />
+        <path className="bar" d="M8 16h11" />
+        <path className="bar" d="M8 22h5" />
+      </g>
+      <circle cx="20" cy="22" r="2.6" fill="var(--color-action-ink)" />
     </svg>
   )
 }
@@ -48,7 +46,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
     <div className="flex items-center gap-3 sm:gap-4">
       <div className="flex items-center gap-2.5">
         <SarapMark size={compact ? 28 : 32} label="Sarap" />
-        <span aria-hidden className="text-[20px] font-semibold tracking-[-0.02em] text-white sm:text-[22px]">
+        <span aria-hidden className="serif text-[21px] font-semibold tracking-[-0.01em] text-night-text sm:text-[23px]">
           Sarap
         </span>
       </div>

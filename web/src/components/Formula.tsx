@@ -10,7 +10,7 @@ function Term({ value, label, sign }: { value: string; label: string; sign?: str
           {sign}
         </span>
       )}
-      <b className="tnum font-bold text-ink">{value}</b>
+      <b className="mono font-medium text-brand-deep">{value}</b>
       {label}
     </span>
   )
@@ -21,9 +21,9 @@ export function Formula() {
   const { t, lang } = useI18n()
   const num = (value: number) => value.toLocaleString(lang === 'en' ? 'en' : 'ru')
   return (
-    <details className="group rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-2 sm:px-5">
+    <details className="group rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm text-ink-2 sm:px-5">
       <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1.5 [&::-webkit-details-marker]:hidden">
-        <span className="font-bold text-ink">{t.formula.title}</span>
+        <span className="serif font-semibold italic text-ink">{t.formula.title}</span>
         <Term value={`${WEIGHT_SEMANTIC}%`} label={t.formula.meaning} />
         <Term sign="+" value={`${WEIGHT_COVERAGE}%`} label={t.formula.coverage} />
         <Term sign="×" value={num(BOOST_CITY)} label={t.formula.sameCity} />

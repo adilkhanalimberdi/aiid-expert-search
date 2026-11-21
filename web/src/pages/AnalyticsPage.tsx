@@ -69,7 +69,7 @@ function Metric({ label, value, note }: { label: string; value: string; note?: s
         {label}
         {note && <span className="block text-ink-3">{note}</span>}
       </dt>
-      <dd className="tnum text-[34px] font-semibold leading-none tracking-[-0.03em] text-ink">{value}</dd>
+      <dd className="mono text-[34px] font-medium leading-none tracking-[-0.03em] text-ink">{value}</dd>
     </div>
   )
 }
@@ -86,12 +86,12 @@ function Bars({ id, title, hint, items, empty, tone }: { id: string; title: stri
           <li key={item.term} className="border-t border-line py-3 first:border-t-0">
             <div className="flex items-baseline justify-between gap-4">
               <span className="flex min-w-0 items-baseline gap-3 text-[15px] font-semibold">
-                <span className="tnum w-4 text-xs font-bold text-ink-3">{index + 1}</span>
+                <span className="mono w-5 text-xs text-ink-3">{String(index + 1).padStart(2, '0')}</span>
                 <span className="[overflow-wrap:anywhere]">{item.term}</span>
               </span>
-              <span className={`tnum text-lg font-bold ${tone === 'brand' ? 'text-brand-deep' : 'text-medium'}`}>{item.count}</span>
+              <span className={`mono text-base font-medium ${tone === 'brand' ? 'text-brand-deep' : 'text-medium'}`}>{item.count}</span>
             </div>
-            <span aria-hidden className="mt-2 ml-7 block h-1.5 overflow-hidden rounded-full bg-line">
+            <span aria-hidden className="mt-2 ml-8 block h-1 overflow-hidden rounded-full bg-line">
               <span
                 className={`block h-full rounded-full ${tone === 'brand' ? 'bg-brand' : 'bg-medium-bar'}`}
                 style={{ width: `${Math.max(4, (item.count / max) * 100)}%` }}

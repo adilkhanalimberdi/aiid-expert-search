@@ -5,7 +5,7 @@ import { Formula } from '../components/Formula'
 import { SarapMark } from '../components/Logo'
 import { Readback } from '../components/Readback'
 import { ResultList, ResultListSkeleton } from '../components/ResultList'
-import { Icon, type IconName } from '../components/Icon'
+import { Icon } from '../components/Icon'
 import { CONTAINER } from '../components/Shell'
 import { TeamView } from '../components/TeamView'
 import { Button, Checkbox, Panel, Segmented, Select } from '../components/ui'
@@ -45,6 +45,18 @@ export function SearchPage() {
     remember(next.query)
     run({ query: next.query, industry: next.industry, hide_busy: next.hideBusy, top_k: TOP_K })
   }
+
+  // «/» с любого места страницы ставит курсор в поле запроса, как в привычных поисковиках
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || target.closest('input, textarea, select, [contenteditable]')) return
+      event.preventDefault()
+      input.current?.focus()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // Обоснования приходят с сервера на языке интерфейса: при смене языка перезапрашиваем текущий поиск
   useEffect(() => {
@@ -89,27 +101,28 @@ export function SearchPage() {
     <div className={CONTAINER}>
       {/* крупный заголовок только до первого поиска: потом место отдаётся выдаче */}
       {isIdle ? (
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pb-5 pt-7 lg:pt-10">
+        <div className="grid gap-x-10 gap-y-4 pb-6 pt-9 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:pt-14">
           <div className="min-w-0">
-            <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.03em] sm:text-[36px]">{t.search.h1}</h1>
-            <p className="mt-1.5 max-w-[60ch] text-balance text-[15px] text-ink-2">{t.search.sub}</p>
+            <h1 className="serif max-w-[18ch] text-[38px] font-semibold leading-[1.05] tracking-[-0.02em] text-ink sm:text-[52px]">{t.search.h1}</h1>
+            <p className="mt-3 max-w-[56ch] text-pretty text-base text-ink-2">{t.search.sub}</p>
           </div>
           {catalog.data && industries.data && (
-            <p className="tnum flex gap-5 text-sm text-ink-3">
-              <span>
-                <b className="text-base font-bold text-ink">{catalog.data.experts}</b> {t.search.expertsWord(catalog.data.experts)}
-              </span>
-              <span>
-                <b className="text-base font-bold text-ink">{industries.data.length}</b> {t.search.industriesWord(industries.data.length)}
-              </span>
-            </p>
+            <dl className="flex gap-8 border-l-2 border-action pl-5">
+              <div>
+                <dd className="mono text-[28px] font-medium leading-none text-ink">{catalog.data.experts}</dd>
+                <dt className="mt-1.5 text-[13px] text-ink-3">{t.search.expertsWord(catalog.data.experts)}</dt>
+              </div>
+              <div>
+                <dd className="mono text-[28px] font-medium leading-none text-ink">{industries.data.length}</dd>
+                <dt className="mt-1.5 text-[13px] text-ink-3">{t.search.industriesWord(industries.data.length)}</dt>
+              </div>
+            </dl>
           )}
         </div>
-  
       ) : (
         <h1 className="sr-only">{t.search.h1}</h1>
       )}
-      <form onSubmit={submit} role="search" aria-label={t.search.queryLabel} className={`${isIdle ? '' : 'mt-6'} rounded-2xl border border-line bg-surface focus-within:border-brand-soft focus-within:shadow-[0_0_0_4px_var(--color-brand-tint)]`}>
+      <form onSubmit={submit} role="search" aria-label={t.search.queryLabel} className={`${isIdle ? '' : 'mt-6'} rounded-2xl border border-line-strong bg-surface transition-[border-color,box-shadow] focus-within:border-brand focus-within:shadow-[0_0_0_4px_var(--color-brand-tint)]`}>
         <div className="flex items-end gap-2 p-2 pl-4 sm:pl-5">
           <label htmlFor="query" className="sr-only">
             {t.search.queryLabel}
@@ -133,6 +146,12 @@ export function SearchPage() {
             aria-describedby="query-hint"
             className="min-h-12 flex-1 resize-none self-center bg-transparent py-3 text-[17px] leading-snug text-ink outline-none [field-sizing:content] placeholder:text-ink-3 sm:text-lg"
           />
+          {!query && (
+            <span aria-hidden className="mb-[15px] hidden items-center gap-1.5 text-xs text-ink-3 lg:flex">
+              <kbd>/</kbd>
+              {t.focusHint}
+            </span>
+          )}
           {query && (
             <button
               type="button"
@@ -142,7 +161,7 @@ export function SearchPage() {
               }}
               aria-label={t.search.clear}
               title={t.search.clear}
-              className="mb-1.5 grid size-9 flex-none place-items-center rounded-lg text-ink-3 hover:bg-sunken hover:text-ink"
+              className="mb-1.5 grid size-9 flex-none place-items-center rounded-lg text-ink-3 hover:bg-hover hover:text-brand-deep"
             >
               <Icon name="x" size={18} />
             </button>
@@ -153,7 +172,7 @@ export function SearchPage() {
             <span className="sr-only sm:hidden">{t.search.submit}</span>
           </Button>
         </div>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 border-t border-line px-4 py-2 sm:px-5">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-b-2xl border-t border-dashed border-line bg-sunken px-4 py-2 sm:px-5">
           <label className="flex items-center gap-2 text-sm font-medium text-ink-2">
             {t.search.industry}
             <Select value={industry} onChange={(event) => changeFilters(event.target.value, hideBusy)}>
@@ -200,8 +219,6 @@ export function SearchPage() {
   )
 }
 
-const HOW_ICONS: IconName[] = ['skill', 'search', 'check']
-
 /** Язык примера по буквам: казахские буквы, кириллица или латиница. Показывает, что поиск понимает все три. */
 function languageOf(text: string): string {
   if (/[әғқңөұүһі]/i.test(text)) return 'KK'
@@ -209,41 +226,44 @@ function languageOf(text: string): string {
   return 'EN'
 }
 
-/** Пустое состояние: примеры запросов сеткой и три коротких пункта о том, как работает поиск. */
+/** Пустое состояние: примеры запросов карточками картотеки и три коротких пункта о том, как работает поиск. */
 function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string) => void }) {
   const { t } = useI18n()
   return (
-    <div className="fade-in space-y-8">
+    <div className="fade-in space-y-10">
       <section aria-labelledby="examples-title">
-        <h2 id="examples-title" className="text-[15px] font-semibold text-ink">
+        <h2 id="examples-title" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-3">
           {t.search.tryLabel}
         </h2>
-        <ul className="mt-3 flex flex-wrap gap-2.5">
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {t.search.examples.map((example) => (
-            <li key={example} className="min-w-0 max-w-full">
+            <li key={example} className="min-w-0">
               <button
                 type="button"
                 onClick={() => onPick(example)}
-                className="group flex items-center gap-3 rounded-xl border border-line bg-surface py-2.5 pl-2.5 pr-3 text-left transition-colors hover:border-night hover:bg-night hover:text-white"
+                className="group flex h-full w-full items-start gap-3 rounded-xl border border-line bg-surface p-3.5 text-left transition-colors hover:border-brand-soft hover:bg-hover"
               >
-                <span className="grid h-7 min-w-9 flex-none place-items-center rounded-md bg-sunken px-1.5 text-[11px] font-semibold text-ink-2 group-hover:bg-night-2 group-hover:text-action">
+                <span className="mono mt-0.5 flex-none rounded border border-line px-1.5 py-0.5 text-[11px] text-ink-3 group-hover:border-brand-soft group-hover:text-brand-deep">
                   {languageOf(example)}
                 </span>
-                <span className="text-[15px] font-medium">{example}</span>
-                <Icon name="arrow-right" size={16} className="text-ink-3 transition-transform group-hover:translate-x-0.5 group-hover:text-action" />
+                <span className="min-w-0 flex-1 text-[15px] leading-snug text-ink">{example}</span>
+                <Icon name="arrow-right" size={16} className="mt-0.5 text-line-strong transition-[transform,color] group-hover:translate-x-0.5 group-hover:text-brand" />
               </button>
             </li>
           ))}
         </ul>
         {recent.length > 0 && (
-          <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-semibold text-ink-2">{t.search.recent}</span>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="flex items-center gap-1.5 font-medium text-ink-3">
+              <Icon name="clock" size={15} />
+              {t.search.recent}
+            </span>
             {recent.map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => onPick(item)}
-                className="max-w-full truncate rounded-full border border-line bg-surface px-3 py-1 font-medium text-ink-2 hover:border-brand-soft hover:text-brand-deep"
+                className="max-w-full truncate rounded-md px-2 py-1 font-medium text-ink-2 underline decoration-line-strong decoration-dashed underline-offset-4 hover:bg-hover hover:text-brand-deep hover:decoration-brand"
               >
                 {item}
               </button>
@@ -252,19 +272,20 @@ function Welcome({ recent, onPick }: { recent: string[]; onPick: (query: string)
         )}
       </section>
 
-      <ul className="grid gap-x-8 gap-y-4 border-t border-line pt-6 md:grid-cols-3">
+      <ol className="grid gap-x-10 gap-y-6 border-t border-line pt-7 md:grid-cols-3">
         {t.search.how.map((item, index) => (
-          <li key={item.title} className="flex gap-3">
-            <span className="grid size-9 flex-none place-items-center rounded-lg bg-night text-action">
-              <Icon name={HOW_ICONS[index]} size={18} />
+          <li key={item.title} className="min-w-0">
+            <span className="mono flex items-center gap-3 text-xs text-ink-3">
+              <span className="text-action-ink">
+                <span className="rounded bg-action px-1.5 py-0.5">{String(index + 1).padStart(2, '0')}</span>
+              </span>
+              <span aria-hidden className="h-px flex-1 bg-line" />
             </span>
-            <span className="min-w-0">
-              <span className="block text-[15px] font-semibold text-ink">{item.title}</span>
-              <span className="mt-1 block text-sm leading-relaxed text-ink-2">{item.body}</span>
-            </span>
+            <span className="serif mt-3 block text-lg font-semibold text-ink">{item.title}</span>
+            <span className="mt-1.5 block text-sm leading-relaxed text-ink-2">{item.body}</span>
           </li>
         ))}
-      </ul>
+      </ol>
 
       <Formula />
     </div>
@@ -335,7 +356,7 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
       ) : (
         <>
           {!data.weak_match && !data.filter_only && (
-            <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="mb-4 flex items-center justify-between gap-3">
               <Segmented
                 label={t.search.viewLabel}
                 value={view}
@@ -357,7 +378,7 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
               <Formula />
             </div>
             {isDesktop && (
-              <Panel className="sticky top-[124px] max-h-[calc(100vh-140px)] overflow-y-auto" aria-label={t.dialog.label}>
+              <Panel className="sticky top-[124px] max-h-[calc(100vh-140px)] overflow-y-auto border-line-strong" aria-label={t.dialog.label}>
                 {pane}
               </Panel>
             )}
@@ -407,7 +428,7 @@ function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-40 bg-night/60" onClick={onClose}>
+    <div className="fixed inset-0 z-40 bg-night/50 backdrop-blur-[2px]" onClick={onClose}>
       <div
         ref={box}
         role="dialog"

@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 import { LANGUAGES } from '../lib/i18n'
 import { TABS, type TabId } from '../lib/tabs'
+import { useAsync } from '../hooks/useAsync'
+import { api } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
-import { Brand } from './Logo'
+import { Brand, SarapMark } from './Logo'
 
 /** Ширина и поля рабочей области: одинаковые у шапки и у содержимого, края совпадают. */
 export const CONTAINER = 'mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8'
@@ -33,7 +35,7 @@ function NavIcon({ tab }: { tab: TabId }) {
 function LanguageSwitch() {
   const { lang, setLang, t } = useI18n()
   return (
-    <div role="group" aria-label={t.nav.language} className="flex rounded-lg bg-night-2 p-0.5">
+    <div role="group" aria-label={t.nav.language} className="flex rounded-lg border border-night-line p-0.5">
       {LANGUAGES.map((code) => (
         <button
           key={code}
@@ -42,7 +44,7 @@ function LanguageSwitch() {
           aria-pressed={lang === code}
           onClick={() => setLang(code)}
           className={`h-8 min-w-10 rounded-md px-2.5 text-[13px] font-semibold transition-colors ${
-            lang === code ? 'bg-white text-night' : 'text-night-dim hover:text-white'
+            lang === code ? 'bg-night-2 text-action' : 'text-night-dim hover:text-night-text'
           }`}
         >
           {code.toUpperCase()}
@@ -64,6 +66,7 @@ interface ShellProps {
  */
 export function Shell({ tab, onTab, children }: ShellProps) {
   const { t } = useI18n()
+  const health = useAsync(() => api.health(), [])
 
   const tabs = (className: string) =>
     TABS.map((id) => (
@@ -73,7 +76,7 @@ export function Shell({ tab, onTab, children }: ShellProps) {
           onClick={() => onTab(id)}
           aria-current={tab === id ? 'page' : undefined}
           className={`relative flex h-full w-full items-center justify-center gap-2 px-2 text-[15px] font-medium transition-colors md:px-4 ${
-            tab === id ? 'text-white' : 'text-night-dim hover:text-white'
+            tab === id ? 'text-night-text' : 'text-night-dim hover:text-night-text'
           }`}
         >
           <span className={tab === id ? 'text-spark' : ''}>
@@ -89,7 +92,7 @@ export function Shell({ tab, onTab, children }: ShellProps) {
     <div className="min-h-screen">
       <a
         href="#content"
-        className="sr-only z-50 rounded-lg bg-brand px-4 py-2 font-semibold text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+        className="sr-only z-50 rounded-lg bg-action px-4 py-2 font-semibold text-action-ink focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
       >
         {t.nav.skip}
       </a>
@@ -107,19 +110,32 @@ export function Shell({ tab, onTab, children }: ShellProps) {
         <nav aria-label={t.nav.sections} className="border-t border-night-line md:hidden">
           <ul className="grid h-12 grid-cols-3">{tabs('h-full')}</ul>
         </nav>
-        <p className="border-t border-night-line bg-night-2 text-night-text">
-          <span className={`${CONTAINER} flex items-center gap-2.5 py-1.5 text-xs`}>
-            <span className="flex-none rounded-[4px] border border-action/60 px-1.5 py-px text-[11px] font-medium text-action-hover">{t.syntheticTag}</span>
-            <span className="min-w-0">{t.synthetic}</span>
-          </span>
-        </p>
+        <div className="border-t border-night-line bg-night-2 text-night-dim">
+          <p className={`${CONTAINER} flex items-center gap-3 py-1.5 text-xs`}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden className="flex-none">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v5M12 7.6v.01" />
+            </svg>
+            <span className="min-w-0 text-night-text">{t.synthetic}</span>
+            {health.data && (
+              <span className="mono ml-auto hidden items-center gap-2 whitespace-nowrap sm:flex">
+                <span aria-hidden className="size-1.5 rounded-full bg-brand-soft" />
+                {t.offline} · {health.data.model.split('/').pop()}
+              </span>
+            )}
+          </p>
+        </div>
       </header>
 
       <div id="content">{children}</div>
 
       <footer className="mt-10 border-t border-line">
         <div className={`${CONTAINER} flex flex-wrap items-center justify-between gap-3 py-6 text-sm text-ink-3`}>
-          <span>{t.footer}</span>
+          <span className="flex items-center gap-2.5">
+            <SarapMark size={18} />
+            {t.footer}
+          </span>
+          <span className="mono text-xs">AIID · 2026</span>
         </div>
       </footer>
     </div>
@@ -131,7 +147,7 @@ export function PageHeader({ title, subtitle, children }: { title: string; subti
   return (
     <header className="flex flex-wrap items-end justify-between gap-4 pb-6 pt-8 lg:pt-10">
       <div className="min-w-0">
-        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.025em] sm:text-[32px]">{title}</h1>
+        <h1 className="serif text-[30px] font-semibold leading-tight tracking-[-0.015em] sm:text-[36px]">{title}</h1>
         {subtitle && <p className="mt-1.5 text-[15px] text-ink-2">{subtitle}</p>}
       </div>
       {children}
