@@ -1,16 +1,16 @@
 import type { ComponentPropsWithRef, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 
-// Общие элементы интерфейса: скругление 8 px, шафран для главного действия, тонкие рамки для остального.
-// Наведение подсвечивает тёплым тоном или зеленью, но никогда не затемняет элемент.
+// Общие элементы интерфейса: скругление 6 px, сигнал для главного действия, тонкие рамки для остального.
+// Наведение светлеет (слой графита выше, текст ярче), но никогда не затемняет элемент.
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'positive' | 'quiet'
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-action text-action-ink hover:bg-action-hover active:translate-y-px',
-  secondary: 'border border-line-strong bg-surface text-ink hover:border-brand-soft hover:bg-hover',
+  secondary: 'border border-line-strong bg-raised text-ink hover:border-ink-3 hover:bg-hover',
   ghost: 'text-brand-deep hover:bg-brand-tint',
-  quiet: 'text-ink-2 hover:bg-hover hover:text-brand-deep',
-  positive: 'border border-brand bg-surface text-brand-deep hover:bg-brand-tint',
+  quiet: 'text-ink-2 hover:bg-hover hover:text-ink',
+  positive: 'border border-brand-soft bg-brand-tint text-brand-deep hover:border-brand',
 }
 
 interface ButtonProps extends ComponentPropsWithRef<'button'> {
@@ -19,11 +19,11 @@ interface ButtonProps extends ComponentPropsWithRef<'button'> {
 }
 
 export function Button({ variant = 'secondary', size = 'md', className = '', type = 'button', ...rest }: ButtonProps) {
-  const sizing = { sm: 'min-h-9 px-3 text-sm', md: 'min-h-11 px-4 text-[15px]', lg: 'min-h-12 px-6 text-base' }[size]
+  const sizing = { sm: 'min-h-9 px-3 text-sm', md: 'min-h-10 px-4 text-[14px]', lg: 'min-h-12 px-5 text-[15px]' }[size]
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-[background-color,border-color,color,transform] duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${sizing} ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-[background-color,border-color,color,transform] duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${sizing} ${VARIANTS[variant]} ${className}`}
       {...rest}
     />
   )
@@ -33,7 +33,7 @@ export function Select({ className = '', children, ...rest }: SelectHTMLAttribut
   return (
     <span className="relative inline-flex">
       <select
-        className={`h-10 min-w-0 max-w-full appearance-none rounded-lg border border-line-strong bg-surface py-0 pl-3 pr-9 text-sm font-medium text-ink hover:border-brand-soft ${className}`}
+        className={`h-9 min-w-0 max-w-full appearance-none rounded-md border border-line-strong bg-sunken py-0 pl-3 pr-9 text-sm font-medium text-ink hover:border-ink-3 ${className}`}
         {...rest}
       >
         {children}
@@ -62,7 +62,7 @@ interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'typ
 
 export function Checkbox({ label, className = '', ...rest }: CheckboxProps) {
   return (
-    <label className={`inline-flex min-h-10 items-center gap-2.5 text-sm font-medium text-ink-2 ${className}`}>
+    <label className={`inline-flex min-h-9 items-center gap-2.5 text-sm font-medium text-ink-2 hover:text-ink ${className}`}>
       <input type="checkbox" className="check" {...rest} />
       {label}
     </label>
@@ -73,7 +73,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
   return <div aria-hidden className={`sk ${className}`} />
 }
 
-/** Белая панель рабочей области. */
+/** Панель рабочей области: слой графита над небом, рамка в 1 px. */
 export function Panel({ className = '', children, ...rest }: ComponentPropsWithRef<'section'>) {
   return (
     <section className={`rounded-xl border border-line bg-surface ${className}`} {...rest}>
@@ -82,10 +82,10 @@ export function Panel({ className = '', children, ...rest }: ComponentPropsWithR
   )
 }
 
-/** Заголовок панели: обычный регистр, вес вместо прописных. */
+/** Заголовок панели: моноширинная метка прописными, как подпись прибора. */
 export function PanelTitle({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
   return (
-    <h2 id={id} className={`serif text-[19px] font-semibold tracking-[-0.01em] text-ink ${className}`}>
+    <h2 id={id} className={`label text-ink-2 ${className}`}>
       {children}
     </h2>
   )
@@ -101,12 +101,12 @@ interface SegmentedProps<T extends string> {
 /** Переключатель вида: родные радиокнопки, выглядят как сегменты. */
 export function Segmented<T extends string>({ label, value, options, onChange }: SegmentedProps<T>) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex gap-1 border-b border-line">
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-md border border-line bg-sunken p-0.5">
       {options.map((option) => (
         <label
           key={option.value}
-          className={`-mb-px border-b-2 px-3 pb-2 pt-1 text-sm font-semibold transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
-            value === option.value ? 'border-brand text-brand-deep' : 'border-transparent text-ink-3 hover:text-brand-deep'
+          className={`rounded-[5px] px-3 py-1.5 text-[13px] font-semibold transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-action ${
+            value === option.value ? 'bg-raised text-ink shadow-[inset_0_-2px_0_var(--color-action)]' : 'text-ink-3 hover:text-ink'
           }`}
         >
           <input

@@ -1,24 +1,37 @@
 import { useRef, useState, type DragEvent } from 'react'
 import { CatalogTable } from '../components/CatalogTable'
 import { ErrorBox } from '../components/ErrorBox'
+import { Icon } from '../components/Icon'
 import { CONTAINER, PageHeader } from '../components/Shell'
 import { Button, PanelTitle, Panel, Skeleton } from '../components/ui'
-import { useAsync } from '../hooks/useAsync'
-import { api, type UploadResponse } from '../lib/api'
+import { useAsync, type AsyncState } from '../hooks/useAsync'
+import { api, type Health, type UploadResponse } from '../lib/api'
 import { useI18n } from '../lib/useI18n'
 
 const REQUIRED_COLUMNS = ['id', 'full_name', 'position', 'industry', 'competencies', 'city', 'experience_years', 'availability']
 
-export function DataPage() {
+interface DataPageProps {
+  isActive: boolean
+  health: AsyncState<Health>
+  catalogVersion: number
+  onUploaded: () => void
+}
+
+export function DataPage({ isActive, health, catalogVersion, onUploaded }: DataPageProps) {
+  const [hasOpened, setHasOpened] = useState(isActive)
+  // раздел не грузит каталог, пока его ни разу не открыли: на старте сервер отвечает только поиску
+  if (isActive && !hasOpened) setHasOpened(true)
+  return hasOpened ? <DataContent health={health} catalogVersion={catalogVersion} onUploaded={onUploaded} /> : null
+}
+
+function DataContent({ health, catalogVersion, onUploaded }: Omit<DataPageProps, 'isActive'>) {
   const { t } = useI18n()
-  const [reloadKey, setReloadKey] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [report, setReport] = useState<UploadResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
-  const health = useAsync(() => api.health(), [reloadKey])
-  const industries = useAsync(() => api.industries(), [reloadKey])
+  const industries = useAsync((signal) => api.industries(signal), [catalogVersion])
 
   async function upload(file: File | undefined) {
     if (!file) return
@@ -27,7 +40,7 @@ export function DataPage() {
     setReport(null)
     try {
       setReport(await api.upload(file))
-      setReloadKey((value) => value + 1)
+      onUploaded()
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -44,11 +57,11 @@ export function DataPage() {
   return (
     <div className={CONTAINER}>
       <PageHeader title={t.data.title} subtitle={t.data.subtitle} />
-      <div className="space-y-6 pb-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+      <div className="space-y-5 pb-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <Panel className="p-5 sm:p-6" aria-labelledby="current-title">
             <PanelTitle id="current-title">{t.data.current}</PanelTitle>
-            {health.isLoading && <Skeleton className="mt-4 h-28 w-full" />}
+            {health.isLoading && !health.data && <Skeleton className="mt-4 h-28 w-full" />}
             {health.error && (
               <div className="mt-4">
                 <ErrorBox message={health.error} />
@@ -57,26 +70,27 @@ export function DataPage() {
             {health.data && (
               <>
                 <dl className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-lg bg-sunken p-4">
-                    <dd className="mono text-[40px] font-medium leading-none tracking-[-0.03em] text-brand-deep">{health.data.experts}</dd>
-                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.expertsWord(health.data.experts)}</dt>
+                  <div className="rounded-lg border border-line bg-sunken p-4">
+                    <dd className="display tnum text-[44px] font-semibold leading-none text-brand-deep">{health.data.experts}</dd>
+                    <dt className="mt-2 text-sm text-ink-3">{t.search.expertsWord(health.data.experts)}</dt>
                   </div>
-                  <div className="rounded-lg bg-sunken p-4">
-                    <dd className="mono text-[40px] font-medium leading-none tracking-[-0.03em] text-ink">{industries.data?.length ?? '—'}</dd>
-                    <dt className="mt-2 text-sm font-medium text-ink-2">{t.search.industriesWord(industries.data?.length ?? 0)}</dt>
+                  <div className="rounded-lg border border-line bg-sunken p-4">
+                    <dd className="display tnum text-[44px] font-semibold leading-none text-ink">{industries.data?.length ?? '—'}</dd>
+                    <dt className="mt-2 text-sm text-ink-3">{t.search.industriesWord(industries.data?.length ?? 0)}</dt>
                   </div>
                 </dl>
                 {industries.data && (
                   <ul className="mt-4 flex flex-wrap gap-1.5">
                     {industries.data.map((item) => (
-                      <li key={item} className="rounded-md bg-place-tint px-2.5 py-1 text-[13px] font-semibold text-place">
+                      <li key={item} className="rounded border border-place-soft bg-place-tint px-2 py-0.5 text-[13px] font-medium text-place">
                         {item}
                       </li>
                     ))}
                   </ul>
                 )}
-                <p className="mt-4 border-t border-line pt-3 text-sm text-ink-3">
-                  {t.data.model}: <span className="mono text-xs text-ink-2">{health.data.model}</span>
+                <p className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm text-ink-3">
+                  {t.data.model}
+                  <span className="mono text-xs text-ink-2">{health.data.model}</span>
                 </p>
               </>
             )}
@@ -90,17 +104,16 @@ export function DataPage() {
             }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={drop}
-            className={`flex min-h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors sm:p-8 ${
-              isDragging ? 'border-brand bg-brand-tint' : 'border-line-strong bg-surface hover:border-brand-soft'
+            className={`relative flex min-h-64 flex-col items-center justify-center rounded-xl border p-6 text-center transition-colors sm:p-8 ${
+              isDragging ? 'border-action bg-brand-tint' : 'border-line bg-surface'
             }`}
           >
-            <span className="grid size-14 place-items-center rounded-xl bg-brand-tint text-brand-deep">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-              </svg>
+            <span aria-hidden className={`reticle pointer-events-none absolute inset-3 rounded-lg ${isDragging ? '' : 'opacity-40'}`} />
+            <span className="grid size-12 place-items-center rounded-lg border border-brand-soft bg-brand-tint text-brand-deep">
+              <Icon name="upload" size={24} />
             </span>
-            <p className="serif mt-4 text-[22px] font-semibold">{t.data.dropTitle}</p>
-            <p className="mt-1.5 max-w-[46ch] text-sm text-ink-2">{t.data.dropHint}</p>
+            <p className="mt-4 text-[19px] font-semibold text-ink">{t.data.dropTitle}</p>
+            <p className="mt-1.5 max-w-[46ch] text-sm text-ink-3">{t.data.dropHint}</p>
             <input
               ref={fileInput}
               type="file"
@@ -123,12 +136,12 @@ export function DataPage() {
         {report && (
           <Panel role="status" className="p-5 sm:p-6" aria-labelledby="report-title">
             <PanelTitle id="report-title">{t.data.result}</PanelTitle>
-            <p className="tnum mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[15px]">
+            <p className="tnum mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[15px] text-ink-2">
               <span>
                 {t.data.loaded}: <strong className="text-lg font-bold text-free">{report.loaded}</strong>
               </span>
               <span>
-                {t.data.skipped}: <strong className="text-lg font-bold">{report.skipped}</strong>
+                {t.data.skipped}: <strong className="text-lg font-bold text-ink">{report.skipped}</strong>
               </span>
             </p>
             {report.errors.length > 0 && (
@@ -141,20 +154,18 @@ export function DataPage() {
           </Panel>
         )}
 
-        <CatalogTable reloadKey={reloadKey} />
+        <CatalogTable reloadKey={catalogVersion} />
 
         <Panel className="p-5 sm:p-6" aria-labelledby="format-title">
           <PanelTitle id="format-title">{t.data.formatTitle}</PanelTitle>
           <ul className="mt-3 flex flex-wrap gap-1.5">
             {REQUIRED_COLUMNS.map((column) => (
-              <li key={column} className="rounded-md border border-line bg-sunken px-2.5 py-1 font-mono text-[13px] text-ink">
+              <li key={column} className="mono rounded border border-line-strong bg-sunken px-2 py-0.5 text-[13px] text-ink">
                 {column}
               </li>
             ))}
           </ul>
-          <p className="mt-3 max-w-[80ch] text-[15px] leading-relaxed text-ink-2">
-            {t.data.formatBody(REQUIRED_COLUMNS.join(', '))}
-          </p>
+          <p className="mt-3 max-w-[80ch] text-[15px] leading-relaxed text-ink-2">{t.data.formatBody(REQUIRED_COLUMNS.join(', '))}</p>
         </Panel>
       </div>
     </div>

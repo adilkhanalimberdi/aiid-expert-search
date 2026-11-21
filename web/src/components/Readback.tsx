@@ -6,10 +6,10 @@ import { Icon, type IconName } from './Icon'
 type Kind = 'skill' | 'place' | 'condition' | 'excluded'
 
 const TONE: Record<Kind, string> = {
-  skill: 'bg-brand-tint text-brand-deep',
-  place: 'bg-place-tint text-place',
-  condition: 'bg-cond-tint text-cond',
-  excluded: 'bg-danger-tint text-danger line-through decoration-[1.5px]',
+  skill: 'bg-brand-tint text-brand-deep border-brand-soft',
+  place: 'bg-place-tint text-place border-place-soft',
+  condition: 'bg-cond-tint text-cond border-cond-soft',
+  excluded: 'bg-danger-tint text-danger border-danger-soft line-through decoration-[1.5px]',
 }
 
 /** Как движок прочитал запрос: каждое поле разбора своим цветом, исключённое зачёркнуто. */
@@ -29,11 +29,11 @@ export function Readback({ parsed, count, tookMs, children }: { parsed: ParsedQu
 
   return (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
-      <span className="serif mr-1.5 text-base font-semibold italic text-ink-2">{r.label}</span>
+      <span className="label mr-1.5 text-ink-3">{r.label}</span>
       {tokens.length === 0 && <span className="text-sm text-ink-2">{r.noTerms}</span>}
       <ul className="contents">
         {tokens.map((token, index) => (
-          <li key={`${token.kind}-${token.text}-${index}`} className={`inline-flex items-center gap-1.5 rounded-md border border-current/15 py-1 pl-2 pr-2.5 text-[13px] font-medium ${TONE[token.kind]}`}>
+          <li key={`${token.kind}-${token.text}-${index}`} className={`inline-flex items-center gap-1.5 rounded-md border py-1 pl-2 pr-2.5 text-[13px] font-medium ${TONE[token.kind]}`}>
             <Icon name={token.icon} size={14} />
             <span className="sr-only">{token.hint}: </span>
             {token.text}
