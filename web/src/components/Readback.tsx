@@ -6,13 +6,13 @@ import { Icon, type IconName } from './Icon'
 type Kind = 'skill' | 'place' | 'condition' | 'excluded'
 
 const TONE: Record<Kind, string> = {
-  skill: 'bg-brand-tint text-brand-deep border-brand-soft',
-  place: 'bg-place-tint text-place border-place-soft',
-  condition: 'bg-cond-tint text-cond border-cond-soft',
-  excluded: 'bg-danger-tint text-danger border-danger-soft line-through decoration-[1.5px]',
+  skill: 'text-brand',
+  place: 'text-place',
+  condition: 'text-cond',
+  excluded: 'text-danger',
 }
 
-/** Как движок прочитал запрос: каждое поле разбора своим цветом, исключённое зачёркнуто. */
+/** Как движок прочитал запрос: слова без плашек, роль показывает цветная иконка; исключённое зачёркнуто. */
 export function Readback({ parsed, count, tookMs, children }: { parsed: ParsedQuery; count: number; tookMs: number; children?: ReactNode }) {
   const { t } = useI18n()
   const r = t.readback
@@ -29,19 +29,19 @@ export function Readback({ parsed, count, tookMs, children }: { parsed: ParsedQu
 
   return (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
-      <span className="label mr-1.5 text-ink-3">{r.label}</span>
+      <span className="label mr-2 text-ink-3">{r.label}</span>
       {tokens.length === 0 && <span className="text-sm text-ink-2">{r.noTerms}</span>}
       <ul className="contents">
         {tokens.map((token, index) => (
-          <li key={`${token.kind}-${token.text}-${index}`} className={`inline-flex items-center gap-1.5 rounded-md border py-1 pl-2 pr-2.5 text-[13px] font-medium ${TONE[token.kind]}`}>
-            <Icon name={token.icon} size={14} />
+          <li key={`${token.kind}-${token.text}-${index}`} className="inline-flex items-center gap-1.5 pr-2.5 text-[14px] text-ink" title={token.hint}>
+            <Icon name={token.icon} size={14} className={TONE[token.kind]} />
             <span className="sr-only">{token.hint}: </span>
-            {token.text}
+            <span className={token.kind === 'excluded' ? 'text-ink-3 line-through decoration-danger decoration-[1.5px]' : ''}>{token.text}</span>
           </li>
         ))}
       </ul>
       <span className="ml-auto flex items-center gap-3 pl-3">
-        <span className="mono flex items-center gap-2 text-xs text-ink-3">
+        <span className="flex items-center gap-2 text-[13px] text-ink-3">
           {t.results(count)}
           <span aria-hidden className="h-3 w-px bg-line-strong" />
           <span className="flex items-center gap-1">

@@ -145,10 +145,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
               </p>
             )}
             <p className="mt-3">
-              <span className="label inline-flex items-center gap-1.5 rounded border border-brand-soft bg-brand-tint px-2 py-0.5 text-brand-deep">
-                <span aria-hidden className="size-1.5 rounded-full bg-brand" />
-                {label}
-              </span>
+              <span className="text-[13px] font-medium text-ink-3">{label}</span>
             </p>
           </div>
         </div>
@@ -179,8 +176,8 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
             role="tab"
             aria-selected={tab === item.id}
             onClick={() => setTab(item.id)}
-            className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-sm font-semibold transition-colors ${
-              tab === item.id ? 'border-action text-ink' : 'border-transparent text-ink-3 hover:text-ink'
+            className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-sm font-medium transition-colors ${
+              tab === item.id ? 'border-ink text-ink' : 'border-transparent text-ink-3 hover:text-ink'
             }`}
           >
             {item.label}
@@ -213,8 +210,8 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
             </Section>
           )}
           {match?.alternative && (
-            <div className="mx-5 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-dashed border-line-strong px-3.5 py-2.5 text-sm sm:mx-6">
-              <span className="font-semibold text-free">{t.dialog.altTitle}:</span>
+            <div className="mx-5 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-sunken px-3.5 py-2.5 text-sm sm:mx-6">
+              <span className="text-ink-3">{t.dialog.altTitle}:</span>
               <span className="font-semibold text-ink">{match.alternative.full_name}</span>
               <span className="mono text-xs text-ink-3">{match.alternative.match_percent}%</span>
               {match.alternative.shared_terms.length > 0 && (
@@ -245,10 +242,10 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
                       key={skill}
                       className={`rounded-md border px-2.5 py-1 text-[13px] ${
                         isHit
-                          ? 'border-brand-soft bg-brand-tint font-semibold text-brand-deep'
+                          ? 'border-transparent bg-hover font-medium text-ink'
                           : isNear
-                            ? 'border-dashed border-brand-soft text-brand-deep'
-                            : 'border-line bg-sunken text-ink-2'
+                            ? 'border-dashed border-line-strong text-ink-2'
+                            : 'border-transparent bg-sunken text-ink-3'
                       }`}
                     >
                       {skill}
@@ -284,7 +281,7 @@ function Profile({ expertId, result, label, query, showScore, parsed, isWeak, on
                 <button
                   type="button"
                   onClick={() => onOpen(item.id)}
-                  className="group flex h-full w-full flex-col rounded-lg border border-line bg-sunken p-3 text-left transition-colors hover:border-line-strong hover:bg-hover"
+                  className="group flex h-full w-full flex-col rounded-lg bg-sunken p-3 text-left transition-colors hover:bg-hover"
                 >
                   <span className="font-semibold text-ink">{item.full_name}</span>
                   <span className="text-[13px] text-ink-2">
@@ -335,16 +332,16 @@ function Evidence({ items }: { items: TermEvidence[] }) {
     <ul className="divide-y divide-dashed divide-line">
       {items.map((item) => (
         <li key={item.term} className="grid grid-cols-[minmax(0,auto)_16px_minmax(0,1fr)] items-center gap-x-2.5 py-2 text-[15px] sm:grid-cols-[minmax(0,10rem)_16px_minmax(0,1fr)_auto]">
-          <span className={`justify-self-start truncate rounded-md border px-2 py-0.5 text-[13px] font-medium ${item.kind === 'missing' ? 'border-danger-soft bg-danger-tint text-danger' : 'border-brand-soft bg-brand-tint text-brand-deep'}`}>
+          <span className={`justify-self-start truncate text-[14px] font-medium ${item.kind === 'missing' ? 'text-danger' : 'text-ink'}`}>
             {item.term}
           </span>
           <Icon name="arrow-right" size={15} className="text-ink-3" />
-          <span className={`min-w-0 ${item.kind === 'missing' ? 'text-ink-3' : 'text-ink'}`}>
+          <span className={`min-w-0 ${item.kind === 'missing' ? 'text-ink-3' : 'text-ink-2'}`}>
             {item.kind === 'missing' ? t.dialog.missingTerm : (item.source ?? t.dialog.inBio)}
           </span>
           <span
             className={`mono col-start-3 justify-self-start whitespace-nowrap text-[11px] sm:col-start-auto sm:justify-self-end ${
-              item.kind === 'exact' ? 'text-free' : item.kind === 'semantic' ? 'text-brand-deep' : 'text-danger'
+              item.kind === 'exact' ? 'text-ink-2' : item.kind === 'semantic' ? 'text-ink-3' : 'text-danger'
             }`}
           >
             {item.kind === 'exact' && (
@@ -392,7 +389,7 @@ function Breakdown({ breakdown, percent }: { breakdown: ScoreBreakdown; percent:
         <span className="text-ink-3">=</span>
         <b className="font-medium text-ink">{num(base, 0)}</b>
         {breakdown.factors.map((factor) => (
-          <span key={factor.kind} className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${factor.value >= 1 ? 'bg-place-tint text-place' : 'bg-cond-tint text-cond'}`}>
+          <span key={factor.kind} className={`inline-flex items-center gap-1 ${factor.value >= 1 ? 'text-place' : 'text-cond'}`}>
             × {num(factor.value, 1)} {t.dialog.factors[factor.kind]}
           </span>
         ))}

@@ -27,7 +27,7 @@ export function Brand() {
   return (
     <span className="flex items-center gap-2.5">
       <SarapMark size={26} />
-      <span className="display text-[19px] font-semibold tracking-[0.02em] text-ink">Sarap</span>
+      <span className="display text-[19px] font-semibold text-ink">Sarap</span>
     </span>
   )
 }

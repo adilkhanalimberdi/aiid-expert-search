@@ -21,7 +21,7 @@ export function Formula() {
   const { t, lang } = useI18n()
   const num = (value: number) => value.toLocaleString(lang === 'en' ? 'en' : 'ru')
   return (
-    <details className="group rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-2 sm:px-5">
+    <details className="group rounded-xl bg-surface px-4 py-3 text-sm text-ink-2 sm:px-5">
       <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1.5 [&::-webkit-details-marker]:hidden">
         <span className="label w-full text-ink-3">{t.formula.title}</span>
         <Term value={`${WEIGHT_SEMANTIC}%`} label={t.formula.meaning} />

@@ -51,7 +51,7 @@
   --color-danger-soft: #6e2f2c;
 
   --font-sans: 'Commissioner Variable', system-ui, sans-serif;
-  --font-display: 'Tektur Variable', 'Commissioner Variable', system-ui, sans-serif;
+  --font-display: 'Commissioner Variable', system-ui, sans-serif;
   --font-mono: 'Fira Code Variable', ui-monospace, monospace;
 }
 
@@ -107,16 +107,14 @@ textarea {
 
 .display {
   font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
-/* Подпись-метка: моноширинные прописные, как в приборах */
+/* Подпись раздела: обычный регистр, вес вместо прописных и разрядки */
 .label {
-  font-family: var(--font-mono);
-  font-variant-ligatures: none;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 /* Чекбокс: квадрат со скруглением, галочка рисуется фоном */
@@ -136,26 +134,6 @@ textarea {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121705' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
     center / 14px no-repeat;
   border-color: var(--color-action);
-}
-
-/*
- * Визир: четыре уголка вокруг выбранного. Тот же жест, что у знака: запрос «захватил» эксперта.
- * Рисуется фоном (восемь отрезков), поэтому не сдвигает раскладку.
- */
-.reticle {
-  --c: var(--color-action);
-  --l: 14px;
-  --w: 2px;
-  background:
-    linear-gradient(var(--c), var(--c)) top left / var(--l) var(--w),
-    linear-gradient(var(--c), var(--c)) top left / var(--w) var(--l),
-    linear-gradient(var(--c), var(--c)) top right / var(--l) var(--w),
-    linear-gradient(var(--c), var(--c)) top right / var(--w) var(--l),
-    linear-gradient(var(--c), var(--c)) bottom left / var(--l) var(--w),
-    linear-gradient(var(--c), var(--c)) bottom left / var(--w) var(--l),
-    linear-gradient(var(--c), var(--c)) bottom right / var(--l) var(--w),
-    linear-gradient(var(--c), var(--c)) bottom right / var(--w) var(--l);
-  background-repeat: no-repeat;
 }
 
 /* Заглушки загрузки: мягкое мерцание графита */
@@ -234,17 +212,6 @@ kbd {
 @keyframes fade {
   from {
     opacity: 0;
-  }
-}
-
-/* Точка «офлайн, всё работает» в строке состояния */
-.beacon {
-  animation: beacon 2.4s ease-in-out infinite;
-}
-
-@keyframes beacon {
-  50% {
-    opacity: 0.35;
   }
 }
 

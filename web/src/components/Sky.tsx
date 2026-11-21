@@ -2,28 +2,27 @@ import { useEffect, useRef } from 'react'
 import { getPulse, subscribePulse, type Pulse } from '../lib/pulse'
 
 /**
- * Фон «небо каталога»: каждая точка это эксперт (точек столько, сколько людей в базе),
- * тонкие линии между соседями напоминают граф компетенций. Пока идёт поиск, небо стягивается
- * к полю запроса; когда выдача пришла, столько точек, сколько найдено, загораются сигналом
- * и соединяются с полем. Слабое совпадение загорается тускло и янтарём.
+ * Фон «небо каталога»: точки это эксперты (сколько людей в базе, столько точек, с потолком), они медленно
+ * плывут, а близкие соединяются тонкими линиями, как граф компетенций. Курсор работает как фонарик:
+ * соседние точки чуть расступаются и тянут к нему нити. Пока идёт поиск, небо тянется к полю запроса;
+ * когда выдача пришла, столько точек, сколько найдено, загораются и соединяются с полем.
  *
- * Один canvas без библиотек: соседи считаются один раз при изменении размера, кадр только рисует.
- * Пауза при скрытой вкладке; при prefers-reduced-motion кадр рисуется один раз на смену состояния;
- * на телефоне меньше точек и 30 кадров в секунду.
+ * Один canvas без библиотек. Пауза при скрытой вкладке; при prefers-reduced-motion один статичный кадр
+ * на смену состояния; на телефоне меньше точек и 30 кадров в секунду.
  */
 
 interface Star {
   x: number
   y: number
+  vx: number
+  vy: number
   r: number
   a: number
-  phase: number
-  speed: number
 }
 
 const SIGNAL = '212, 243, 90'
 const AMBER = '245, 180, 85'
-const DUST = '150, 165, 180'
+const DUST = '160, 174, 190'
 
 /** Детерминированный генератор: одинаковое небо при каждом открытии. */
 function random(seed: number): () => number {
@@ -55,17 +54,16 @@ export function Sky() {
     let width = 0
     let height = 0
     let stars: Star[] = []
-    let links: [number, number, number][] = []
     let frame = 0
     let last = 0
     let state: Pulse = getPulse()
     let changedAt = performance.now()
     let lit: number[] = []
     let anchor = { x: 0, y: 0 }
+    const pointer = { x: -9999, y: -9999, strength: 0, target: 0 }
 
     function readAnchor() {
-      const field = document.getElementById('query-anchor')
-      const box = field?.getBoundingClientRect()
+      const box = document.getElementById('query-anchor')?.getBoundingClientRect()
       anchor = box && box.width > 0 ? { x: box.left + box.width * 0.5, y: box.top + box.height * 0.5 } : { x: width * 0.5, y: 120 }
     }
 
@@ -76,26 +74,21 @@ export function Sky() {
       element.width = Math.round(width * ratio)
       element.height = Math.round(height * ratio)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
-      const limit = phone.matches ? 60 : 170
-      const count = Math.max(40, Math.min(limit, state.experts || 120))
+      const limit = phone.matches ? 55 : 140
+      const count = Math.max(40, Math.min(limit, state.experts || 110))
       const next = random(20261121)
-      stars = Array.from({ length: count }, () => ({
-        x: next() * width,
-        y: next() * height,
-        r: 0.8 + next() * 1.2,
-        a: 0.3 + next() * 0.45,
-        phase: next() * Math.PI * 2,
-        speed: 0.00012 + next() * 0.00022,
-      }))
-      // соседи один раз: дрейф маленький, граф от него не меняется
-      const reach = phone.matches ? 90 : 120
-      links = []
-      for (let i = 0; i < stars.length; i += 1) {
-        for (let j = i + 1; j < stars.length; j += 1) {
-          const d = Math.hypot(stars[i].x - stars[j].x, stars[i].y - stars[j].y)
-          if (d < reach) links.push([i, j, 1 - d / reach])
+      stars = Array.from({ length: count }, () => {
+        const angle = next() * Math.PI * 2
+        const speed = 0.06 + next() * 0.12
+        return {
+          x: next() * width,
+          y: next() * height,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: 0.8 + next() * 1.1,
+          a: 0.28 + next() * 0.4,
         }
-      }
+      })
       pickLit()
       readAnchor()
     }
@@ -104,70 +97,105 @@ export function Sky() {
       const next = random(hash(state.seed || 'sarap'))
       const pool = stars.map((_, index) => index)
       lit = []
-      const wanted = state.mode === 'found' || state.mode === 'weak' ? Math.min(state.hits, 12, pool.length) : 0
+      const wanted = state.mode === 'found' || state.mode === 'weak' ? Math.min(state.hits, 10, pool.length) : 0
       while (lit.length < wanted) lit.push(pool.splice(Math.floor(next() * pool.length), 1)[0])
+    }
+
+    function step(dt: number) {
+      const pull = state.mode === 'searching' ? 0.0009 : 0
+      for (const star of stars) {
+        // курсор мягко раздвигает точки рядом
+        const dx = star.x - pointer.x
+        const dy = star.y - pointer.y
+        const d2 = dx * dx + dy * dy
+        if (pointer.strength > 0.01 && d2 < 140 * 140 && d2 > 1) {
+          const push = ((1 - Math.sqrt(d2) / 140) * 0.35 * pointer.strength) / Math.sqrt(d2)
+          star.x += dx * push * dt * 0.06
+          star.y += dy * push * dt * 0.06
+        }
+        if (pull) {
+          star.x += (anchor.x - star.x) * pull * dt
+          star.y += (anchor.y - star.y) * pull * dt
+        }
+        star.x += star.vx * dt * 0.06
+        star.y += star.vy * dt * 0.06
+        // за краем экрана точка появляется с другой стороны
+        if (star.x < -20) star.x = width + 20
+        else if (star.x > width + 20) star.x = -20
+        if (star.y < -20) star.y = height + 20
+        else if (star.y > height + 20) star.y = -20
+      }
+      pointer.strength += (pointer.target - pointer.strength) * 0.08
     }
 
     function draw(now: number) {
       const still = motion.matches
-      const t = still ? 0 : now
       const since = now - changedAt
       ctx.clearRect(0, 0, width, height)
-
-      // поиск: небо стягивается к полю запроса и дышит
-      const pull = state.mode === 'searching' ? (still ? 0.06 : 0.05 + 0.04 * Math.sin(since / 220)) : 0
-      const positions = stars.map((star) => {
-        const drift = still ? 0 : 7
-        const x = star.x + Math.sin(t * star.speed + star.phase) * drift
-        const y = star.y + Math.cos(t * star.speed * 0.8 + star.phase) * drift
-        return { x: x + (anchor.x - x) * pull, y: y + (anchor.y - y) * pull }
-      })
+      const reach = phone.matches ? 95 : 125
+      const reach2 = reach * reach
 
       ctx.lineWidth = 1
-      for (const [i, j, strength] of links) {
-        ctx.strokeStyle = `rgba(${DUST}, ${0.11 * strength})`
-        ctx.beginPath()
-        ctx.moveTo(positions[i].x, positions[i].y)
-        ctx.lineTo(positions[j].x, positions[j].y)
-        ctx.stroke()
+      for (let i = 0; i < stars.length; i += 1) {
+        const a = stars[i]
+        for (let j = i + 1; j < stars.length; j += 1) {
+          const b = stars[j]
+          const dx = a.x - b.x
+          const dy = a.y - b.y
+          const d2 = dx * dx + dy * dy
+          if (d2 > reach2) continue
+          ctx.strokeStyle = `rgba(${DUST}, ${0.12 * (1 - Math.sqrt(d2) / reach)})`
+          ctx.beginPath()
+          ctx.moveTo(a.x, a.y)
+          ctx.lineTo(b.x, b.y)
+          ctx.stroke()
+        }
       }
 
-      for (let i = 0; i < stars.length; i += 1) {
-        const star = stars[i]
-        const twinkle = still ? 1 : 0.75 + 0.25 * Math.sin(t * star.speed * 9 + star.phase)
-        ctx.fillStyle = `rgba(${DUST}, ${star.a * twinkle})`
+      // фонарик курсора: нити к ближайшим точкам
+      if (pointer.strength > 0.02) {
+        const radius = 170
+        for (const star of stars) {
+          const d = Math.hypot(star.x - pointer.x, star.y - pointer.y)
+          if (d > radius) continue
+          ctx.strokeStyle = `rgba(${DUST}, ${0.28 * (1 - d / radius) * pointer.strength})`
+          ctx.beginPath()
+          ctx.moveTo(pointer.x, pointer.y)
+          ctx.lineTo(star.x, star.y)
+          ctx.stroke()
+        }
+      }
+
+      for (const star of stars) {
+        const near = pointer.strength > 0.02 ? Math.max(0, 1 - Math.hypot(star.x - pointer.x, star.y - pointer.y) / 170) * pointer.strength : 0
+        ctx.fillStyle = `rgba(${DUST}, ${Math.min(0.95, star.a + near * 0.5)})`
         ctx.beginPath()
-        ctx.arc(positions[i].x, positions[i].y, star.r, 0, Math.PI * 2)
+        ctx.arc(star.x, star.y, star.r + near * 0.8, 0, Math.PI * 2)
         ctx.fill()
       }
 
-      // найдено: линии от поля запроса к загоревшимся точкам прорисовываются за ~0,7 с
       if (lit.length > 0) {
         const color = state.mode === 'weak' ? AMBER : SIGNAL
-        const reveal = still ? 1 : Math.min(1, since / 700)
-        const fade = state.mode === 'weak' ? 0.45 : 1
+        const reveal = still ? 1 : Math.min(1, since / 800)
+        const fade = state.mode === 'weak' ? 0.4 : 0.8
         lit.forEach((index, order) => {
-          const point = positions[index]
+          const point = stars[index]
           const share = Math.max(0, Math.min(1, reveal * 1.6 - order * 0.08))
           if (share <= 0) return
           const x = anchor.x + (point.x - anchor.x) * share
           const y = anchor.y + (point.y - anchor.y) * share
           const gradient = ctx.createLinearGradient(anchor.x, anchor.y, x, y)
           gradient.addColorStop(0, `rgba(${color}, 0)`)
-          gradient.addColorStop(1, `rgba(${color}, ${0.32 * fade})`)
+          gradient.addColorStop(1, `rgba(${color}, ${0.22 * fade})`)
           ctx.strokeStyle = gradient
           ctx.beginPath()
           ctx.moveTo(anchor.x, anchor.y)
           ctx.lineTo(x, y)
           ctx.stroke()
           if (share >= 1) {
-            ctx.fillStyle = `rgba(${color}, ${0.16 * fade})`
+            ctx.fillStyle = `rgba(${color}, ${fade})`
             ctx.beginPath()
-            ctx.arc(point.x, point.y, 9, 0, Math.PI * 2)
-            ctx.fill()
-            ctx.fillStyle = `rgba(${color}, ${0.95 * fade})`
-            ctx.beginPath()
-            ctx.arc(point.x, point.y, 2.2, 0, Math.PI * 2)
+            ctx.arc(point.x, point.y, 2, 0, Math.PI * 2)
             ctx.fill()
           }
         })
@@ -178,13 +206,16 @@ export function Sky() {
       frame = requestAnimationFrame(loop)
       // телефон: 30 кадров в секунду хватает для медленного дрейфа
       if (phone.matches && now - last < 32) return
+      const dt = Math.min(50, now - (last || now))
       last = now
       if (Math.round(now / 16) % 10 === 0) readAnchor()
+      step(dt)
       draw(now)
     }
 
     function start() {
       cancelAnimationFrame(frame)
+      last = 0
       if (motion.matches) {
         readAnchor()
         draw(performance.now())
@@ -203,39 +234,37 @@ export function Sky() {
       else if (relight) pickLit()
       if (motion.matches) start()
     }
-
     const onResize = () => {
       build()
       if (motion.matches) start()
     }
     const onVisibility = () => (document.hidden ? cancelAnimationFrame(frame) : start())
-    const onScroll = () => {
-      readAnchor()
-      if (motion.matches) draw(performance.now())
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return
+      pointer.x = event.clientX
+      pointer.y = event.clientY
+      pointer.target = 1
     }
+    const onLeave = () => (pointer.target = 0)
 
     build()
     start()
     const unsubscribe = subscribePulse(onPulse)
     window.addEventListener('resize', onResize)
-    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('pointermove', onMove, { passive: true })
+    document.documentElement.addEventListener('pointerleave', onLeave)
     document.addEventListener('visibilitychange', onVisibility)
     motion.addEventListener('change', start)
     return () => {
       cancelAnimationFrame(frame)
       unsubscribe()
       window.removeEventListener('resize', onResize)
-      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('pointermove', onMove)
+      document.documentElement.removeEventListener('pointerleave', onLeave)
       document.removeEventListener('visibilitychange', onVisibility)
       motion.removeEventListener('change', start)
     }
   }, [])
 
-  return (
-    <canvas
-      ref={canvas}
-      aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 h-full w-full [mask-image:radial-gradient(ellipse_90%_75%_at_50%_20%,#000_35%,transparent_100%)]"
-    />
-  )
+  return <canvas ref={canvas} aria-hidden className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
 }

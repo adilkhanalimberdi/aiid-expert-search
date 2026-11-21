@@ -51,11 +51,11 @@ export default function App() {
   }, [])
 
   return (
-    <Shell tab={tab} onTab={changeTab} onAsk={ask} health={health.data}>
+    <Shell tab={tab} onTab={changeTab}>
       {/* Экраны остаются в дереве, чтобы поиск не терялся при переключении разделов */}
       <main>
         <div hidden={tab !== 'search'}>
-          <SearchPage health={health.data} catalogVersion={catalogVersion} />
+          <SearchPage catalogVersion={catalogVersion} />
         </div>
         <div hidden={tab !== 'data'}>
           <DataPage isActive={tab === 'data'} health={health} onUploaded={() => setCatalogVersion((value) => value + 1)} catalogVersion={catalogVersion} />

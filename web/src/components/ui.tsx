@@ -7,10 +7,10 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'positive' | 'quiet'
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-action text-action-ink hover:bg-action-hover active:translate-y-px',
-  secondary: 'border border-line-strong bg-raised text-ink hover:border-ink-3 hover:bg-hover',
-  ghost: 'text-brand-deep hover:bg-brand-tint',
+  secondary: 'bg-raised text-ink hover:bg-hover',
+  ghost: 'text-ink-2 hover:bg-hover hover:text-ink',
   quiet: 'text-ink-2 hover:bg-hover hover:text-ink',
-  positive: 'border border-brand-soft bg-brand-tint text-brand-deep hover:border-brand',
+  positive: 'bg-raised text-ink hover:bg-hover',
 }
 
 interface ButtonProps extends ComponentPropsWithRef<'button'> {
@@ -73,10 +73,10 @@ export function Skeleton({ className = '' }: { className?: string }) {
   return <div aria-hidden className={`sk ${className}`} />
 }
 
-/** Панель рабочей области: слой графита над небом, рамка в 1 px. */
+/** Панель рабочей области: слой графита над небом, без рамки. */
 export function Panel({ className = '', children, ...rest }: ComponentPropsWithRef<'section'>) {
   return (
-    <section className={`rounded-xl border border-line bg-surface ${className}`} {...rest}>
+    <section className={`rounded-xl bg-surface ${className}`} {...rest}>
       {children}
     </section>
   )
