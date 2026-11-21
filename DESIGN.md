@@ -86,15 +86,18 @@ All fonts carry the Kazakh letters (checked with fontTools: Cyrillic + Cyrillic-
 - "Why not them?" blocks carry a 3 px left edge: green confirmed, red missing, amber constraints.
 - Similar experts show similarity as a tiny bar.
 - Email has a copy button that says "Copied" for 1.4 s.
-- The mark animates while searching: the person in the bubble fades in and out.
+- The mark animates while searching: the two circles meet and the overlap fills.
+- The profile pane has three underline tabs (Reasoning, Profile, Similar) under the facts row, sticky inside the pane. Reasoning: "Your query → their profile" (each term chip → the competency that confirms it, with `exact` / `≈ by meaning 0,83` / missing), "How N% adds up" (a two-tone bar for meaning and coverage, then the arithmetic in mono with city factors as chips), "Conditions of the query" (checks, or amber when the server reports a limit), an optional dashed "Free alternative" line, feedback.
+- A busy top-3 card ends with a quiet line "Free alternative: name, %" — a hint, never a highlight.
+- Data: experts as cards (avatar, serif name, id, four skills, industry chip, city, years, status) in a 3-column grid; a Cards / Table switch keeps the table as the secondary view.
 
 ## Logo
 
-`SarapMark`: saffron tile with a dark speech bubble and a person cut out of it: you say in plain words who you need and get a specific person. While searching the person fades in and out. Wordmark "Sarap" in Literata. `AiidLogo` is the original white AIID logo, unchanged, only on the dark bar.
+`SarapMark`: saffron tile with two outlined circles — the query and the expert — and their overlap filled in. The overlap is the match the service finds and explains (score, matched skills, reasons). While searching the circles drift apart and together and the overlap fades in. Wordmark "Sarap" in Literata. `AiidLogo` is the original white AIID logo, unchanged, only on the dark bar.
 
 ## Motion
 
-`fade-in` for new results, `sheet-in` for the phone sheet, shimmer for skeletons, `reveal` for the mark while loading. All disabled under `prefers-reduced-motion`.
+`fade-in` for new results, `sheet-in` for the phone sheet, shimmer for skeletons, `ring-a`, `ring-b`, `lens` for the mark while loading. All disabled under `prefers-reduced-motion`.
 
 ## Rules
 
