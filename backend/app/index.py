@@ -4,7 +4,7 @@ import hashlib
 import json
 import os
 import threading
-from collections import Counter
+from collections import Counter, OrderedDict
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
 from typing import TYPE_CHECKING
@@ -50,22 +50,71 @@ def encode(texts: list[str]) -> np.ndarray:
 
 
 _term_cache: dict[str, np.ndarray] = {}
+_query_cache: OrderedDict[str, np.ndarray] = OrderedDict()
+QUERY_CACHE_SIZE = 512
 
 
 def encode_query(text: str, terms: tuple[str, ...] | list[str] = ()) -> np.ndarray:
-    """Вектор запроса; новые термины кодируются тем же батчем и кладутся в кэш (один вызов модели)."""
+    """Вектор запроса; новые термины кодируются тем же батчем и кладутся в кэш (один вызов модели).
+
+    Готовые векторы запросов тоже в кэше: профиль (/explain), команда и смена языка повторяют
+    тот же запрос, и модель (около 45 мс на вызов на CPU) второй раз не нужна.
+    """
+    key = settings.query_prefix + model_text(text)
     missing = [term for term in dict.fromkeys(terms) if term not in _term_cache]
-    vectors = encode(
-        [settings.query_prefix + model_text(text)] + [settings.query_prefix + t for t in missing]
-    )
+    cached = _query_cache.get(key)
+    if cached is not None and not missing:
+        _query_cache.move_to_end(key)
+        return cached
+    vectors = encode([key] + [settings.query_prefix + t for t in missing])
     for term, vector in zip(missing, vectors[1:], strict=True):
         _term_cache[term] = vector
+    _query_cache[key] = vectors[0]
+    while len(_query_cache) > QUERY_CACHE_SIZE:
+        _query_cache.popitem(last=False)
     return vectors[0]
 
 
 def encode_queries(texts: list[str]) -> np.ndarray:
     """Несколько запросов одним вызовом модели, с той же нормализацией, что и encode_query."""
     return encode([settings.query_prefix + model_text(text) for text in texts])
+
+
+WARM_TERMS_CHUNK = 64
+
+
+def warm_terms(words: list[str]) -> None:
+    """Заранее кодирует слова каталога как термины запроса, кусками, в фоне.
+
+    Новые термины кодируются вместе с запросом и добиваются до его длины: запрос из трёх слов стоил
+    модели как четыре запроса. Когда слова каталога уже в кэше, поиск прогоняет через модель только
+    сам запрос. Куски по 64 слова: между ними пользовательский поиск успевает взять модель.
+    """
+    missing = [word for word in dict.fromkeys(words) if word not in _term_cache]
+    for start in range(0, len(missing), WARM_TERMS_CHUNK):
+        chunk = [word for word in missing[start : start + WARM_TERMS_CHUNK] if word not in _term_cache]
+        if not chunk:
+            continue
+        for word, vector in zip(chunk, encode([settings.query_prefix + w for w in chunk]), strict=True):
+            _term_cache[word] = vector
+
+
+def term_vocabulary(index: "SearchIndex") -> list[str]:
+    """Слова, которые вероятнее всего станут терминами запроса: леммы анкет и слова словаря синонимов."""
+    from .text import lemmas, synonym_groups
+
+    words = {word for text in index.texts for word in lemmas(text)}
+    words |= {word for group in synonym_groups() for phrase in group for word in phrase}
+    return sorted(words)
+
+
+def warm_terms_in_background(index: "SearchIndex") -> threading.Thread:
+    """Запускает warm_terms по словарю каталога, не задерживая старт сервера и загрузку CSV."""
+    thread = threading.Thread(
+        target=lambda: warm_terms(term_vocabulary(index)), daemon=True, name="warm-terms"
+    )
+    thread.start()
+    return thread
 
 
 def encode_terms(terms: list[str]) -> np.ndarray:

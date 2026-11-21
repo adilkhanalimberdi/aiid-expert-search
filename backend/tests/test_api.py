@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import feedback
+from app import index as index_module
 from app.config import settings
 from app.data_loader import load_csv
 from app.main import app
@@ -18,6 +19,8 @@ from app.main import app
 def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setattr(settings, "feedback_db", str(tmp_path / "nested/feedback.db"))
     monkeypatch.setattr(settings, "uploaded_csv", str(tmp_path / "uploaded.csv"))
+    # фоновый прогрев словаря (тысячи слов через модель) тестам не нужен и только их тормозит
+    monkeypatch.setattr(index_module, "warm_terms_in_background", lambda _index: None)
     with TestClient(app) as session:
         yield session
 

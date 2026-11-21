@@ -54,6 +54,7 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     )  # прогрев морфологии и модели
     # векторы запросов из отзывов считаем сейчас, иначе их посчитает первый поиск пользователя
     ranker.warm_feedback(application.state.index, [row[0] for row in feedback_store.votes()])
+    index.warm_terms_in_background(application.state.index)
     with feedback_store.connection():
         pass
     logger.info(
@@ -144,6 +145,7 @@ def upload(file: UploadFile) -> UploadResponse:
         temporary.replace(target)
         app.state.index = replacement
     ranker.warm_feedback(replacement, [row[0] for row in feedback_store.votes()])
+    index.warm_terms_in_background(replacement)
     return report
 
 
