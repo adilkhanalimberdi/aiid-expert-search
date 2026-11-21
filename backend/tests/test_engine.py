@@ -506,3 +506,7 @@ def test_busy_candidate_gets_free_alternative_with_shared_terms() -> None:
     assert updated[0].alternative.shared_terms == ["gmp"]
     assert updated[1].alternative is None
     assert [r.id for r in updated] == [r.id for r in results]  # порядок не меняется
+    # «от 10 лет»: у замены стажа меньше, поэтому её не предлагаем
+    from app.schemas import ParsedQuery
+
+    assert with_alternatives(results, ParsedQuery(min_experience=10))[0].alternative is None

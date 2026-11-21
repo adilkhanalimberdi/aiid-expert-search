@@ -266,11 +266,21 @@ def order_by_percent(
     return sorted(results[:head], key=weight) + sorted(results[head:], key=weight)
 
 
-def with_alternatives(results: list[SearchResult]) -> list[SearchResult]:
+def meets_conditions(result: SearchResult, parsed: ParsedQuery | None) -> bool:
+    """Эксперт отвечает названным в запросе городу и минимальному стажу."""
+    if parsed is None:
+        return True
+    if parsed.city and canonical_city(result.city) != canonical_city(parsed.city):
+        return False
+    return parsed.min_experience is None or result.experience_years >= parsed.min_experience
+
+
+def with_alternatives(results: list[SearchResult], parsed: ParsedQuery | None = None) -> list[SearchResult]:
     """Занятым и частично занятым в топ-3 подбирает свободную замену из остальной выдачи.
 
     Замена берётся только среди уже найденных: она не меняет порядок и состав топ-3, это подсказка.
     Общие термины считаются по доказательствам (evidence), а не по тексту, поэтому их можно проверить.
+    Замена отвечает тем же условиям запроса, что и топ: названный город и «от N лет».
     """
     head = config.ORDER_GROUP_SIZE
     top_ids = {result.id for result in results[:head]}
@@ -290,6 +300,7 @@ def with_alternatives(results: list[SearchResult]) -> list[SearchResult]:
                 other.id not in top_ids
                 and other.availability == "available"
                 and other.match_percent >= config.ALTERNATIVE_MIN_PERCENT
+                and meets_conditions(other, parsed)
                 and (shared or not needed)
             ):
                 alternative = Alternative(
@@ -461,7 +472,8 @@ def search(
     ]
     if mode == "hybrid":
         results = with_alternatives(
-            order_by_percent(results, feedback_scores, parsed.city, parsed.min_experience)[: req.top_k]
+            order_by_percent(results, feedback_scores, parsed.city, parsed.min_experience)[: req.top_k],
+            parsed,
         )
     position = {expert.id: i for i, expert in enumerate(index.experts)}
     best = [position[result.id] for result in results]
