@@ -139,14 +139,34 @@ textarea {
   }
 }
 
-/* Знак при загрузке: человек в облачке проявляется и гаснет, пока идёт подбор */
-.mark-draw .who {
-  animation: reveal 0.8s ease-in-out infinite alternate;
+/* Знак при загрузке: круги запроса и эксперта сходятся, пересечение проявляется */
+.mark-draw .ring-a {
+  animation: ring-a 0.9s ease-in-out infinite alternate;
 }
 
-@keyframes reveal {
+.mark-draw .ring-b {
+  animation: ring-b 0.9s ease-in-out infinite alternate;
+}
+
+.mark-draw .lens {
+  animation: lens 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes ring-a {
   from {
-    opacity: 0.25;
+    transform: translateX(-2.5px);
+  }
+}
+
+@keyframes ring-b {
+  from {
+    transform: translateX(2.5px);
+  }
+}
+
+@keyframes lens {
+  from {
+    opacity: 0;
   }
 }
 

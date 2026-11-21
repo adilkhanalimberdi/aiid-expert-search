@@ -211,6 +211,14 @@ export function TopCards({ results, selectedId, onSelect, showScore }: TopCardsP
                     ))}
                   </span>
                 )}
+                {expert.alternative && (
+                  <span className="mt-auto flex items-center gap-1.5 pt-3 text-xs text-ink-3">
+                    <Icon name="arrow-right" size={13} className="text-brand" />
+                    {t.card.altShort}:
+                    <span className="serif text-[13px] font-semibold text-ink-2">{expert.alternative.full_name}</span>
+                    <span className="mono">{expert.alternative.match_percent}%</span>
+                  </span>
+                )}
               </button>
             </li>
           )

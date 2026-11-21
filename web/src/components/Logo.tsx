@@ -1,9 +1,10 @@
-/** Облачко запроса: обычная фраза, с которой человек приходит в сервис. */
-const BUBBLE = 'M9 5.5h14a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4H13.5l-5.2 4.2v-4.4A4 4 0 0 1 5 18.5v-9a4 4 0 0 1 4-4z'
+/** Общая часть двух кругов: то, в чём запрос и профиль совпали. */
+const LENS = 'M16 10.64A7 7 0 0 1 16 21.36A7 7 0 0 1 16 10.64z'
 
 /**
- * Знак Sarap: облачко реплики, внутри которого человек. Пишешь, кто нужен, обычными словами,
- * и получаешь конкретного эксперта. isDrawing: человек «проявляется», пока идёт поиск.
+ * Знак Sarap: два круга, запрос и эксперт, и залитое пересечение между ними. Пересечение и есть
+ * совпадение, которое сервис находит и объясняет: процент, совпавшие компетенции, доводы.
+ * isDrawing: круги сходятся и расходятся, пока идёт подбор.
  */
 export function SarapMark({ size = 32, isDrawing = false, label }: { size?: number; isDrawing?: boolean; label?: string }) {
   return (
@@ -17,11 +18,11 @@ export function SarapMark({ size = 32, isDrawing = false, label }: { size?: numb
       className={`flex-none ${isDrawing ? 'mark-draw' : ''}`}
     >
       <rect width="32" height="32" rx="7" fill="var(--color-action)" />
-      <path d={BUBBLE} fill="var(--color-action-ink)" />
-      <g className="who" fill="var(--color-action)">
-        <circle cx="16" cy="11.6" r="2.9" />
-        <path d="M10.6 20.4a5.4 5.4 0 0 1 10.8 0z" />
+      <g fill="none" stroke="var(--color-action-ink)" strokeWidth="2">
+        <circle className="ring-a" cx="11.5" cy="16" r="7" />
+        <circle className="ring-b" cx="20.5" cy="16" r="7" />
       </g>
+      <path className="lens" d={LENS} fill="var(--color-action-ink)" />
     </svg>
   )
 }

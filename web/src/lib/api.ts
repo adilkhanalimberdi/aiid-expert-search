@@ -27,7 +27,37 @@ export interface SearchResult {
   matched: string[]
   related: string[]
   reasons: string[]
+  /** чем профиль подтверждает каждый термин запроса */
+  evidence: TermEvidence[]
+  /** из чего сложился процент */
+  breakdown: ScoreBreakdown | null
+  /** свободная замена занятому кандидату из топ-3 */
+  alternative: Alternative | null
   debug: Record<string, unknown>
+}
+
+export interface TermEvidence {
+  term: string
+  kind: 'exact' | 'semantic' | 'missing'
+  source: string | null
+  similarity: number | null
+  credit: number
+}
+
+export interface ScoreBreakdown {
+  semantic: number
+  coverage: number
+  w_semantic: number
+  w_coverage: number
+  factors: { kind: 'city_match' | 'city_mismatch' | 'excluded'; value: number }[]
+  capped: boolean
+}
+
+export interface Alternative {
+  id: string
+  full_name: string
+  match_percent: number
+  shared_terms: string[]
 }
 
 export interface SearchResponse {
