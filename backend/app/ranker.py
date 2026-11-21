@@ -325,7 +325,8 @@ def is_without_evidence(
         return False
     # сюда доходим, только если ни одно слово запроса не подтверждено. Близость компетенций меряем
     # и по всей фразе, и по самим терминам с синонимами, и берём меньшую: иначе «сделать сайт» из-за
-    # слова «сделать» оказывается рядом с «разработкой API», хотя один «сайт» слабый
+    # слова «сделать» оказывается рядом с «разработкой API», хотя один «сайт» слабый. Второй вызов
+    # модели бывает только здесь, у запросов без подтверждений, и его результат кэшируется
     targets = [query_vec] + ([query_vector(" ".join(parsed.terms), parsed)] if parsed.terms else [])
     closest = min(max(float((index.competency_vecs[i] @ target).max()) for i in best) for target in targets)
     return closest < config.WEAK_COMPETENCY_COS
