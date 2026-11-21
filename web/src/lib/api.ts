@@ -186,7 +186,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
       headers: isJsonBody ? { 'Content-Type': 'application/json' } : undefined,
     })
-  } catch {
+  } catch (error) {
+    // отменённый запрос (новый поиск, смена языка) не ошибка: пробрасываем как есть, вызывающий его игнорирует
+    if ((error as Error).name === 'AbortError') throw error
     throw new Error(NETWORK_ERROR)
   }
   if (!res.ok) {
@@ -196,19 +198,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.status === 204 ? (undefined as T) : res.json()
 }
 
-const post = <T>(path: string, body: unknown) =>
-  request<T>(path, { method: 'POST', body: JSON.stringify(body) })
+const post = <T>(path: string, body: unknown, signal?: AbortSignal) =>
+  request<T>(path, { method: 'POST', body: JSON.stringify(body), signal })
 
+/** Запрос отменён через AbortController: такой ответ просто отбрасываем. */
+export function isAbort(error: unknown): boolean {
+  return (error as Error)?.name === 'AbortError'
+}
+
+// signal в каждом вызове: устаревший запрос отменяется (новый поиск, смена языка, закрытая вкладка)
 export const api = {
-  search: (req: SearchRequest) => post<SearchResponse>('/api/search', { lang: uiLanguage, ...req }),
-  team: (req: TeamRequest) => post<TeamResponse>('/api/team', { lang: uiLanguage, ...req }),
-  industries: () => request<string[]>('/api/industries'),
-  experts: (offset = 0, limit = 20) => request<ExpertPage>(`/api/experts?offset=${offset}&limit=${limit}`),
-  expert: (id: string) => request<Expert>(`/api/experts/${encodeURIComponent(id)}`),
-  explain: (id: string, query: string) =>
-    request<ExpertExplanation>(`/api/experts/${encodeURIComponent(id)}/explain?query=${encodeURIComponent(query)}&lang=${uiLanguage}`),
-  similar: (id: string, limit = 5) =>
-    request<SimilarExpert[]>(`/api/experts/${encodeURIComponent(id)}/similar?limit=${limit}`),
+  search: (req: SearchRequest, signal?: AbortSignal) => post<SearchResponse>('/api/search', { lang: uiLanguage, ...req }, signal),
+  team: (req: TeamRequest, signal?: AbortSignal) => post<TeamResponse>('/api/team', { lang: uiLanguage, ...req }, signal),
+  industries: (signal?: AbortSignal) => request<string[]>('/api/industries', { signal }),
+  experts: (offset = 0, limit = 20, signal?: AbortSignal) => request<ExpertPage>(`/api/experts?offset=${offset}&limit=${limit}`, { signal }),
+  expert: (id: string, signal?: AbortSignal) => request<Expert>(`/api/experts/${encodeURIComponent(id)}`, { signal }),
+  explain: (id: string, query: string, signal?: AbortSignal) =>
+    request<ExpertExplanation>(`/api/experts/${encodeURIComponent(id)}/explain?query=${encodeURIComponent(query)}&lang=${uiLanguage}`, { signal }),
+  similar: (id: string, limit = 5, signal?: AbortSignal) =>
+    request<SimilarExpert[]>(`/api/experts/${encodeURIComponent(id)}/similar?limit=${limit}`, { signal }),
   feedback: (query: string, expert_id: string, verdict: FeedbackRequest['verdict']) =>
     post<void>('/api/feedback', { query, expert_id, verdict }),
   upload: (file: File) => {
@@ -216,6 +224,12 @@ export const api = {
     form.append('file', file)
     return request<UploadResponse>('/api/upload', { method: 'POST', body: form })
   },
-  stats: () => request<StatsResponse>('/api/stats'),
-  health: () => request<{ status: string; experts: number; model: string }>('/api/health'),
+  stats: (signal?: AbortSignal) => request<StatsResponse>('/api/stats', { signal }),
+  health: (signal?: AbortSignal) => request<Health>('/api/health', { signal }),
+}
+
+export interface Health {
+  status: string
+  experts: number
+  model: string
 }
