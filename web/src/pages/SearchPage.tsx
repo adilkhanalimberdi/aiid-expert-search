@@ -15,6 +15,7 @@ import { useRecentQueries } from '../hooks/useRecentQueries'
 import { useSearch } from '../hooks/useSearch'
 import { api, type SearchResponse } from '../lib/api'
 import { EXAMPLE_QUERIES, type AnatomyKind, type ExampleHint } from '../lib/i18n'
+import { strengthOf } from '../lib/format'
 import { useI18n } from '../lib/useI18n'
 
 const TOP_K = 8
@@ -448,7 +449,7 @@ function Results({ data, submitted, onReset }: { data: SearchResponse; submitted
   function labelFor(): string {
     if (selectedIndex < 0) return t.card.profile
     if (data.weak_match) return t.card.closestOne
-    if (selectedIndex === 0 && showScore) return t.card.best
+    if (selectedIndex === 0 && showScore && strengthOf(results[0].match_percent) !== 'weak') return t.card.best
     return t.card.rank(selectedIndex + 1)
   }
 
