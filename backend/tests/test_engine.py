@@ -471,6 +471,15 @@ def test_translit_becomes_cyrillic_but_english_stays() -> None:
     assert fix_translit("razbiraetsya") == "разбирается"
     for english in ("data scientist", "machine learning", "project manager", "teacher", "GMP BIM"):
         assert fix_translit(english) == english
+    # английские стоп-слова не транслит: «make» не должно стать «мак»
+    assert fix_translit("make a website") == "make a website"
+
+
+def test_intent_verbs_are_not_terms() -> None:
+    from app.text import stopwords
+
+    # «сделать сайт»: ищем сайт, а не умение «сделать»
+    assert {"сделать", "создать", "make", "create"} <= stopwords()
 
 
 def test_translit_service_words_only_with_translit_content() -> None:
