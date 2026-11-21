@@ -1,42 +1,45 @@
 ---
 name: Sarap
-description: Offline expert search for AIID — petrol top bar, coral action, teal for strong matches, indigo for place.
+description: Offline expert search for AIID — "card index": dark leather top bar, saffron action, steppe green for matches, warm paper.
 colors:
-  night: "#0d2b31"
-  night-2: "#153b43"
-  night-line: "#24525b"
-  night-text: "#d5e5e7"
-  night-dim: "#9dbcc1"
-  action: "#ff6a4d"
-  action-hover: "#ff8166"
-  action-ink: "#1c0c08"
-  brand: "#0e8079"
-  brand-hover: "#0b6a64"
-  brand-deep: "#0a5f59"
-  brand-tint: "#e0f1ef"
-  brand-soft: "#7cc8c0"
-  ground: "#eef2f2"
-  surface: "#ffffff"
-  sunken: "#f5f8f8"
-  line: "#d9e2e3"
-  line-strong: "#bfcccf"
-  ink: "#0f1a1d"
-  ink-2: "#3f4f54"
-  ink-3: "#5c6c71"
-  medium: "#a95c00"
-  medium-bar: "#f0a020"
-  weak: "#73848a"
-  free: "#15804f"
-  partial: "#c98000"
-  busy: "#8c989b"
-  place: "#353b99"
-  place-tint: "#e8e9f8"
-  cond: "#8a5300"
-  cond-tint: "#fdf0d8"
+  night: "#221c17"
+  night-2: "#2e2620"
+  night-line: "#47392e"
+  night-text: "#efe6da"
+  night-dim: "#bba993"
+  action: "#f2a93b"
+  action-hover: "#f6bb5e"
+  action-ink: "#241600"
+  brand: "#1e6b4c"
+  brand-hover: "#185a40"
+  brand-deep: "#155238"
+  brand-tint: "#e3efe6"
+  brand-soft: "#8fc3a8"
+  ground: "#f3efe7"
+  surface: "#fffdf9"
+  sunken: "#f7f3ec"
+  hover: "#f9f4e9"
+  line: "#e4dccf"
+  line-strong: "#cbbfad"
+  ink: "#1f1a15"
+  ink-2: "#4c4339"
+  ink-3: "#6f6355"
+  medium: "#955600"
+  medium-bar: "#dc9a2c"
+  weak: "#776c5f"
+  free: "#2b7a4b"
+  partial: "#bf8300"
+  busy: "#9a8f80"
+  place: "#33508a"
+  place-tint: "#e7ecf5"
+  cond: "#875100"
+  cond-tint: "#fbefd9"
   danger: "#b3261e"
-  danger-tint: "#fbe7e4"
+  danger-tint: "#fae6e1"
 fonts:
-  sans: "Rubik 400/500/600/700 (@fontsource, Cyrillic + Kazakh), tabular figures"
+  serif: "Literata Variable (headings, expert names, hero score)"
+  sans: "IBM Plex Sans 400–700 (interface text)"
+  mono: "IBM Plex Mono 400/500 (ranks, scores in lists, counts, ids, timing)"
 radius:
   control: 8px
   panel: 12px
@@ -49,63 +52,53 @@ Source of truth for tokens: `web/src/index.css` (`@theme`). This file explains h
 
 ## Idea
 
-Sarap is a working tool with its own voice: a deep petrol shell, one coral for every action, teal for what matched, indigo for place. Two poles (cool petrol, warm coral) carry the contrast; everything else is neutral tinted from petrol. Depth comes from 1 px borders, not shadows. Icons are drawn SVG from one set (`components/Icon.tsx`), never Unicode glyphs.
+Sarap is a card index of people. The shell is dark leather, the workspace warm paper, names are set in a book serif like entries in a register, and everything countable (rank, score, ids, timing) is in a monospace like a typed index card. One saffron colour for every action; steppe green for what matched; slate blue for place. Depth comes from 1 px borders, not shadows. Hover lights an element up (warm `hover` tint, green text or border); nothing turns dark on hover.
+
+All fonts carry the Kazakh letters (checked with fontTools: Cyrillic + Cyrillic-ext subsets together cover ә ғ қ ң ө ұ ү һ і).
 
 ## Layout
 
-- **Shell** (`components/Shell.tsx`). A sticky navy top bar: the Sarap | AIID lock-up on the left, the sections (Search, Data, Analytics) as centred tabs with a gold underline on the active one, the EN/RU/KK switch on the right. On phones the tabs move to a second row of the bar. Directly under the bar a petrol strip carries the synthetic-data notice with a coral outlined “Demo data” tag, so it is visible on every screen; the phone profile sheet repeats it at its sticky top. Content sits in one centred container (`CONTAINER`, max 1280 px) shared with the bar, so edges line up.
-- **Search** (`pages/SearchPage.tsx`). Before the first search: a heading with the catalogue size, the query card (field + button, filters in the card's lower row), example queries as buttons that wrap at their natural width, each with its language tag (RU / KK / EN) — the trilingual claim shown, not told; on hover the button turns petrol with a coral arrow, three "how it works" points in one row (petrol icon tile + text, no cards) and the formula. After a search the heading hides and the query card moves to the top; below it the readback (each tag with an icon: star skill, pin city, factory industry, clock experience, check available, ban excluded) with “New search” on the right, which clears the field and returns to the start screen; the field itself has a clear button ("Understood:" tags, count, time), the view switch (Candidates / Team for the query) and two columns: the result list and the profile pane (sticky under the bar). On a phone the profile opens as a full-screen sheet over the list.
-- **Data** and **Analytics** use a page header (h1 + one-line purpose) and white panels in the same container.
+- **Shell** (`components/Shell.tsx`). A sticky dark top bar: the Sarap | AIID lock-up on the left (saffron mark, serif wordmark), the sections as centred tabs with a saffron underline on the active one, the EN/RU/KK switch on the right. On phones the tabs move to a second row. Under the bar a thin strip carries the synthetic-data notice (info icon + text, no tag) and, on the right, "Offline · bge-m3" from `/api/health`. Content sits in one centred container (`CONTAINER`, max 1280 px).
+- **Search** (`pages/SearchPage.tsx`). Before the first search: a large serif question, the catalogue size in mono with a saffron rule, the query card (field, `/` shortcut hint, button; filters on a dashed lower row), example queries as index cards in a 3-column grid with a mono language tag, three numbered "how it works" points (saffron mono numerals 01–03) and the formula. `/` anywhere focuses the query. After a search: query card on top, the readback ("Understood:" in serif italic, tags with icons, result count and timing in mono), underline tabs Candidates / Team, then the list and the sticky profile pane. On a phone the profile opens as a sheet.
+- **Data** and **Analytics**: serif page header and paper panels in the same container.
 
 ## Colour roles
 
 | Role | Token |
 | --- | --- |
-| Top bar, active segment, icon tiles, example hover | `night`, `night-2`, `night-line`, text `night-text` / `night-dim` |
-| Primary action (dark text on coral), active tab underline, logo tile, “Demo data” tag, text selection | `action` / `action-hover`, text `action-ink` |
-| Selection, strong match, skill tags, links | `brand` (fill), `brand-deep` (text), `brand-tint` (background) |
-| City and industry tags | `place` on `place-tint` |
-| Conditions (experience, available only), weak-match notice | `cond` on `cond-tint` |
-| Excluded terms, errors, busy as a limit | `danger` on `danger-tint`; excluded tags are struck through |
-| Workspace | `ground` behind, `surface` panels, `sunken` inner blocks, `line` borders |
-| Avatars | initials on one of five tints, picked by a hash of the name |
+| Top bar | `night`, `night-2`, `night-line`, text `night-text` / `night-dim` |
+| Primary action (dark text on saffron), active tab underline, logo tile, numerals of "how it works", text selection | `action` / `action-hover`, text `action-ink` |
+| Selection (tint + 3 px green edge), strong match, skill tags, links, active view tab | `brand`, `brand-deep`, `brand-tint`, `brand-soft` |
+| Hover | `hover` background, `brand-soft` border, `brand-deep` text |
+| City and industry | `place` on `place-tint` |
+| Conditions, weak-match notice | `cond` on `cond-tint` |
+| Excluded, errors, busy as a limit | `danger` on `danger-tint` |
+| Workspace | `ground` paper, `surface` panels, `sunken` inner blocks, `line` borders |
 
 ## Score
 
-`components/Score.tsx`. In lists a number plus a 6 px meter (a bar compares well down a column; rings do not). In the profile a large number with %, a full-width meter with tick marks at 40 and 70 and the strength word — the scale explains the colour. Colour comes only from `strengthOf` (`lib/format.ts`): ≥70 brand, ≥40 amber (`medium`), below grey (`weak`). The profile adds the strength word ("strong / partial / weak match"), so colour is never the only signal and 26% never looks like success. Filter-only queries show years of experience instead of a score.
+`components/Score.tsx`. In lists a mono number plus a 4 px meter. In the profile a large serif number, a meter with ticks at 40 and 70, and the strength word. Colour only from `strengthOf`: ≥70 green, ≥40 amber, below grey.
 
-## Status
+## Details
 
-`components/Status.tsx`. A mark of different shape plus a word: filled dot (available, `free`), ring (partly available, `partial`), dash (busy, `busy`, and the word is greyed).
+- Rank numerals 01, 02… in mono in front of every row.
+- Profile badge in mono caps with a green dot; section titles small caps with a hairline rule.
+- "Why not them?" blocks carry a 3 px left edge: green confirmed, red missing, amber constraints.
+- Similar experts show similarity as a tiny bar.
+- Email has a copy button that says "Copied" for 1.4 s.
+- The mark animates while searching: its three index lines shrink and grow in turn.
 
-## Components
+## Logo
 
-- `ui.tsx`: `Button` (primary / secondary / ghost / positive), `Select`, `Checkbox` (`.check`), `Panel`, `PanelTitle`, `Segmented`, `Skeleton` (`.sk`).
-- `Readback.tsx`: parsed query as tags, each with a hidden role label for screen readers.
-- `ResultList.tsx`: two groups (Recommended = top 3, More candidates) or one (Closest profiles for a weak match); rows are buttons with `aria-current` on the selected one (tinted, no side stripe); below the top 3 rows are sorted by percent.
-- `ExpertPane.tsx`: name, then a tinted badge (Best match / Candidate No. n / Closest profile / Similar profile), hero score, facts, "Why this expert" (or "What matches the profile" for a weak match) with the profile field each reason came from; city, industry and experience count as reasons only when the query asked for them, busy/partly available is marked as a limit, "Why not them?" (confirmed / missing / constraints from `/explain`), skills with matched ones highlighted, bio, languages, email, feedback, similar experts with a back trail.
-- `TeamView.tsx`: members as rows, query terms as columns, covered cells as a tinted round check.
-- `Formula.tsx`: one-line formula in a white panel, each operator wraps with its number, from `lib/weights.ts`; the explanation opens in a `<details>`.
-- `Avatar.tsx`: initials circle for experts in the list (wide screens) and the profile.
-- `Icon.tsx`: the one icon set, 2 px stroke.
-- `Logo.tsx`: `SarapMark` (a coral tile with an S of two half-rounds with flat ends — query and expert joined into one line; the line redraws while searching), `AiidLogo` (the original white AIID logo, unchanged, cropped by viewBox), `Brand` lock-up.
-
-## Type
-
-Rubik, one family: its softened corners give the tool a voice without a display face. Headings 600 with −0.02…−0.03 em tracking, names 600, body 400–500. No uppercase eyebrow labels: panel and group titles are sentence-case 15–16 px semibold (`PanelTitle`). Figures are tabular (`.tnum`).
-
-## Shape and depth
-
-Controls 8 px, panels 12 px, the query card 16 px. Panels are separated by 1 px `line` borders, no shadows; the query card gets a teal focus ring.
+`SarapMark`: saffron tile, three index lines, each shorter than the one above, and a dot at the end of the last — the whole catalogue narrowed to one person. Wordmark "Sarap" in Literata. `AiidLogo` is the original white AIID logo, unchanged, only on the dark bar.
 
 ## Motion
 
-`fade-in` for new results, `sheet-in` for the phone profile sheet, shimmer for skeletons, the S of the mark redrawing while loading. All disabled under `prefers-reduced-motion`.
+`fade-in` for new results, `sheet-in` for the phone sheet, shimmer for skeletons, `sift` for the mark while loading. All disabled under `prefers-reduced-motion`.
 
 ## Rules
 
 - Keep the synthetic-data notice visible on every screen.
-- Never alter the AIID logo; place it only on the petrol top bar.
+- Never alter the AIID logo; place it only on the dark top bar.
 - Score colour only from `strengthOf`; pair every colour with a word or number.
-- `spark` is decoration for the brand mark and markers, never for meaning.
-- New UI goes inside the shell: no full-bleed hero headers.
+- No dark hover states; no shadows; icons only from `components/Icon.tsx`.
